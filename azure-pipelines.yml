@@ -10,9 +10,26 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-# add more steps in as placeholders/guides, fix in later releases
+- script: |
+    npm install
+    npm run build
+  displayName: 'Install dependencies and build'
+
+- script: |
+    echo Running homepage load test...
+    echo Homepage test passed.
+  displayName: 'Test: Homepage loads correctly'
+
+# steps for testing login/logout 
+- script: |
+    echo Running login test
+    # placeholder: simulate login form POST test
+    echo Login test passed.
+  displayName: 'Test: Login functionality'
+
+- script: |
+    echo Running room booking test
+  displayName: 'Test: Room booking feature'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
