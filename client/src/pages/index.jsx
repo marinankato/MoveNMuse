@@ -1,4 +1,5 @@
 import Home from "./Home.jsx";
 import Login from "./Login";
+import Cart from "./Cart";
 
-export { Home, Login };
+export { Home, Login, Cart };
