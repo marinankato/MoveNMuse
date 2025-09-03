@@ -17,7 +17,7 @@ const Header = () => {
   };
 
   return (
-    <topHeader className="sticky top-0 left-0 w-full z-50 flex flex-wrap justify-between items-center py-6 px-6 bg-gray-900 text-white shadow-lg border-b-4 border-gray-800">
+    <div className="sticky top-0 left-0 w-full z-50 flex flex-wrap justify-between items-center py-6 px-6 bg-gray-900 text-white shadow-lg border-b-4 border-gray-800">
       <div
         className="flex items-center justify-start cursor-pointer gap-2 hover:shadow-lg rounded-lg transition-all duration-300"
         onClick={handleLogoClick}
@@ -57,7 +57,7 @@ const Header = () => {
           </div>
         )}
       </div>
-    </topHeader>
+    </div>
   );
 };
 

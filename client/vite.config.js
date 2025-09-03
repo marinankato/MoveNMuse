@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://video-mgt-app.vercel.app/api",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""), // Removes '/api' prefix from the request
+        target: "http://localhost:5001",
+        // changeOrigin: true,
+        // rewrite: (path) => path.replace(/^\/api/, ""), // Removes '/api' prefix from the request
       },
     },
   },

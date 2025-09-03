@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { TopHeader, Footer } from "../components";
+import { Header, Footer } from "../components";
 import { useState } from "react";
 
 const Layout = () => {
@@ -11,7 +11,7 @@ const Layout = () => {
   return (
     <>
       {/* Top Header */}
-      <TopHeader />
+      <Header />
 
       <div className="flex flex-col lg:flex-row h-screen">
         {/* Main Content */}

@@ -15,10 +15,8 @@ const cartSchema = new Schema(
     items: [
       {
         itemID: { type: String, required: true },
-        startTime: { type: Date, required: true },
+        time: { type: Date, required: true },
         price: { type: Number, required: true },
-        selected: { type: Boolean, default: false },
-        selectedTotal: { type: Number, required: true },
       },
     ],
   },
@@ -27,4 +25,4 @@ const cartSchema = new Schema(
   }
 );
 
-export const User = mongoose.model("User", userSchema);
+export const Cart = mongoose.model("Cart", cartSchema);

@@ -1,28 +1,29 @@
 import { Cart } from "../models/cart.model.js";
 
-
-
-// Common error handler function
+// error handler function
 const handleError = (res, error) => {
   console.error("Error:", error);
   return res.status(500).json({ message: "Internal Server Error" });
 };
 
-const CartViewProfileController = async (req, res) => {
-  const cartId = req.cart.uid;
+// Read cart data, if cart not found, create a new cart
+const ReadCart = async (req, res) => {
+  // const cartId = req.cart.userID;
+  const userID = "001";
 
   try {
-    const cart = await Cart.findOne({ uid: cartId });
+    let cart = await Cart.findOne({ userID: userID });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      Cart.create({ cartID: "cart_" + userID, userID: userID, items: [] });
+      cart = await Cart.findOne({ userID: userID });
     }
-
+    return res.status(200).json(cart);
   } catch (error) {
     handleError(res, error);
   }
 };
 
-const CartUpdateProfileController = async (req, res) => {
+const UpdateCart = async (req, res) => {
   const cartId = req.cart.uid;
   const updatedData = req.body;
 
@@ -60,5 +61,4 @@ const CartUpdateProfileController = async (req, res) => {
   }
 };
 
-export { CartViewProfileController, CartUpdateProfileController };
-
+export { ReadCart, UpdateCart };

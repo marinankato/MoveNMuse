@@ -1,62 +1,90 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckoutBtn } from "../utils/index.jsx";
 
-// import { set } from "mongoose";
-
-function Cart() {
+function CartPage() {
+  // const [user, setUser] = useState(null);
+  const [cart, setCart] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Hip Hop Course",
-      date: new Date("October 13, 2025 11:00").toLocaleDateString(),
-      time: new Date("October 13, 2025 11:00").toLocaleTimeString(),
-      price: 30.0,
-      isSelected: false,
-    },
-    {
-      id: 2,
-      name: "Small Dance Room",
-      date: new Date("October 15, 2025 12:00").toLocaleDateString(),
-      time: new Date("October 15, 2025 12:00").toLocaleTimeString(),
-      price: 50.0,
-      isSelected: false,
-    },
-    {
-      id: 3,
-      name: "Medium Dance Room",
-      date: new Date("October 18, 2025 09:00").toLocaleDateString(),
-      time: new Date("October 18, 2025 09:00").toLocaleTimeString(),
-      price: 60.0,
-      isSelected: false,
-    },
-    {
-      id: 4,
-      name: "Large Dance Room",
-      date: new Date("November 15, 2025 08:00").toLocaleDateString(),
-      time: new Date("November 15, 2025 08:00").toLocaleTimeString(),
-      price: 70.0,
-      isSelected: false,
-    },
-    {
-      id: 5,
-      name: "Jeezy Dance Course",
-      date: new Date("November 15, 2025 12:00").toLocaleDateString(),
-      time: new Date("November 15, 2025 12:00").toLocaleTimeString(),
-      price: 50.0,
-      isSelected: false,
-    },
-  ]);
+  const [products, setProducts] = useState();
+
+  useEffect(() => {
+    async function fetchCart() {
+      const response = await fetch("/api/cart", {
+        // credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched cart:", data); // Check console for cart data
+        // Add isSelected field to each item
+        const productsWithSelection = data.items.map((item) => ({
+          ...item,
+          date: new Date(item.date).toLocaleDateString(),
+          time: new Date(item.date).toLocaleTimeString(),
+          isSelected: false,
+        }));
+        setCart(data);
+        setProducts(productsWithSelection);
+      } else {
+        console.error("Failed to fetch cart");
+      }
+    }
+    fetchCart();
+  }, []);
+
+  //   const [products, setProducts] = useState([
+  //     {
+  //       id: 1,
+  //       name: "Hip Hop Course",
+  //       date: new Date("October 13, 2025 11:00").toLocaleDateString(),
+  //       time: new Date("October 13, 2025 11:00").toLocaleTimeString(),
+  //       price: 30.0,
+  //       isSelected: false,
+  //     },
+  //     {
+  //       id: 2,
+  //       name: "Small Dance Room",
+  //       date: new Date("October 15, 2025 12:00").toLocaleDateString(),
+  //       time: new Date("October 15, 2025 12:00").toLocaleTimeString(),
+  //       price: 50.0,
+  //       isSelected: false,
+  //     },
+  //     {
+  //       id: 3,
+  //       name: "Medium Dance Room",
+  //       date: new Date("October 18, 2025 09:00").toLocaleDateString(),
+  //       time: new Date("October 18, 2025 09:00").toLocaleTimeString(),
+  //       price: 60.0,
+  //       isSelected: false,
+  //     },
+  //     {
+  //       id: 4,
+  //       name: "Large Dance Room",
+  //       date: new Date("November 15, 2025 08:00").toLocaleDateString(),
+  //       time: new Date("November 15, 2025 08:00").toLocaleTimeString(),
+  //       price: 70.0,
+  //       isSelected: false,
+  //     },
+  //     {
+  //       id: 5,
+  //       name: "Jeezy Dance Course",
+  //       date: new Date("November 15, 2025 12:00").toLocaleDateString(),
+  //       time: new Date("November 15, 2025 12:00").toLocaleTimeString(),
+  //       price: 50.0,
+  //       isSelected: false,
+  //     },
+  //   ]);
 
   // Calculate subtotal of selected products
-  const subtotal = products
+  const subtotal = (products || [])
     .filter((p) => p.isSelected)
     .reduce((sum, p) => sum + p.price, 0);
 
   // Toggle selection
   const handleCheckboxChange = (id) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isSelected: !p.isSelected } : p))
+      prev.map((p) =>
+        p.itemID === id ? { ...p, isSelected: !p.isSelected } : p
+      )
     );
     setSelectAll(false);
   };
@@ -69,14 +97,14 @@ function Cart() {
   };
 
   const removeHandler = (id) => {
-    setProducts((prev) => prev.filter((p) => id != p.id));
+    setProducts((prev) => prev.filter((p) => id != p.itemID));
   };
 
   return (
     <div className="py-8">
       <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
       <div className="max-w-4xl mx-auto px-4">
-        {products.length === 0 ? (
+        {!products || products.length === 0 ? (
           <div className=" bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">Your cart is empty.</p>
           </div>
@@ -109,12 +137,12 @@ function Cart() {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.id} className="border-b">
+                <tr key={p.itemID} className="border-b">
                   <td className="py-4 px-6">
                     <input
                       type="checkbox"
                       checked={p.isSelected}
-                      onChange={() => handleCheckboxChange(p.id)}
+                      onChange={() => handleCheckboxChange(p.itemID)}
                     />
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-900">{p.name}</td>
@@ -126,7 +154,7 @@ function Cart() {
                   <td className="py-4 px-6 text-sm text-gray-900 text-center">
                     <button
                       className="text-red-600 hover:text-red-800 font-bold text-center"
-                      onClick={() => removeHandler(p.id)}
+                      onClick={() => removeHandler(p.itemID)}
                     >
                       X
                     </button>
@@ -155,4 +183,4 @@ function Cart() {
   );
 }
 
-export default Cart;
+export default CartPage;
