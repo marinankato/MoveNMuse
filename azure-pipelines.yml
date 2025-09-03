@@ -10,10 +10,19 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+# Backend install + build
 - script: |
+    cd server
+    npm install
+    npm run build 
+  displayName: 'Backend: Install dependencies and build'
+
+# Frontend install + build
+- script: |
+    cd client
     npm install
     npm run build
-  displayName: 'Install dependencies and build'
+  displayName: 'Frontend: Install dependencies and build'
 
 - script: |
     echo Running homepage load test...
