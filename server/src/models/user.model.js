@@ -1,63 +1,50 @@
 import mongoose, { Schema } from "mongoose";
+// import bcrypt from "bcryptjs";
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
-    uid: {
+    firstName: {
       type: String,
       required: true,
-      unique: true,
+      trim: true,
     },
-    name: {
+    lastName: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
-      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
+      unique: true, // Ensure email is unique
+      lowercase: true,
+      trim: true,
     },
-    picture: {
+    password: {
       type: String,
-      required: false,
-      default: function () {
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          this.name
-        )}`;
-      },
-    },
-    age: {
-      type: Number,
-      required: false,
-      min: [0, "Age must be a positive number"],
-    },
-    gender: {
-      type: String,
-      enum: ["male", "female", "other"],
-      required: false,
-      default: null,
-    },
-    address: {
-      type: String,
-      required: false,
-      default: null,
-    },
-    phone: {
-      type: String,
-      required: false,
-      match: [/^\d{10}$/, "Please enter a valid 10-digit phone number"],
-      default: null,
-    },
-    userType: {
-      type: String,
-      enum: ["student", "mentor"], // Enum values
       required: true,
-      default: "student", // Default value
+    },
+    role: {
+      type: String,
+      enum: ["customer", "staff", "admin"],
+      default: "customer",
+    },
+    phoneNo: {
+      type: String,
+      required: false,
+    },
+    loginDate: {
+      type: Date,
+    },
+    logoutDate: {
+      type: Date,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt
   }
 );
 
-export const User = mongoose.model("User", userSchema);
+// export const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;

@@ -1,72 +1,118 @@
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
 
 const filterUserData = (user) => ({
-  name: user.name,
+  id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
   email: user.email,
-  age: user.age,
-  gender: user.gender,
-  address: user.address,
-  phone: user.phone,
-  picture: user.picture,
+  role: user.role,
+  phoneNo: user.phoneNo,
+  loginDate: user.loginDate,
+  logoutDate: user.logoutDate,
 });
 
 export const loginUser = async (req, res) => {
-  // console.log(req.user);
-  // console.log(req.body); // userRole
-
   try {
-    const { uid, name, email, picture, email_verified } = req.user;
-    const { userRole } = req.body;
+    const { email, password } = req.body;
 
-    if (!email_verified) {
-      return res.status(400).json({ message: "Email is not verified." });
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
     }
 
-    // Log incoming user details for debugging purposes
-    // console.log("Authenticated user:", {
-    //   uid,
-    //   name,
-    //   email,
-    //   picture,
-    //   email_verified,
-    // });
+    // Find user by email
+    const user = await User.findOne({ email });
 
-    // Check if the user exists in the database
-    let user = await User.findOne({ uid });
-
-    // If user does not exist and userRole is "student", create a new user
-    if (!user && userRole === "student") {
-      user = new User({ uid, name, email, picture, userType: "student" });
-      await user.save();
-      //   console.log("New student user created:", user);
-      return res.status(201).json({
-        message: "User created successfully.",
-        user: filterUserData(user),
-      });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ message: "Invalid email or password." });
     }
 
-    // If the user already exists, log them in
-    if (user) {
-      //   console.log("Existing user logged in:", user);
-      return res.status(200).json({
-        message: "User logged in successfully.",
-        user: filterUserData(user),
-      });
-    }
+    // Update loginDate to now
+    user.loginDate = new Date();
+    await user.save();
 
-    // If the userRole is not "student", don't create the user and send an error
-    return res.status(400).json({
-      message: "User role must be 'student' to create a new account.",
+    return res.status(200).json({
+      message: "Login successful",
+      user: filterUserData(user),
     });
   } catch (error) {
-    console.error("Error during user login:", error);
-
-    // Send a detailed error response
-    return res.status(500).json({
-      message: "An error occurred during login.",
-      error: error.message,
-    });
+    console.error("Login error:", error.message);
+    return res.status(500).json({ message: "Server error." });
   }
 };
 
-export { filterUserData };
+// OPTIONAL: Log out user (update logoutDate)
+export const logoutUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    user.logoutDate = new Date();
+    await user.save();
+
+    return res.status(200).json({ message: "Logout successful." });
+  } catch (error) {
+    console.error("Logout error:", error.message);
+    return res.status(500).json({ message: "Server error." });
+  }
+};
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     // Check if user exists
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res
+//         .status(400)
+//         .json({ message: "Invalid email or password." });
+//     }
+
+//     // Validate password
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res
+//         .status(400)
+//         .json({ message: "Invalid email or password." });
+//     }
+
+//     // If user does not exist and userRole is "student", create a new user
+//     if (!user && userRole === "student") {
+//       user = new User({ uid, name, email, picture, userType: "student" });
+//       await user.save();
+//       //   console.log("New student user created:", user);
+//       return res.status(201).json({
+//         message: "User created successfully.",
+//         user: filterUserData(user),
+//       });
+//     }
+
+//     // If the user already exists, log them in
+//     if (user) {
+//       //   console.log("Existing user logged in:", user);
+//       return res.status(200).json({
+//         message: "User logged in successfully.",
+//         user: filterUserData(user),
+//       });
+//     }
+
+//     // If the userRole is not "student", don't create the user and send an error
+//     return res.status(400).json({
+//       message: "User role must be 'student' to create a new account.",
+//     });
+//   } catch (error) {
+//     console.error("Error during user login:", error);
+
+//     // Send a detailed error response
+//     return res.status(500).json({
+//       message: "An error occurred during login.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// export { filterUserData };

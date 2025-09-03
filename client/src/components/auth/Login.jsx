@@ -1,31 +1,70 @@
+import React, { useState } from "react";
+
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      // Replace this with your real API call
+      // const res = await fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+
+      console.log("Logging in with", { email, password });
+
+      // Simulate success
+      setTimeout(() => {
+        setLoading(false);
+        alert("Logged in!");
+      }, 1000);
+    } catch (err) {
+      setLoading(false);
+      setError("Login failed. Please try again.");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col sm:flex-row ">
-      {/* Site Info Section (Desktop) */}
-      <div className="hidden sm:flex sm:w-1/2 bg-blue-500 justify-center items-center text-white p-10 transition-all duration-300 ease-in-out">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Welcome to MyApp</h1>
-          <p className="text-lg">Sign in to get started!</p>
-        </div>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
+      <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full">
+        <h2 className="text-3xl font-bold mb-6 text-center">Sign In</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="text-red-600 text-center">{error}</p>}
 
-      {/* Login Options Section */}
-      <div className="flex sm:w-1/2 justify-center items-center bg-white p-10 transition-all duration-300 ease-in-out">
-        <div className="max-w-lg w-full">
-          <h2 className="text-2xl font-bold text-center mb-6">Sign In</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 border border-gray-300 rounded-md"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          {/* Login Option Selector */}
-          <div className="mb-6 text-center">
-            <button
-              className={`px-4 py-2 mx-2 rounded-lg text-lg font-medium transition-all duration-300 ease-in-out`}
-            >
-              Login
-            </button>
-          </div>
-        </div>
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-3 border border-gray-300 rounded-md"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
       </div>
     </div>
   );
 };
 
 export default Login;
+

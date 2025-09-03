@@ -5,7 +5,7 @@ function Footer() {
   return (
     <section className="footer bg-gray-800 text-white py-4">
       <div className="footer-container flex justify-center gap-4 ">
-        <a
+        {/* <a
           href="https://www.linkedin.com/in/akash-mishra-2b2348224"
           target="_blank"
           rel="noopener noreferrer"
@@ -25,7 +25,7 @@ function Footer() {
         </a>
       </div>
       <div className="copy-container text-center text-sm opacity-70">
-        &copy;2024 Made by Akash Mishra
+        &copy;2024 Made by Akash Mishra */}
       </div>
     </section>
   );
