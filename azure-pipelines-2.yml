@@ -16,6 +16,15 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
+    pwd
+    ls -la
+    ls -la Server
+
+- script: npm ci
+  workingDirectory: 'Server'
+  displayName: 'npm install (Server)'
+  
+- script: |
     npm install
     npm run build
   displayName: 'npm install and build'
