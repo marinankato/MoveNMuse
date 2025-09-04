@@ -1,19 +1,5 @@
 import { User } from "../models/user.model.js";
 
-// Function to filter the user data to only include specific fields
-const filterUserData = (user) => {
-  return {
-    name: user.name,
-    email: user.email,
-    age: user.age,
-    gender: user.gender,
-    address: user.address,
-    phone: user.phone,
-    picture: user.picture,
-    premiumMember: user.premiumMember,
-  };
-};
-
 // Common error handler function
 const handleError = (res, error) => {
   console.error("Error:", error);
@@ -79,4 +65,3 @@ const UserUpdateProfileController = async (req, res) => {
 };
 
 export { UserViewProfileController, UserUpdateProfileController };
-

@@ -7,15 +7,15 @@ const cartSchema = new Schema(
       required: true,
       unique: true,
     },
-    userID: {
+    userEmail: {
       type: String,
       required: true,
       unique: true,
     },
     items: [
       {
-        itemID: { type: String, required: true },
-        time: { type: Date, required: true },
+        itemID: { type: Number, required: true },
+        date: { type: String, required: true },
         price: { type: Number, required: true },
       },
     ],

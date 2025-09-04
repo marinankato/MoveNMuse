@@ -6,22 +6,21 @@ function CartPage() {
   const [cart, setCart] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
   const [products, setProducts] = useState();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingRemoveID, setPendingRemoveID] = useState(null);
+  const userEmail = "alice@example.com";
 
+  //load cart data when page first loads
   useEffect(() => {
     async function fetchCart() {
-      const response = await fetch("/api/cart", {
+      const response = await fetch(`/api/cart?userEmail=${userEmail}`, {
         // credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched cart:", data); // Check console for cart data
         // Add isSelected field to each item
-        const productsWithSelection = data.items.map((item) => ({
-          ...item,
-          date: new Date(item.date).toLocaleDateString(),
-          time: new Date(item.date).toLocaleTimeString(),
-          isSelected: false,
-        }));
+        const productsWithSelection = formatSelectedProducts(data);
+
         setCart(data);
         setProducts(productsWithSelection);
       } else {
@@ -31,48 +30,15 @@ function CartPage() {
     fetchCart();
   }, []);
 
-  //   const [products, setProducts] = useState([
-  //     {
-  //       id: 1,
-  //       name: "Hip Hop Course",
-  //       date: new Date("October 13, 2025 11:00").toLocaleDateString(),
-  //       time: new Date("October 13, 2025 11:00").toLocaleTimeString(),
-  //       price: 30.0,
-  //       isSelected: false,
-  //     },
-  //     {
-  //       id: 2,
-  //       name: "Small Dance Room",
-  //       date: new Date("October 15, 2025 12:00").toLocaleDateString(),
-  //       time: new Date("October 15, 2025 12:00").toLocaleTimeString(),
-  //       price: 50.0,
-  //       isSelected: false,
-  //     },
-  //     {
-  //       id: 3,
-  //       name: "Medium Dance Room",
-  //       date: new Date("October 18, 2025 09:00").toLocaleDateString(),
-  //       time: new Date("October 18, 2025 09:00").toLocaleTimeString(),
-  //       price: 60.0,
-  //       isSelected: false,
-  //     },
-  //     {
-  //       id: 4,
-  //       name: "Large Dance Room",
-  //       date: new Date("November 15, 2025 08:00").toLocaleDateString(),
-  //       time: new Date("November 15, 2025 08:00").toLocaleTimeString(),
-  //       price: 70.0,
-  //       isSelected: false,
-  //     },
-  //     {
-  //       id: 5,
-  //       name: "Jeezy Dance Course",
-  //       date: new Date("November 15, 2025 12:00").toLocaleDateString(),
-  //       time: new Date("November 15, 2025 12:00").toLocaleTimeString(),
-  //       price: 50.0,
-  //       isSelected: false,
-  //     },
-  //   ]);
+  function formatSelectedProducts(cart) {
+    const productsWithSelection = cart.items.map((item) => ({
+      ...item,
+      date: new Date(item.date).toLocaleDateString(),
+      time: new Date(item.date).toLocaleTimeString(),
+      isSelected: false,
+    }));
+    return productsWithSelection;
+  }
 
   // Calculate subtotal of selected products
   const subtotal = (products || [])
@@ -95,15 +61,59 @@ function CartPage() {
       return prev.map((p) => ({ ...p, isSelected: !selectAll }));
     });
   };
+  //remove one item
+  const removeHandler = async (itemID) => {
+    const response = await fetch(
+      `/api/cart/item/${itemID}?cartID=${cart.cartID}`,
+      { method: "DELETE" }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setCart(data.cart);
+      setProducts((prev) => prev.filter((p) => itemID != p.itemID));
+    } else {
+      console.error("Failed to remove item");
+    }
 
-  const removeHandler = (id) => {
-    setProducts((prev) => prev.filter((p) => id != p.itemID));
+    // setProducts((prev) => prev.filter((p) => id != p.itemID));
   };
 
   return (
     <div className="py-8">
       <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
       <div className="max-w-4xl mx-auto px-4">
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 bg-black/50" />
+            <div className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6 relative z-10">
+              <div>
+                Are you sure you want to remove{" "}
+                {products.find((p) => p.itemID === pendingRemoveID).name}?
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="mr-4 px-4 py-2 bg-red-500 text-white rounded"
+                  onClick={() => {
+                    removeHandler(pendingRemoveID);
+                    setShowConfirm(false);
+                    setPendingRemoveID(null);
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  className="px-4 py-2 bg-gray-300 text-black rounded"
+                  onClick={() => {
+                    setShowConfirm(false);
+                    setPendingRemoveID(null);
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {!products || products.length === 0 ? (
           <div className=" bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">Your cart is empty.</p>
@@ -154,28 +164,46 @@ function CartPage() {
                   <td className="py-4 px-6 text-sm text-gray-900 text-center">
                     <button
                       className="text-red-600 hover:text-red-800 font-bold text-center"
-                      onClick={() => removeHandler(p.itemID)}
+                      onClick={() => (
+                        setShowConfirm(true), setPendingRemoveID(p.itemID)
+                      )}
                     >
                       X
                     </button>
                   </td>
                 </tr>
               ))}
+            </tbody>
+            <tfoot>
               <tr>
                 <td
+                  className="py-4 px-6 text-sm text-gray-900"
+                  colSpan="3"
+                >
+                  {products.filter((p) => p.isSelected).length} /{" "}
+                  {products.length} items selected
+                </td>
+
+                <td
                   className="py-4 px-6 text-sm text-gray-900 font-bold"
-                  colSpan="4"
+                  colSpan="1"
                 >
                   Subtotal
                 </td>
-                <td className="py-4 px-6 text-sm text-gray-900 font-bold">
+                <td
+                  className="py-4 px-6 text-sm text-gray-900 font-bold"
+                  colSpan="1"
+                >
                   ${subtotal}
                 </td>
-                <td className="py-4 px-6 text-sm text-gray-900 font-bold">
+                <td
+                  className="py-4 px-6 text-sm text-gray-900 font-bold"
+                  colSpan="1"
+                >
                   <CheckoutBtn />
                 </td>
               </tr>
-            </tbody>
+            </tfoot>
           </table>
         )}
       </div>
