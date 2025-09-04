@@ -4,7 +4,7 @@ const bookings = [
   { id: "b1", course: "Hip Hop Basics", session: "2025-09-10 18:00", status: "confirmed" },
 ];
 
-function MyBookings() {
+function Mybookings() {
   return (
     <div>
       <h1 className="text-xl font-bold mb-4">My Bookings</h1>
@@ -19,4 +19,4 @@ function MyBookings() {
   );
 }
 
-export default MyBookings;
+export default Mybookings;

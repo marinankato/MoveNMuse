@@ -5,6 +5,6 @@ import Checkout from "./Checkout.jsx";
 import CourseList from "./CourseList.jsx";
 import CourseDetail from "./CourseDetail.jsx";  
 import CourseChekout from "./CourseCheckout.jsx";
-import Mybooking from "./Mybooking.jsx";
+import Mybookings from "./Mybookings.jsx";
 
-export { Home, Login, CartPage, Checkout, CourseList, CourseDetail, CourseChekout, Mybooking };
+export { Home, Login, CartPage, Checkout, CourseList, CourseDetail, CourseChekout, Mybookings };
