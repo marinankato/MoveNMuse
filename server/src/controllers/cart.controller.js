@@ -7,15 +7,14 @@ const handleError = (res, error) => {
 };
 
 // Read cart data, if cart not found, create a new cart
-const ReadCart = async (req, res) => {
-  // const cartId = req.cart.userID;
-  const userID = "001";
+const readCart = async (req, res) => {
+  const userEmail = req.query.userEmail;
 
   try {
-    let cart = await Cart.findOne({ userID: userID });
+    let cart = await Cart.findOne({ userEmail: userEmail });
     if (!cart) {
-      Cart.create({ cartID: "cart_" + userID, userID: userID, items: [] });
-      cart = await Cart.findOne({ userID: userID });
+      Cart.create({ cartID: "cart_" + userEmail, userEmail: userEmail, items: [] });
+      cart = await Cart.findOne({ userEmail: userEmail });
     }
     return res.status(200).json(cart);
   } catch (error) {
@@ -23,42 +22,22 @@ const ReadCart = async (req, res) => {
   }
 };
 
-const UpdateCart = async (req, res) => {
-  const cartId = req.cart.uid;
-  const updatedData = req.body;
+// Remove item from cart
+const removeCartItem = async (req, res) => {
+  const cartID = req.query.cartID;
+  const itemID = Number(req.params.itemID);
 
   try {
-    const cart = await Cart.findOne({ uid: cartId });
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
+    const cart = await Cart.findOne({ cartID: cartID });
 
-    const allowedUpdates = [
-      "name",
-      "age",
-      "gender",
-      "address",
-      "phone",
-      "picture",
-    ];
-
-    allowedUpdates.forEach((field) => {
-      if (updatedData[field] !== undefined) {
-        cart[field] = updatedData[field];
-      }
-    });
-
+    cart.items = cart.items.filter((item) => item.itemID !== itemID);
     await cart.save();
 
-    // Filter cart data before sending it in the response
-    const filteredCart = filterCartData(cart);
-    res.status(200).json({
-      message: "Cart profile updated successfully",
-      cart: filteredCart,
-    });
+    return res.status(200).json({ message: "Item removed successfully", cart });
   } catch (error) {
     handleError(res, error);
   }
 };
 
-export { ReadCart, UpdateCart };
+
+export { readCart, removeCartItem };
