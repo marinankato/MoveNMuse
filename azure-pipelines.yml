@@ -37,8 +37,16 @@ steps:
   displayName: 'Test: Login functionality'
 
 - script: |
-    echo Running room booking test
-  displayName: 'Test: Room booking feature'
+    echo Running room view test
+  displayName: 'Test: Room booking/viewing feature'
+
+- script: |    
+    echo Running course view test
+  displayName: 'Test: Course booking/viewing feature'
+
+- script: |    
+    echo Running cart test
+  displayName: 'Test: Cart creation/edit feature'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
