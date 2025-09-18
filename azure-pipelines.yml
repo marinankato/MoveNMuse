@@ -24,29 +24,37 @@ steps:
     npm run build
   displayName: 'Frontend: Install dependencies and build'
 
+# steps for testing 
 - script: |
-    echo Running homepage load test...
-    echo Homepage test passed.
-  displayName: 'Test: Homepage loads correctly'
+    echo Running tests
+    # placeholder: run all the test files
+    echo All test passed.
+  displayName: 'Run Tests'
 
-# steps for testing login/logout 
-- script: |
-    echo Running login test
-    # placeholder: simulate login form POST test
-    echo Login test passed.
-  displayName: 'Test: Login functionality'
+# put below into a separate yaml?? depends how you structure
+# have main CD pipeline
+# - task: ArchiveFiles@2
+#   inputs:
+#     rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+#     includeRootFolder: false
+#     archiveType: 'zip'
+#     archiveFile: '$(Build.ArtifactsStagingDirectory)/$(Build.BuildId).zip'
+#     replaceExisting Archive: true
+#   displayName: 'ZIP Project'
 
-- script: |
-    echo Running room view test
-  displayName: 'Test: Room booking/viewing feature'
+# - task: PublishBuildArtifacts@1
+#   inputs:
+#     pathToPublish: '$(Build.ArtifactsStagingDirectory)'
+#     artifactName: 'drop'
+#     publishLocation: 'Container'
+#   displayName: 'Publish Artifact'
 
-- script: |    
-    echo Running course view test
-  displayName: 'Test: Course booking/viewing feature'
-
-- script: |    
-    echo Running cart test
-  displayName: 'Test: Cart creation/edit feature'
+# - task: AzureWebApp@1
+#   inputs:
+#     azureSubscription: 'AzureAppConnection'
+#     appName: ''
+#     package: '$(Build.ArtifactsStagingDirectory)/*.zip'
+#   displayName: 'Deploy to Azure App Services'
 
 - script: |
     echo Add other tasks to build, test, and deploy your project.
