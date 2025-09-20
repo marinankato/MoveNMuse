@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 const ROOMS = [
     {
@@ -74,6 +74,6 @@ export default function RoomView() {
                 </article>
             ))}
             </div>
-            </div>
+        </div>
     );
 }

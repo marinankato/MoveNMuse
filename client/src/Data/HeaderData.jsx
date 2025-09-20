@@ -4,7 +4,7 @@ const HeaderData = {
     navItems: [
       { name: "Home", slug: "/", active: true },
       { name: "Courses", slug: "/courses", active: true },
-      { name: "Rooms", slug: "#", active: true },
+      { name: "Rooms", slug: "/rooms", active: true },
       { name: "Cart", slug: "/cart", active: true },
     ],
   },
