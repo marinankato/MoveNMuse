@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const ROOMS = [
     {
@@ -151,9 +152,10 @@ export default function RoomView() {
 
                     <footer className="flex items-center gap-3">
                         <button
-                            className="ml-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 text-white px-4 py-2 text-sm font-medium hover:bg-black"
+                        onClick={() => Navigate(`/room/${room.id}`)}
+                        className="ml-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 text-white px-4 py-2 text-sm font-medium hover:bg-black"
                         >
-                            Select                           
+                        Select                           
                             </button>
                         </footer>
                     </div>
