@@ -1,6 +1,3 @@
-import linkedinLogo from "../../assets/icons8-linkedin.svg";
-import emailLogo from "../../assets/icons8-mail-50.png";
-
 function Footer() {
   return (
     <section className="footer bg-gray-800 text-white py-4">
