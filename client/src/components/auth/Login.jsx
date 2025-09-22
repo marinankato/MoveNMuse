@@ -7,26 +7,39 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
 
-    try {
-      // Replace this with your real API call
-      // const res = await fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+  try {
+    const res = await fetch("http://localhost:5001/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      console.log("Logging in with", { email, password });
+    const data = await res.json();
+    console.log("Response status:", res.status);
+    console.log("Response ok:", res.ok);
+    console.log("Response data:", data);
 
-      // Simulate success
-      setTimeout(() => {
-        setLoading(false);
-        alert("Logged in!");
-      }, 1000);
-    } catch (err) {
-      setLoading(false);
-      setError("Login failed. Please try again.");
+    if (!res.ok) {
+      throw new Error(data.message || "Login failed");
     }
-  };
+
+    setLoading(false);
+    alert("Logged in successfully!");
+
+    // Optional: save token to localStorage
+    // localStorage.setItem("token", data.token);
+
+  } catch (err) {
+    setLoading(false);
+    setError(err.message || "Login failed. Please try again.");
+  }
+};
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">

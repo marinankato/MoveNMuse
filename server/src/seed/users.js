@@ -29,7 +29,7 @@ const seedUsers = async () => {
         firstName: "Bob",
         lastName: "Smith",
         email: "admin@example.com",
-        password: "admin123", // plain text for now
+        password: "admin123", 
         role: "admin",
         phoneNo: "0400000000",
         loginDate: new Date(),
@@ -38,7 +38,7 @@ const seedUsers = async () => {
         firstName: "Carol",
         lastName: "Baker",
         email: "staff@example.com",
-        password: "staff123", // plain text for now
+        password: "staff123", 
         role: "staff",
         phoneNo: "0400000000",
         loginDate: new Date(),

@@ -16,26 +16,31 @@ const filterUserData = (user) => ({
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Login attempt:", email, password);
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required." });
     }
 
-    // Find user by email
     const user = await User.findOne({ email });
+    console.log("Found user:", user);
 
     if (!user || user.password !== password) {
+      console.log("Invalid credentials");
       return res.status(401).json({ message: "Invalid email or password." });
     }
 
-    // Update loginDate to now
     user.loginDate = new Date();
     await user.save();
 
+    console.log("Login successful");
     return res.status(200).json({
       message: "Login successful",
-      user: filterUserData(user),
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+      },
     });
   } catch (error) {
     console.error("Login error:", error.message);
@@ -43,23 +48,55 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// OPTIONAL: Log out user (update logoutDate)
-export const logoutUser = async (req, res) => {
-  try {
-    const { email } = req.body;
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found." });
+//     // Validate input
+//     if (!email || !password) {
+//       return res.status(400).json({ message: "Email and password are required." });
+//     }
 
-    user.logoutDate = new Date();
-    await user.save();
+//     // Find user by email
+//     const user = await User.findOne({ email });
 
-    return res.status(200).json({ message: "Logout successful." });
-  } catch (error) {
-    console.error("Logout error:", error.message);
-    return res.status(500).json({ message: "Server error." });
-  }
-};
+//     if (!user || user.password !== password) {
+//       return res.status(401).json({ message: "Invalid email or password." });
+//     }
+
+//     // Update loginDate to now
+//     user.loginDate = new Date();
+//     await user.save();
+
+//     return res.status(200).json({
+//       message: "Login successful",
+//       user: filterUserData(user),
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error.message);
+//     return res.status(500).json({ message: "Server error." });
+//   }
+// };
+
+// // OPTIONAL: Log out user (update logoutDate)
+// export const logoutUser = async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(404).json({ message: "User not found." });
+
+//     user.logoutDate = new Date();
+//     await user.save();
+
+//     return res.status(200).json({ message: "Logout successful." });
+//   } catch (error) {
+//     console.error("Logout error:", error.message);
+//     return res.status(500).json({ message: "Server error." });
+//   }
+// };
+
+
 // export const loginUser = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
