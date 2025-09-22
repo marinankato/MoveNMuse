@@ -7,7 +7,6 @@ import { login } from "../store/authSlice";
 import { jwtDecode } from "jwt-decode";
 
 const Layout = () => {
-  const location = useLocation();
   const dispatch = useDispatch();
 
   const showHeader = true;

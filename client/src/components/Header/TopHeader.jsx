@@ -30,7 +30,6 @@ const Header = () => {
         {topHeader.navItems.map(
           (item) =>
             item.active && (
-              // <li className="py-2 lg:py-0">
               <button
                 key={item.name}
                 onClick={() => {
@@ -40,7 +39,6 @@ const Header = () => {
               >
                 {item.name}
               </button>
-              // </li>
             )
         )}
       </div>

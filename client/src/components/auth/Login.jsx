@@ -41,6 +41,7 @@ const Login = () => {
 
       setLoading(false);
       alert("Logged in successfully!");
+
       navigate("/") // redirect to home page
 
     } catch (err) {

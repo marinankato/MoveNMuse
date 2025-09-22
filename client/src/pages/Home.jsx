@@ -1,23 +1,27 @@
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Home = () => {
   const navigate = useNavigate();
 
+  // Get user data from Redux store
+  const user = useSelector((state) => state.auth.userData);
+
   const sections = [
     {
       title: "Courses",
-      description: "Explore and register for classes offered at our studio, varying from music to dance.",
-      buttonText: "Browse Courses",
+      description: "Explore and register from our wide variety in dance and music classes.",
+      buttonText: "Browse All Courses",
       route: "/courses",
-      image: "/danceClass.jpg"
+      image: "/danceClass.jpg",
     },
     {
       title: "Rooms",
       description: "Book studio rooms for your own practice, teaching, or events.",
-      buttonText: "Book a Room",
+      buttonText: "View Available Rooms",
       route: "/rooms",
-      image: "/room.jpg"
-    }
+      image: "/room.jpg",
+    },
   ];
 
   return (
@@ -31,39 +35,40 @@ const Home = () => {
       </div>
 
       {/* Feature Grid: Courses & Rooms */}
-<div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-12">
-  {sections.map((section, index) => (
-    <div
-      key={index}
-      className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col h-full"
-    >
-      <img src={section.image} alt={section.title} className="w-full h-48 object-cover" />
-      <div className="flex flex-col justify-between flex-grow p-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{section.title}</h2>
-          <p className="text-gray-600 mb-6 min-h-[72px]">{section.description}</p>
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-12">
+        {sections.map((section, index) => (
+          <div
+            key={index}
+            className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col h-full"
+          >
+            <img src={section.image} alt={section.title} className="w-full h-48 object-cover" />
+            <div className="flex flex-col justify-between flex-grow p-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">{section.title}</h2>
+                <p className="text-gray-600 mb-6 min-h-[72px]">{section.description}</p>
+              </div>
+              <button
+                onClick={() => navigate(section.route)}
+                className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition mt-auto"
+              >
+                {section.buttonText}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Conditionally render Account Button only if user is logged in */}
+      {user && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/account")}
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
+          >
+            View Account & Bookings
+          </button>
         </div>
-        <button
-          onClick={() => navigate(section.route)}
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition mt-auto"
-        >
-          {section.buttonText}
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
-
-
-      {/* Account Button */}
-      <div className="flex justify-center">
-        <button
-          onClick={() => navigate("/account")}
-          className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
-        >
-          View Account & Bookings
-        </button>
-      </div>
+      )}
     </div>
   );
 };
