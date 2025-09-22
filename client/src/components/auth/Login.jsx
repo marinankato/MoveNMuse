@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../../store/authSlice"; 
+import { login } from "../../store/authSlice"; 
 import { useNavigate } from "react-router-dom"; 
 
 const Login = () => {
@@ -37,7 +37,7 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       // Dispatch login to Redux
-      dispatch(loginSuccess(data.user));
+      dispatch(login(data.user));
 
       setLoading(false);
       alert("Logged in successfully!");
