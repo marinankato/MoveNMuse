@@ -10,7 +10,7 @@ const Layout = () => {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const showHeader = location.pathname !== "/login";
+  const showHeader = true;
 
   useEffect(() => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");

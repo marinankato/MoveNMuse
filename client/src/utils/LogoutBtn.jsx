@@ -7,7 +7,7 @@ function LogoutBtn() {
   const navigate = useNavigate();
 
   const logoutHandler = () => {
-    // Clear any stored auth data
+  // Clear any stored auth data
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -15,8 +15,11 @@ function LogoutBtn() {
     // Update Redux state
     dispatch(logout());
 
-    // Redirect to login
-    navigate("/login");
+    // Notify user
+    alert("Successfully logged out!");
+
+    // Redirect to home page
+    navigate("/");
   };
 
   return (

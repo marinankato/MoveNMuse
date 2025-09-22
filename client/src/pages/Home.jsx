@@ -20,55 +20,6 @@ const Home = () => {
     }
   ];
 
-//   return (
-//       <div className="bg-gray-100 min-h-screen py-12 px-4">
-//       {/* Welcome Section */}
-//       <div className="text-center max-w-3xl mx-auto mb-12">
-//         <h1 className="text-4xl font-bold text-gray-800 mb-4">
-//           Welcome to Move n Muse!
-//         </h1>
-//         <p className="text-gray-600 text-lg">
-//           Teaching dance and music to all ages and offering a variety of rooms for hire!
-//         </p>
-//       </div>
-
-//       {/* Feature Sections */}
-//       <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-//         {sections.map((section, index) => (
-//           <div
-//             key={index}
-//             className="bg-white shadow-md rounded-lg p-6 flex flex-col justify-between hover:shadow-xl transition"
-//             className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition"
-
-// //           >
-//             <h2 className="text-2xl font-bold text-gray-800 mb-4">
-//               {section.title}
-//             </h2>
-//             <p className="text-gray-600 mb-4">{section.description}</p>
-
-//             {/* 👇 Image section */}
-//             <img
-//               src={section.image}
-//               alt={section.title}
-//               className="mb-4 rounded-md w-full h-40 object-cover"
-//             />
-
-//             <button
-//               onClick={() => navigate(section.route)}
-//               className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
-//             >
-//               {section.buttonText}
-//             </button>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-
   return (
     <div className="bg-gray-100 min-h-screen py-12 px-4">
       {/* Top Welcome Section */}
