@@ -1,23 +1,28 @@
 import { useDispatch } from "react-redux";
 import { logout } from "../store/authSlice";
-// import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 function LogoutBtn() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const logoutHandler = () => {
-    localStorage.removeItem("user");
+    // Clear any stored auth data
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
-    // Cookies.remove("token");
+    localStorage.removeItem("user");
+
+    // Update Redux state
     dispatch(logout());
-    window.location.href = "/login";
+
+    // Redirect to login
+    navigate("/login");
   };
 
   return (
     <button
-      //   className="inline-block px-6 py-2 duration-200 hover:bg-blue-100 rounded-full"
       onClick={logoutHandler}
+      className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition duration-300 shadow-md"
     >
       Logout
     </button>

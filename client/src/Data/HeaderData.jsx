@@ -2,7 +2,7 @@ const HeaderData = {
   topHeader: {
     appName: "MoveNMuse",
     navItems: [
-      { name: "Home", slug: "/", active: true },
+      { name: "Account", slug: "/account", active: true },
       { name: "Courses", slug: "/courses", active: true },
       { name: "Rooms", slug: "/rooms", active: true },
       { name: "Cart", slug: "/cart", active: true },

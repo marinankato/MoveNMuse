@@ -8,7 +8,7 @@ const Header = () => {
   const navigate = useNavigate();
   const authStatus = useSelector((state) => state.auth.status);
   const userData = useSelector((state) => state.auth.userData);
-  const userName = userData?.name;
+  const userName = userData?.firstName;
 
   const { topHeader } = HeaderData;
 
@@ -47,8 +47,8 @@ const Header = () => {
 
       <div>
         {authStatus ? (
-          <div className="flex gap-4">
-            <div className="text-2xl font-semibold">Hello, {userName}</div>
+          <div className="flex items-center gap-4">
+            <div className="text-lg font-medium">Hello, {userName}</div>
             <LogoutBtn />
           </div>
         ) : (

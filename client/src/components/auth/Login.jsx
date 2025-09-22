@@ -1,45 +1,53 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../../store/authSlice"; 
+import { useNavigate } from "react-router-dom"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const navigate = useNavigate(); 
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
-  setLoading(true);
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-  try {
-    const res = await fetch("http://localhost:5001/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
-    console.log("Response status:", res.status);
-    console.log("Response ok:", res.ok);
-    console.log("Response data:", data);
+      const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data.message || "Login failed");
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Dispatch login to Redux
+      dispatch(loginSuccess(data.user));
+
+      setLoading(false);
+      alert("Logged in successfully!");
+      navigate("/") // redirect to home page
+
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || "Login failed. Please try again.");
     }
-
-    setLoading(false);
-    alert("Logged in successfully!");
-
-    // Optional: save token to localStorage
-    // localStorage.setItem("token", data.token);
-
-  } catch (err) {
-    setLoading(false);
-    setError(err.message || "Login failed. Please try again.");
-  }
-};
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
@@ -58,13 +66,26 @@ const Login = () => {
           />
 
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             className="w-full p-3 border border-gray-300 rounded-md"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          <div className="flex items-center mt-2">
+            <input
+              type="checkbox"
+              id="showPassword"
+              checked={showPassword}
+              onChange={() => setShowPassword((prev) => !prev)}
+              className="mr-2"
+            />
+            <label htmlFor="showPassword" className="text-sm text-gray-700">
+              Show Password
+            </label>
+          </div>
 
           <button
             type="submit"
@@ -80,4 +101,3 @@ const Login = () => {
 };
 
 export default Login;
-
