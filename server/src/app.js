@@ -3,8 +3,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import conf from "./conf/conf.js";
+import Routes from "./routes/index.js";
 
 const app = express();
+
 app.use(bodyParser.json());
 
 // app.use(
@@ -38,7 +40,6 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
 
-import Routes from "./routes/index.js";
 app.use("/api", Routes);
 
 app.post("/testing", (req, res) => {
