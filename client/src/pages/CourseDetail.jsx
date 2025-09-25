@@ -6,7 +6,7 @@ const courses = [
     id: 1,
     title: "Hip Hop Basics",
     category: "Dance",
-    instructor: "Alice",
+    instructor: "Mary",
     sessions: [
       { id: "s1", date: "2025-09-10 18:00", capacity: 20 },
       { id: "s2", date: "2025-09-17 18:00", capacity: 15 },
@@ -16,7 +16,7 @@ const courses = [
     id: 2,
     title: "Music Production",
     category: "Music",
-    instructor: "Bob",
+    instructor: "Luke",
     sessions: [
       { id: "s3", date: "2025-09-12 15:00", capacity: 10 },
     ],

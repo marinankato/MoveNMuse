@@ -13,18 +13,27 @@ const Layout = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    if (token) {
+    console.log("TOKEN FOUND:", token);
+
+    if (token && token.split(".").length === 3) {
       try {
         const decoded = jwtDecode(token);
+        console.log("DECODED TOKEN:", decoded);
+
         dispatch(
           login({
+            id: decoded.id, 
             email: decoded.email,
             firstName: decoded.firstName || decoded.name,
+            lastName: decoded.lastName || "",
+            role: decoded.role || "customer",
           })
         );
       } catch (err) {
         console.error("Token decoding failed:", err);
       }
+    } else {
+      console.warn("Invalid token format or user logged out.");
     }
   }, [dispatch]);
 

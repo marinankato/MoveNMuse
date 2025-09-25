@@ -1,31 +1,26 @@
-// Middleware to verify Firebase ID Token
-export async function verifyToken(req, res, next) {
-  //   console.log("req.headers", req.headers);
+import conf from "../conf/conf.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
-  const idToken = " "; // Extract token
+export const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-  if (!idToken) {
+  // Token should be in the format: Bearer <token>
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
     console.error("Unauthorized: No token provided");
     return res.status(401).json({ message: "Unauthorized: No token provided" });
   }
 
   try {
-    // Verify token
-    // const decodedToken = await ;
-    req.user = decodedToken; // Attach decoded token to the request for further use
-    // console.log("Token verified, user authenticated:", decodedToken.uid);
+    const decoded = jwt.verify(token, conf.JWT_SECRET);
+
+    req.user = decoded; // Attach decoded token payload to req.user
     next();
   } catch (error) {
-    // Handle token expiration error
-    if (error.code === "auth/id-token-expired") {
-      //   console.error("Token expired. Please refresh the token and try again.");
-      return res
-        .status(401)
-        .json({ message: "Token expired. Please refresh the token." });
-    }
-
-    // Handle any other errors (invalid token, etc.)
-    // console.error("Unauthorized: Invalid token", error);
+    console.error("Unauthorized: Invalid or expired token", error.message);
     return res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
-}
+};

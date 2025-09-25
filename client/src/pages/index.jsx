@@ -9,5 +9,6 @@ import CourseDetail from "./CourseDetail.jsx";
 import CourseChekout from "./CourseCheckout.jsx";
 import Mybookings from "./Mybookings.jsx";
 import RoomDetail from "./RoomDetail.jsx";
+import BookingDetails from "./BookingDetails.jsx";
 
-export { Home, Account, Login, CartPage, Checkout, RoomView, CourseList, CourseDetail, CourseChekout, Mybookings, RoomDetail };
+export { Home, Account, Login, CartPage, Checkout, RoomView, CourseList, CourseDetail, CourseChekout, Mybookings, RoomDetail, BookingDetails };

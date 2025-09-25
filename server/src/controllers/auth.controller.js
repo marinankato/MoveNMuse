@@ -1,6 +1,8 @@
+import conf from "../conf/conf.js";
 import User from "../models/user.model.js";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";  
+import dotenv from "dotenv";
+dotenv.config();
 
 const filterUserData = (user) => ({
   id: user._id,
@@ -33,9 +35,20 @@ export const loginUser = async (req, res) => {
     user.loginDate = new Date();
     await user.save();
 
-    console.log("Login successful");
+    // Create payload for token (include any data you want to encode)
+    const payload = {
+      id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      role: user.role,
+    };
+
+    const token = jwt.sign(payload, conf.JWT_SECRET, { expiresIn: "1d" });
+    console.log("Token generated:", token);
+
     return res.status(200).json({
       message: "Login successful",
+      token, // Include the token in the response
       user: filterUserData(user),
     });
   } catch (error) {

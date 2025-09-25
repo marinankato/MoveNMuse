@@ -39,5 +39,21 @@ const removeCartItem = async (req, res) => {
   }
 };
 
+  // Find cart contents for booking by cart id
+  const getCartById = async (req, res) => {
+    const cartId = req.params.id;
 
-export { readCart, removeCartItem };
+    try {
+      const cart = await Cart.findById(cartId);
+
+      if (!cart) {
+        return res.status(404).json({ message: "Cart not found" });
+      }
+
+      return res.status(200).json(cart);
+    } catch (error) {
+      handleError(res, error);
+    }
+  };
+
+export { readCart, removeCartItem, getCartById };

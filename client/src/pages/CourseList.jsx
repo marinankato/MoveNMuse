@@ -2,8 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const courses = [
-  { id: 1, title: "Hip Hop Basics", category: "Dance", instructor: "Alice" },
-  { id: 2, title: "Music Production", category: "Music", instructor: "Bob" },
+  { id: 1, title: "Hip Hop Basics", category: "Dance", instructor: "Mary" },
+  { id: 2, title: "Music Production", category: "Music", instructor: "Luke" },
 ];
 
 function CourseList() {

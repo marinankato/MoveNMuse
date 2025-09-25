@@ -4,7 +4,7 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import Layout from "../Layout";
-import { Home, Account, Login, CartPage, Checkout, RoomView, CourseList, CourseDetail, CourseChekout, Mybookings, RoomDetail } from "../pages";
+import { Home, Account, Login, CartPage, Checkout, RoomView, CourseList, CourseDetail, CourseChekout, Mybookings, RoomDetail, BookingDetails } from "../pages";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,6 +21,8 @@ const router = createBrowserRouter(
         <Route path="mybookings" element={<Mybookings />} />
         <Route path="coursecheckout" element={<CourseChekout />} />
         <Route path="room/:id" element={<RoomDetail />} />
+        <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
+
       </Route>
     </Route>
   )
