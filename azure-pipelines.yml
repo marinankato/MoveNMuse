@@ -4,7 +4,7 @@ trigger:
 - main
 
 variables:
-  azureSubscription: 'YOUR_SERVICE_CONNECTION_NAME'   # Prefer the service connection NAME
+  azureSubscription: 'Azure subscription 1 (a1473455-f01a-4afc-bafd-87af5d04d9f7)'   # Prefer the service connection NAME
   webAppName: 'movenmuse'                             # Your existing App Service name
   environmentName: 'movenmuse'
   vmImageName: 'ubuntu-latest'
