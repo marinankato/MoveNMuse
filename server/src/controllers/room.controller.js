@@ -9,7 +9,7 @@ export const roomController = {
     async get(req, res) {
         const room = await Room.findById(req.params.id).lean();
         if (!room) return res.status(404).json({ message: "Room not found" });
-        res.status(204).send();
+        res.status(room);
     },
 
     async create(req, res) {
@@ -28,7 +28,7 @@ export const roomController = {
         if (!room) return res.status(404).json({ message: "Room not found" });
         res.status(204).send();
     },
-    
+
     async seed(_req, res) {
         const count = await Room.countDocuments();
         if (count > 0) return res.status(400).json({ message: "Already seeded"});
