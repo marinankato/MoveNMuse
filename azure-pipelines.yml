@@ -58,7 +58,7 @@ steps:
     azureSubscription: $(azureSubscription)
     appType: webAppLinux
     WebAppName: $(webAppName)
-    packageForLinux: '$(Pipeline.Workspace)/app.zip'
+    packageForLinux: '$(Build.ArtifactStagingDirectory)/app.zip'
     RuntimeStack: 'NODE|22'
     StartupCommand: 'npm start'
   displayName: 'Deploy to App Service'
