@@ -1,62 +1,100 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Azure Pipelines: Build client+server and deploy to Azure App Service (Linux)
 
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+  azureSubscription: 'YOUR_SERVICE_CONNECTION_NAME'   # Prefer the service connection NAME
+  webAppName: 'movenmuse'                             # Your existing App Service name
+  environmentName: 'movenmuse'
+  vmImageName: 'ubuntu-latest'
+  nodeVersion: '22.x'
+  clientBuildDir: 'client/dist'                       # Use 'client/build' for CRA
+  serverDir: 'server'
+  artifactName: 'drop'
+  packageName: 'app.zip'
 
-steps:
-# Backend install + build
-- script: |
-    cd server
-    npm install
-    npm run build 
-  displayName: 'Backend: Install dependencies and build'
+stages:
+# ---------------- Build ----------------
+- stage: Build
+  displayName: Build stage
+  jobs:
+  - job: Build
+    displayName: Build & Package
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+      - checkout: self
+        fetchDepth: 1
 
-# Frontend install + build
-- script: |
-    cd client
-    npm install
-    npm run build
-  displayName: 'Frontend: Install dependencies and build'
+      # Use Node 22 everywhere
+      - task: NodeTool@0
+        displayName: 'Use Node $(nodeVersion)'
+        inputs:
+          versionSpec: $(nodeVersion)
 
-# steps for testing 
-- script: |
-    echo Running tests
-    # placeholder: run all the test files
-    echo All test passed.
-  displayName: 'Run Tests'
+      # Backend install + build
+      - script: |
+          cd $(serverDir)
+          npm ci
+          npm run build
+        displayName: 'Backend: Install & build'
 
-# put below into a separate yaml?? depends how you structure
-# have main CD pipeline
-# - task: ArchiveFiles@2
-#   inputs:
-#     rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-#     includeRootFolder: false
-#     archiveType: 'zip'
-#     archiveFile: '$(Build.ArtifactsStagingDirectory)/$(Build.BuildId).zip'
-#     replaceExisting Archive: true
-#   displayName: 'ZIP Project'
+      # Frontend install + build
+      - script: |
+          cd client
+          npm ci
+          npm run build
+        workingDirectory: .
+        displayName: 'Frontend: Install & build'
 
-# - task: PublishBuildArtifacts@1
-#   inputs:
-#     pathToPublish: '$(Build.ArtifactsStagingDirectory)'
-#     artifactName: 'drop'
-#     publishLocation: 'Container'
-#   displayName: 'Publish Artifact'
+      # Copy client build into server's public/static folder
+      # Adjust destination to match how your server serves static files.
+      - task: CopyFiles@2
+        displayName: 'Copy client build into server'
+        inputs:
+          SourceFolder: '$(clientBuildDir)'
+          Contents: '**'
+          TargetFolder: '$(serverDir)/public'        # change if your server serves another dir
 
-# - task: AzureWebApp@1
-#   inputs:
-#     azureSubscription: 'AzureAppConnection'
-#     appName: ''
-#     package: '$(Build.ArtifactsStagingDirectory)/*.zip'
-#   displayName: 'Deploy to Azure App Services'
+      # Create deployable zip from the server folder (includes server code + copied client build)
+      - task: ArchiveFiles@2
+        displayName: 'Archive deployable app'
+        inputs:
+          rootFolderOrFile: '$(serverDir)'
+          includeRootFolder: false
+          archiveType: zip
+          archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName)'
+          replaceExistingArchive: true
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+      - publish: '$(Build.ArtifactStagingDirectory)/$(packageName)'
+        displayName: 'Publish artifact'
+        artifact: $(artifactName)
+
+# ---------------- Deploy ----------------
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy to Azure App Service (Linux)
+    environment: $(environmentName)
+    pool:
+      vmImage: $(vmImageName)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: current
+              artifact: $(artifactName)
+
+            - task: AzureRmWebAppDeployment@4
+              displayName: 'Azure App Service Deploy: $(webAppName)'
+              inputs:
+                azureSubscription: $(azureSubscription)
+                appType: webAppLinux
+                WebAppName: $(webAppName)
+                packageForLinux: '$(Pipeline.Workspace)/$(artifactName)/$(packageName)'
+                RuntimeStack: 'NODE|22'
+                StartupCommand: 'npm start'
