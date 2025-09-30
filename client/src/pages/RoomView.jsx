@@ -21,7 +21,7 @@ export default function RoomView() {
             <h2 className="text-2xl font-semibold mb-4">Avaiable Rooms</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {rooms.map((r) => {
-                    const id = r.id || r.id;
+                    const id = r.id || r._id;
                     return (
                         <Link key={id} to={`/rooms/${id}`}
                         className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow">
