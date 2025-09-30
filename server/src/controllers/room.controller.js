@@ -12,6 +12,23 @@ export const roomController = {
         res.status(204).send();
     },
 
+    async create(req, res) {
+        const room = await Room.create(req.body);
+        res.status(201).json(room);
+    },
+
+    async update(req, res) {
+        const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!room) return res.status(404).json({ message: "Room not found" });
+        res.json(room);
+    },
+
+    async remove(req, res) {
+        const room = await Room.findByIdAndDelete(req.params.id);
+        if (!room) return res.status(404).json({ message: "Room not found" });
+        res.status(204).send();
+    },
+    
     async seed(_req, res) {
         const count = await Room.countDocuments();
         if (count > 0) return res.status(400).json({ message: "Already seeded"});

@@ -44,6 +44,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use("/api", Routes);
+app.use("/api/rooms", roomRoutes);
 
 app.post("/testing", (req, res) => {
   console.log("Testing");
