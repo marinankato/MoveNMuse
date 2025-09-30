@@ -8,7 +8,7 @@ export async function fetchRooms() {
 }
 
 export async function fetchRoomById(id) {
-    const res = await fetch(`${API}/${id}}`);
+    const res = await fetch(`${API}/${id}`);
     if (!res.ok) throw new Error("Room not found");
     return res.json();
 }
@@ -35,6 +35,6 @@ export async function updateRoom(id, data) {
 }
 
 export async function deleteRoom(id) {
-    const res = await fetch(`${API}/{id}`, { method: "DELETE"});
+    const res = await fetch(`${API}/${id}`, { method: "DELETE"});
     if (!res.ok) throw new Error("Delete failed");
 }
