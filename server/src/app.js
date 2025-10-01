@@ -15,36 +15,31 @@ const app = express();
 
 app.use(bodyParser.json());
 
-// app.use(
-//   cors({
-//     origin: conf.CORS_ORIGIN.replace(/\/$/, ""),
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//   })
-// );
+const normalize = (u) => (typeof u === "string" ? u.replace(/\/$/, "") : null);
+
+const allowedOrigins = [
+  process.env.WEBSITE_HOSTNAME && `https://${process.env.WEBSITE_HOSTNAME}`, // Azure injects this
+  "http://localhost:5173",
+  conf.CORS_ORIGIN1,
+  conf.CORS_ORIGIN2,
+  conf.CORS_ORIGIN3,
+]
+  .map(normalize)
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        conf.CORS_ORIGIN1,
-        conf.CORS_ORIGIN2,
-        conf.CORS_ORIGIN3,
-        process.env.WEBSITE_HOSTNAME &&
-          `https://${process.env.WEBSITE_HOSTNAME}`,
-      ]
-        .map(normalize)
-        .filter(Boolean);
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
-      }
+    origin(origin, cb) {
+      if (!origin) return cb(null, true); 
+      const clean = normalize(origin);
+      if (allowedOrigins.includes(clean)) return cb(null, true);
+      return cb(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
+);
 );
 
 app.use(express.json());
