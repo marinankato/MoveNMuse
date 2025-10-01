@@ -1,8 +1,9 @@
+// server/src/controllers/bookingCourse.controller.js
 import mongoose from "mongoose";
 import BookingCourse from "../models/bookingCourse.model.js";
 import Course from "../models/course.model.js";
 
-// create a booking
+/** POST /api/bookings  body: { userId, courseId } */
 export const createBooking = async (req, res) => {
   try {
     const { userId, courseId } = req.body;
@@ -14,23 +15,25 @@ export const createBooking = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ error: "Course not found" });
 
-    // check if already booked
+    // 已确认的预约数
     const bookedCount = await BookingCourse.countDocuments({
       course: courseId,
       status: "CONFIRMED",
     });
 
-    if (bookedCount >= course.capacity) {
+    if (bookedCount >= (course.capacity || 0)) {
       return res.status(400).json({ error: "Course is full" });
     }
 
-    const booking = await BookingCourse.create({ userId, course: courseId });
-    res.status(201).json({ id: booking._id, message: "Booking confirmed" });
+    const booking = await BookingCourse.create({ userId, course: courseId, status: "CONFIRMED" });
+    return res.status(201).json({ id: booking._id, message: "Booking confirmed" });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error("createBooking error:", e);
+    return res.status(500).json({ error: e.message || "Server error" });
   }
 };
-// list bookings by user
+
+/** GET /api/bookings/user/:userId */
 export const listBookingsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -42,13 +45,14 @@ export const listBookingsByUser = async (req, res) => {
       .populate("course", "name category startAt endAt instructor")
       .lean();
 
-    res.json(bookings);
+    return res.json(bookings);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error("listBookingsByUser error:", e);
+    return res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
-// cancel a booking
+/** PATCH /api/bookings/:id/cancel */
 export const cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -63,8 +67,13 @@ export const cancelBooking = async (req, res) => {
     );
 
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    res.json({ message: "Booking cancelled", booking });
+    return res.json({ message: "Booking cancelled", booking });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error("cancelBooking error:", e);
+    return res.status(500).json({ error: e.message || "Server error" });
   }
 };
+
+// 可选：默认导出一个对象（不是必须）
+// export default { createBooking, listBookingsByUser, cancelBooking };
+

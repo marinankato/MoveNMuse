@@ -1,7 +1,7 @@
-const Instructor = require("../models/instructor.model");
+import Instructor from "../models/instructor.model.js";
 
-// new instructor
-exports.createInstructor = async (req, res) => {
+// 新建 instructor
+export async function createInstructor(req, res) {
   try {
     const { name, email, phone, bio } = req.body;
     if (!name || !email) {
@@ -13,10 +13,10 @@ exports.createInstructor = async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message || "Server error" });
   }
-};
+}
 
-// Update instructor info
-exports.updateInstructor = async (req, res) => {
+// 更新 instructor
+export async function updateInstructor(req, res) {
   try {
     const { id } = req.params;
     const update = req.body;
@@ -28,10 +28,10 @@ exports.updateInstructor = async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message || "Server error" });
   }
-};
+}
 
-// Disable an instructor (set active to false)
-exports.disableInstructor = async (req, res) => {
+// 禁用 instructor
+export async function disableInstructor(req, res) {
   try {
     const { id } = req.params;
     const doc = await Instructor.findByIdAndUpdate(id, { active: false }, { new: true });
@@ -41,15 +41,16 @@ exports.disableInstructor = async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message || "Server error" });
   }
-};
+}
 
-// List all instructors
-exports.listInstructors = async (req, res) => {
+// 列出所有 instructors
+export async function listInstructors(req, res) {
   try {
     const docs = await Instructor.find().sort({ createdAt: -1 });
     res.json(docs);
   } catch (e) {
     res.status(500).json({ error: e.message || "Server error" });
   }
-};
+}
+
 

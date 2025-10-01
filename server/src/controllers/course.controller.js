@@ -1,24 +1,22 @@
-// server/src/controllers/course.controller.js
-const mongoose = require("mongoose");
-const Course = require("../models/course.model");
-const Booking = require("../models/booking.model");
+// server/src/controllers/course.controller.js  (ESM 统一版)
+import mongoose from "mongoose";
+import Course from "../models/course.model.js";
+import BookingCourse from "../models/bookingCourse.model.js";
 
-// allowed levels for filtering
+// 允许的 level（包含显示用的 All levels）
 const ALLOWED_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
-// only show active courses
+// 仅展示 active
 const ACTIVE_STATUSES = ["active"];
 
 /** GET /api/courses */
-exports.listCourses = async (req, res) => {
+export const listCourses = async (req, res) => {
   try {
     const kw = (req.query.kw || "").trim();
     const category = (req.query.category || "").trim();
-    const level = (req.query.level || "").trim(); // optional
-
+    const level = (req.query.level || "").trim();
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize || "0", 10), 0), 50);
 
-    //
     if (kw && (kw.length < 1 || kw.length > 50)) {
       return res.status(400).json({ error: "Keyword length must be between 1 and 50 characters" });
     }
@@ -26,10 +24,8 @@ exports.listCourses = async (req, res) => {
       return res.status(400).json({ error: "Invalid level parameter" });
     }
 
-    //show only active courses
     const q = { status: { $in: ACTIVE_STATUSES } };
     if (category) q.category = category;
-    // only filter by level if it's not "All levels"
     if (level && level !== "All levels") q.level = level;
     if (kw) {
       const regex = new RegExp(escapeRegex(kw), "i");
@@ -45,38 +41,25 @@ exports.listCourses = async (req, res) => {
       pageSize > 0 ? cursor.skip((page - 1) * pageSize).limit(pageSize) : cursor,
       Course.countDocuments(q),
     ]);
-    // count booked seats for each course
-    const ids = items.map((c) => c._id);
-    const agg = await Booking.aggregate([
-      { $match: { course: { $in: ids }, status: "Confirmed" } },
-      { $group: { _id: "$course", cnt: { $sum: 1 } } },
-    ]);
-    const bookedMap = new Map(agg.map((a) => [String(a._id), a.cnt]));
 
-    const withRemaining = items.map((c) => {
-      const booked = bookedMap.get(String(c._id)) || 0;
-      const capacity = Number(c.capacity || 0);
-      const remaining = Math.max(capacity - booked, 0);
-      return {
-        ...c,
-        booked,
-        remaining,
-        lowCapacity: remaining <= 3,
-      };
-    });
+    // 先不统计预订，保证接口稳定
+    const withRemaining = items.map((c) => ({
+      ...c,
+      booked: 0,
+      remaining: Number(c.capacity || 0),
+      lowCapacity: false,
+    }));
 
-    if (pageSize > 0) {
-      return res.json({ items: withRemaining, total, page, pageSize });
-    }
+    if (pageSize > 0) return res.json({ items: withRemaining, total, page, pageSize });
     return res.json(withRemaining);
   } catch (e) {
-    console.error(e);
+    console.error("listCourses error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
 /** GET /api/courses/:id */
-exports.getCourse = async (req, res) => {
+export const getCourse = async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) {
@@ -91,7 +74,8 @@ exports.getCourse = async (req, res) => {
       return res.status(404).json({ error: "Course not found or inactive" });
     }
 
-    const booked = await Booking.countDocuments({ course: item._id, status: "Confirmed" });
+    // 注意：用 BookingCourse 且状态为 "CONFIRMED"
+    const booked = await BookingCourse.countDocuments({ course: item._id, status: "CONFIRMED" });
     const capacity = Number(item.capacity || 0);
     const remaining = Math.max(capacity - booked, 0);
 
@@ -102,8 +86,8 @@ exports.getCourse = async (req, res) => {
   }
 };
 
-/** POST /api/courses  (Admin/Staff) */
-exports.createCourse = async (req, res) => {
+/** POST /api/courses (Admin/Staff) */
+export const createCourse = async (req, res) => {
   try {
     let {
       name,
@@ -167,7 +151,7 @@ exports.createCourse = async (req, res) => {
 };
 
 /** DELETE /api/courses/:id (Admin/Staff) */
-exports.deleteCourse = async (req, res) => {
+export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) {
@@ -186,43 +170,11 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
-
-// exports.seedIfEmpty = async () => {
-//   const count = await Course.countDocuments();
-//   if (count > 0) return;
-
-//   await Course.insertMany([
-//     {
-//       name: "Hip Hop Basics",
-//       category: "Dance",
-//       level: "Beginner",
-//       instructor: "Alice",
-//       price: 25,
-//       capacity: 20,
-//       description: "Learn basic hip hop moves in a fun group class.",
-//       status: "active",
-//       startAt: new Date(Date.now() + 2 * 86400000),
-//       endAt: new Date(Date.now() + 2 * 86400000 + 60 * 60 * 1000),
-//     },
-//     {
-//       name: "Piano for Beginners",
-//       category: "Music",
-//       level: "Beginner",
-//       instructor: "Bob",
-//       price: 30,
-//       capacity: 10,
-//       description: "A gentle introduction to piano for all ages.",
-//       status: "active",
-//       startAt: new Date(Date.now() + 3 * 86400000),
-//       endAt: new Date(Date.now() + 3 * 86400000 + 60 * 60 * 1000),
-//     },
-//   ]);
-// };
-
-// escape special characters for regex
+// 工具：转义正则
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
 
 
 

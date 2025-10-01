@@ -1,4 +1,5 @@
-import { Room } from "../models/room.model.js";
+import Room from "../models/room.model.js";
+
 
 export const roomController = {
     async list(_req, res) {

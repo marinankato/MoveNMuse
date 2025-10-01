@@ -16,7 +16,7 @@ router.delete("/item/:itemID", removeCartItem);
 
 
 // get course details along with its sessions
-import { Course } from "../models/course.model.js";
+import Course from "../models/course.model.js";
 import { CourseSession } from "../models/courseSession.model.js";
 
 router.get("/:courseId/with-sessions", async (req, res) => {

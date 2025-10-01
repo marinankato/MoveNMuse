@@ -1,11 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const ctrl = require("../controllers/instructor.controller");
+import { Router } from "express";
+import { listInstructors, createInstructor, updateInstructor, disableInstructor } 
+  from "../controllers/instructor.controller.js";
 
-// Instructor management
-router.get("/", ctrl.listInstructors);
-router.post("/", ctrl.createInstructor);
-router.put("/:id", ctrl.updateInstructor);
-router.patch("/:id/disable", ctrl.disableInstructor);
+const router = Router();
 
-module.exports = router;
+router.get("/", listInstructors);
+router.post("/", createInstructor);
+router.put("/:id", updateInstructor);
+router.patch("/:id/disable", disableInstructor);
+
+export default router;
+

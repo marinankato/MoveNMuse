@@ -1,33 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const ctrl = require("../controllers/course.controller");
+// server/src/routes/course.routes.js
+import { Router } from "express";
+import { listCourses, getCourse, createCourse, deleteCourse } from "../controllers/course.controller.js";
 
-// If you have auth middleware, uncomment these lines
-// const { requireAuth, requireRole } = require("../middlewares/auth.middleware");
+const router = Router();
+router.get("/", listCourses);
+router.get("/:id", getCourse);
+router.post("/", createCourse);
+router.delete("/:id", deleteCourse);
 
-// Course browsing
-router.get("/", ctrl.listCourses);        // List all courses (supports filter/search)
-router.get("/:id", ctrl.getCourse);       // View course details
+export default router;
 
-//  Course management (for admin/staff use)
-router.post(
-  "/",
-  // requireAuth, requireRole(["admin", "staff"]),
-  ctrl.createCourse
-);
-
-router.put(
-  "/:id",
-  // requireAuth, requireRole(["admin", "staff"]),
-  ctrl.updateCourse   // Update course
-);
-
-router.delete(
-  "/:id",
-  // requireAuth, requireRole(["admin", "staff"]),
-  ctrl.deleteCourse
-);
-
-module.exports = router;
 
 
