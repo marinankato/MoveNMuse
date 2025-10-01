@@ -18,7 +18,7 @@ router.get("/:bookingId", async (req, res) => {
       return res.status(400).json({ message: "Invalid booking ID format" });
     }
 
-    const booking = await Booking.findById(bookingId).populate("cart");
+    const booking = await Booking.findById(bookingId);
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });

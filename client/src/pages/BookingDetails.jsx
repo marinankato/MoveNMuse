@@ -4,26 +4,16 @@ import { useParams, Link } from "react-router-dom";
 const BookingDetails = () => {
   const { bookingId } = useParams();
   const [booking, setBooking] = useState(null);
-  const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-//   console.log("Booking ID from URL:", bookingId);
-
   useEffect(() => {
-    const fetchBookingAndCart = async () => {
+    const fetchBooking = async () => {
       try {
-        // Get the booking by ID
-        const bookingRes = await fetch(`http://localhost:5001/api/bookings/${bookingId}`);
-        if (!bookingRes.ok) throw new Error("Booking not found");
-        const bookingData = await bookingRes.json();
-        setBooking(bookingData);
-
-        // Then fetch the cart linked to this booking
-        const cartRes = await fetch(`http://localhost:5001/api/cart/${bookingData.cart?._id}`);
-        if (!cartRes.ok) throw new Error("Cart not found");
-        const cartData = await cartRes.json();
-        setCart(cartData);
+        const res = await fetch(`http://localhost:5001/api/bookings/${bookingId}`);
+        if (!res.ok) throw new Error("Booking not found");
+        const data = await res.json();
+        setBooking(data);
       } catch (err) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -31,7 +21,7 @@ const BookingDetails = () => {
       }
     };
 
-    fetchBookingAndCart();
+    fetchBooking();
   }, [bookingId]);
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -51,18 +41,17 @@ const BookingDetails = () => {
 
       <div className="bg-white shadow-md rounded-lg p-6 mt-6 space-y-4">
         <h2 className="text-xl font-semibold">Booked Items</h2>
-        {cart?.items?.length > 0 ? (
-          cart.items.map((item, index) => (
+        {booking.items && booking.items.length > 0 ? (
+          booking.items.map((item, index) => (
             <div key={index} className="border-b pb-4 mb-4">
-              <p><strong>Name:</strong> {item.name}</p>
-              <p><strong>Type:</strong> {item.type}</p>
-              <p><strong>Quantity:</strong> {item.quantity || 1}</p>
-              <p><strong>Price:</strong> ${item.price}</p>
-              <p><strong>Total:</strong> ${item.price * (item.quantity || 1)}</p>
+              <p><strong>Item ID:</strong> {item.itemId}</p>
+              <p><strong>Type:</strong> {item.productType}</p>
+              <p><strong>Occurrence ID:</strong> {item.occurrenceId}</p>
+              {/* Add more fields here if needed */}
             </div>
           ))
         ) : (
-          <p>No items found in cart.</p>
+          <p>No items found in booking.</p>
         )}
       </div>
 

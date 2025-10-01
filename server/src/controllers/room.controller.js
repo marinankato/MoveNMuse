@@ -1,139 +1,99 @@
 import Room from "../models/room.model.js";
 
+const toPlainNumber = (val) => {
+    if (val == null) return 0;
+    if (typeof val === "object" && val.$numberDecimal) {
+        return parseFloat(val.$numberDecimal);
+    }
+    return Number(val);
+};
+
+const toDTO = (d) => {
+    if (!d) return null;
+    const r = d._doc ? d._doc : d;
+    return {
+        _id: r._id,
+        id: r._id,
+        name: r.name,
+        type: r.type ?? r.roomType ?? "Room",
+        capacity: toPlainNumber(r.capacity) ?? 0,
+        pricePerHour: toPlainNumber(r.pricePerHour ?? r.defaultPrice),
+        rating: toPlainNumber(r.rating),
+        images: Array.isArray(r.images) ? r.images : (r.img ? [r.img] : []),
+        amenities: Array.isArray(r.amenities) ? r.amenities : [],
+        location: r.location ?? "",
+        status: r.status ?? "Active",
+        roomId: r.roomId ?? null,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+    };
+};
 
 export const roomController = {
-    async list(_req, res) {
+    async list(_req, res, next) {
+        try {
         const rooms = await Room.find().lean();
-        res.json(rooms);
+        res.json(rooms.map(toDTO));
+    } catch (e) {
+        next(e);
+    }
     },
 
-    async get(req, res) {
-        const room = await Room.findById(req.params.id).lean();
-        if (!room) return res.status(404).json({ message: "Room not found" });
-        res.status(204).send();
+    async get(req, res, next) {
+        try{
+        const doc = await Room.findById(req.params.id).lean();
+        if (!doc) return res.status(404).json({ message: "Room not found" });
+        res.json(toDTO(doc));
+    } catch (e) {
+        next(e);
+    }
     },
 
     async create(req, res) {
-        const room = await Room.create(req.body);
-        res.status(201).json(room);
+        try {
+            const body = req.body ?? {};
+            const payload = {
+                ...body,
+                pricePerHour: body.pricePerHour ?? body.defaultPrice ?? 0,
+                images: Array.isArray(body.images) ? body.images : (body.img ? [body.img] : []),
+                amenities: Array.isArray(body.amenities) ? body.amenities : [],
+            };
+            const created = await Room.create(payload);
+            res.status(201).json(toDTO(created));
+        } catch (e) {
+            next(e);
+        }
     },
 
-    async update(req, res) {
-        const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!room) return res.status(404).json({ message: "Room not found" });
-        res.json(room);
-    },
-
-    async remove(req, res) {
-        const room = await Room.findByIdAndDelete(req.params.id);
-        if (!room) return res.status(404).json({ message: "Room not found" });
-        res.status(204).send();
-    },
-    
-    async seed(_req, res) {
-        const count = await Room.countDocuments();
-        if (count > 0) return res.status(400).json({ message: "Already seeded"});
-        await Room.insertMany([
-            {
-                        name: "Studio A - Dance Room",
-                        type: "Dance",
-                        capacity: 30,   
-                        pricePerHour: 66,
-                        rating: 4.7,
-                        img: "",
-                        amenities: ["Mirrors", "Speakers", "Monitor"],
-                    },
-                    {
-                        name: "Studio B - Dance Room",
-                        type: "Dance",
-                        capacity: 20,
-                        pricePerHour: 55,
-                        rating: 4.5,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio C - Dance Room",
-                        type: "Dance",
-                        capacity: 5,
-                        pricePerHour: 33,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio D - Dance Room",
-                        type: "Dance",
-                        capacity: 5,
-                        pricePerHour: 33,
-                        rating: 4.7,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio E - Dance Room",
-                        type: "Dance",
-                        capacity: 60,
-                        pricePerHour: 82.5,
-                        rating: 4.8,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio E - Dance Room",
-                        type: "Dance",
-                        capacity: 8,
-                        pricePerHour: 33,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio 1 - Music Room",
-                        type: "Music",
-                        capacity: 7,
-                        pricePerHour: 25,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio 2 - Music Room",
-                        type: "Music",
-                        capacity: 30,
-                        pricePerHour: 75,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio 3 - Music room",
-                        type: "Music",
-                        capacity: 12,
-                        pricePerHour: 64,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio 4 - Music Room",
-                        type: "Music",
-                        capacity: 1,
-                        pricePerHour: 40,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Mic", "Piano", "Speakers"],
-                    },
-                    {
-                        name: "Studio 5 - Music Room",
-                        type: "Music",
-                        capacity: 4,
-                        pricePerHour: 64,
-                        rating: 4.6,
-                        img: "",
-                        amenities: ["Microphone", "Monitor", "Keyboard", "Drum"],
-                    }
-        ]);
-        res.json({ ok: true });
+    async update(req, res, next) {
+        try {
+        const body = req.body ?? {};
+        const patch = { ...body, };
+        if (body.defaultPrice != null && body.pricePerHour == null) {
+            patch.pricePerHour = body.defaultPrice;
+        }
+        if (body.img && !Array.isArray(body.images)) {
+            patch.images = [body.img];
+        }
+        const updated = await Room.findByIdAndUpdate(
+            req.params.id,
+            { $set: patch },
+            { new: true, runValidators: true }
+        );
+        if (!updated) return res.status(404).json({ message: "Room not found" });
+        res.json(toDTO(updated));
+    } catch (e) {
+        next (e);
     }
+    },
+
+    async remove(req, res, next) {
+        try {
+        const del = await Room.findByIdAndDelete(req.params.id);
+        if (!del) return res.status(404).json({ message: "Room not found" });
+        res.status(204).send();
+        } catch (e) {
+            next(e);
+        }
+    },
 };

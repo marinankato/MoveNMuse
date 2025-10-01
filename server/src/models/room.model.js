@@ -34,7 +34,7 @@ const RoomSchema = new mongoose.Schema(
       },
       amenities: {
           type: [String],
-          default: [] 
+          default: [],
         },
     },
         { timestamps: true }

@@ -42,7 +42,6 @@ const UserUpdateProfileController = async (req, res) => {
       "gender",
       "address",
       "phone",
-      "picture",
     ];
 
     allowedUpdates.forEach((field) => {

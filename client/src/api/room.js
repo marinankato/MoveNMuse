@@ -1,7 +1,13 @@
-const SERVER = import.meta.env.VITE_SERVER_URL || "https://localhost:5173";
+const SERVER = "http://localhost:5001";
 const API = `${SERVER}/api/rooms`;
 
+fetch("http://localhost:5001/")
+.then(r => r.text())
+.then(txt => console.log("[TEST] Backend / =>", txt))
+.catch(err => console.error("[TEST] Failed to reach backend /:", err));
+
 export async function fetchRooms() {
+    console.log("[room.js] GET", API);
     const res = await fetch(API);
     if (!res.ok) throw new Error("Failed");
     return res.json();
