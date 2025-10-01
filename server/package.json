@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "build": "babel src --out-dir dist --copy-files",
+    "build": "npx babel src --out-dir dist --copy-files",
     "test": "jest"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
     "nodemon": "^3.1.9"
   },
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
     "@babel/core": "^7.28.4",
     "@babel/preset-env": "^7.28.3",
     "babel-jest": "^30.2.0",

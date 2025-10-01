@@ -41,7 +41,6 @@ steps:
 # Run the unit tests for backend
 - script: |
     cd server 
-    npm ci
     npm test
   displayName: 'Run tests'
 
