@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import conf from "./conf/conf.js";
 import Routes from "./routes/index.js";
+import roomRoutes from "./routes/room.routes.js";
 
 const app = express();
 
@@ -53,7 +54,6 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
-app.use("/api", Routes);
 app.use("/api/rooms", roomRoutes);
 
 app.post("/testing", (req, res) => {

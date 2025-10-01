@@ -1,4 +1,4 @@
-const SERVER = import.meta.env.VITE_SERVER_URL || "https://localhost:5173";
+const SERVER = import.meta.env.VITE_SERVER_URL || "https://localhost:5001";
 const API = `${SERVER}/api/rooms`;
 
 export async function fetchRooms() {
