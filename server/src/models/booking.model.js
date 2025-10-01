@@ -2,9 +2,14 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Number,
     required: true,
-    ref: "User", 
+    ref: "user",
+  },
+  orderId: {
+    type: Number,
+    required: true,
+    unique: true,
   },
   orderDate: {
     type: Date,
@@ -18,11 +23,20 @@ const bookingSchema = new mongoose.Schema({
   orderTotal: {
     type: Number,
   },
-  cart: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Cart", 
-  },
-}, { timestamps: true });
+  items: [
+    {
+      itemId: { type: Number },
+      productId: { type: Number },
+      productType: { type: String },
+      occurrenceId: { type: Number },
+    },
+
+  ],
+},
+  {
+    timestamps: true,
+  }
+);
 
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

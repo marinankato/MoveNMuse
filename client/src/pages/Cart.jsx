@@ -7,17 +7,18 @@ function CartPage() {
   const [selectAll, setSelectAll] = useState(false);
   const [products, setProducts] = useState();
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingRemoveID, setPendingRemoveID] = useState(null);
-  const userEmail = "alice@example.com";
+  const [pendingRemoveId, setPendingRemoveId] = useState(null);
+  const userId = 1;
 
   //load cart data when page first loads
   useEffect(() => {
     async function fetchCart() {
-      const response = await fetch(`/api/cart?userEmail=${userEmail}`, {
+      const response = await fetch(`/api/cart?userId=${userId}`, {
         // credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();
+
         // Add isSelected field to each item
         const productsWithSelection = formatSelectedProducts(data);
 
@@ -31,10 +32,9 @@ function CartPage() {
   }, []);
 
   function formatSelectedProducts(cart) {
-    const productsWithSelection = cart.items.map((item) => ({
+    console.log("Cart data:", cart);
+    const productsWithSelection = cart.cartItems.map((item) => ({
       ...item,
-      date: new Date(item.date).toLocaleDateString(),
-      time: new Date(item.date).toLocaleTimeString(),
       isSelected: false,
     }));
     return productsWithSelection;
@@ -43,13 +43,13 @@ function CartPage() {
   // Calculate subtotal of selected products
   const subtotal = (products || [])
     .filter((p) => p.isSelected)
-    .reduce((sum, p) => sum + p.price, 0);
+    .reduce((sum, p) => sum + Number(p.occurrence.price.$numberDecimal), 0);
 
   // Toggle selection
   const handleCheckboxChange = (id) => {
     setProducts((prev) =>
       prev.map((p) =>
-        p.itemID === id ? { ...p, isSelected: !p.isSelected } : p
+        p.itemId === id ? { ...p, isSelected: !p.isSelected } : p
       )
     );
     setSelectAll(false);
@@ -62,20 +62,20 @@ function CartPage() {
     });
   };
   //remove one item
-  const removeHandler = async (itemID) => {
+  const removeHandler = async (itemId) => {
     const response = await fetch(
-      `/api/cart/item/${itemID}?cartID=${cart.cartID}`,
+      `/api/cart/item/${itemId}?cartId=${cart.cartId}`,
       { method: "DELETE" }
     );
     if (response.ok) {
       const data = await response.json();
       setCart(data.cart);
-      setProducts((prev) => prev.filter((p) => itemID != p.itemID));
+      setProducts((prev) => prev.filter((p) => itemId != p.itemId));
     } else {
       console.error("Failed to remove item");
     }
 
-    // setProducts((prev) => prev.filter((p) => id != p.itemID));
+    // setProducts((prev) => prev.filter((p) => id != p.itemId));
   };
 
   return (
@@ -88,15 +88,15 @@ function CartPage() {
             <div className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6 relative z-10">
               <div>
                 Are you sure you want to remove{" "}
-                {products.find((p) => p.itemID === pendingRemoveID).name}?
+                {products.find((p) => p.itemId === pendingRemoveId).name}?
               </div>
               <div className="flex justify-end gap-3">
                 <button
                   className="mr-4 px-4 py-2 bg-red-500 text-white rounded"
                   onClick={() => {
-                    removeHandler(pendingRemoveID);
+                    removeHandler(pendingRemoveId);
                     setShowConfirm(false);
-                    setPendingRemoveID(null);
+                    setPendingRemoveId(null);
                   }}
                 >
                   Yes
@@ -105,7 +105,7 @@ function CartPage() {
                   className="px-4 py-2 bg-gray-300 text-black rounded"
                   onClick={() => {
                     setShowConfirm(false);
-                    setPendingRemoveID(null);
+                    setPendingRemoveId(null);
                   }}
                 >
                   No
@@ -133,10 +133,10 @@ function CartPage() {
                   Product
                 </th>
                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
-                  Date
+                  Date & Time
                 </th>
                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
-                  Time
+                  Duration
                 </th>
                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
                   Price
@@ -147,25 +147,37 @@ function CartPage() {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.itemID} className="border-b">
+                <tr key={p.itemId} className="border-b">
                   <td className="py-4 px-6">
                     <input
                       type="checkbox"
                       checked={p.isSelected}
-                      onChange={() => handleCheckboxChange(p.itemID)}
+                      onChange={() => handleCheckboxChange(p.itemId)}
                     />
                   </td>
-                  <td className="py-4 px-6 text-sm text-gray-900">{p.name}</td>
-                  <td className="py-4 px-6 text-sm text-gray-900">{p.date}</td>
-                  <td className="py-4 px-6 text-sm text-gray-900">{p.time}</td>
+                  <td className="py-4 px-6 text-sm text-gray-900">{p.product.courseName}</td>
+                  <td>
+                  <select name="dates" id="dates" className="border p-2">
+                    {p.occurrences.map((o, index) => (
+                      <option key={index} value={o.startTime}>
+                        
+                        {new Date(o.startTime).toISOString().slice(0, 16).replace("T", " ")}
+                      </option>
+                    ))}
+                  </select>
+                  </td>
+
                   <td className="py-4 px-6 text-sm text-gray-900">
-                    ${p.price}
+                    {p.occurrence.duration} min
+                  </td>
+                  <td className="py-4 px-6 text-sm text-gray-900">
+                    ${p.occurrence.price.$numberDecimal}
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-900 text-center">
                     <button
                       className="text-red-600 hover:text-red-800 font-bold text-center"
                       onClick={() => (
-                        setShowConfirm(true), setPendingRemoveID(p.itemID)
+                        setShowConfirm(true), setPendingRemoveId(p.itemId)
                       )}
                     >
                       X
@@ -176,10 +188,7 @@ function CartPage() {
             </tbody>
             <tfoot>
               <tr>
-                <td
-                  className="py-4 px-6 text-sm text-gray-900"
-                  colSpan="3"
-                >
+                <td className="py-4 px-6 text-sm text-gray-900" colSpan="3">
                   {products.filter((p) => p.isSelected).length} /{" "}
                   {products.length} items selected
                 </td>
@@ -200,7 +209,7 @@ function CartPage() {
                   className="py-4 px-6 text-sm text-gray-900 font-bold"
                   colSpan="1"
                 >
-                  <CheckoutBtn />
+                  <CheckoutBtn selectedItems={products.filter((p) => p.isSelected)} subtotal={subtotal} userId={userId}  />
                 </td>
               </tr>
             </tfoot>
