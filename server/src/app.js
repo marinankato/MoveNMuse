@@ -27,10 +27,14 @@ app.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        conf.CORS_ORIGIN1.replace(/\/$/, ""),
-        conf.CORS_ORIGIN2.replace(/\/$/, ""),
-        conf.CORS_ORIGIN3.replace(/\/$/, ""),
-      ];
+        conf.CORS_ORIGIN1,
+        conf.CORS_ORIGIN2,
+        conf.CORS_ORIGIN3,
+        process.env.WEBSITE_HOSTNAME &&
+          `https://${process.env.WEBSITE_HOSTNAME}`,
+      ]
+        .map(normalize)
+        .filter(Boolean);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -43,19 +47,9 @@ app.use(
   })
 );
 
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5173"],   // allow to server to accept requests from this origin
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//   })
-// );
-
-
 app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
-
 
 app.use("/api/rooms", roomRoutes);
 app.use("/api/courses", courseRoutes);
@@ -71,4 +65,3 @@ app.get("/", (req, res) => {
 });
 
 export { app };
-
