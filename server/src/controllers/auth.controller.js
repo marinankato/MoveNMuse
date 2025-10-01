@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const filterUserData = (user) => ({
-  id: user._id,
+  id: user.userId,
   firstName: user.firstName,
   lastName: user.lastName,
   email: user.email,
@@ -37,7 +37,7 @@ export const loginUser = async (req, res) => {
 
     // Create payload for token (include any data you want to encode)
     const payload = {
-      id: user._id,
+      id: user.userId,
       email: user.email,
       firstName: user.firstName,
       role: user.role,

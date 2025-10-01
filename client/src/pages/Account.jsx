@@ -114,24 +114,6 @@ const Account = () => {
 
     fetchBookings();
   }, [user, currentPage]);
-  
-  // const handleViewDetails = async (cartId) => {
-  //   try {
-  //     const res = await fetch(`http://localhost:5001/api/cart/${cartId}`);
-  //     if (!res.ok) throw new Error("Failed to fetch cart details");
-
-  //     const cart = await res.json();
-
-  //     // For now, just log or alert the details
-  //     console.log("Cart Details:", cart);
-  //     alert(JSON.stringify(cart, null, 2)); // Just for quick testing
-
-  //     // Later: show modal or navigate to detail view
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Could not load cart details");
-  //   }
-  // };
 
   return (
     <div className="max-w-xl mx-auto p-6">
