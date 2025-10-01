@@ -18,7 +18,7 @@ export default function RoomView() {
 
     return (
         <div className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Avaiable Rooms</h2>
+            <h2 className="text-2xl font-semibold mb-4">Available Rooms</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {rooms.map((r) => {
                     const id = r.id || r._id;
