@@ -19,7 +19,6 @@ const paymentDetailSchema = new Schema(
     },
     nickname: {
       type: String,
-      required: true,
       maxlength: 100,
     },
     name: {
