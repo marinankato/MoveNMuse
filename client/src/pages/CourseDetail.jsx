@@ -1,56 +1,70 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { api } from "../api";
 
-const courses = [
-  {
-    id: 1,
-    title: "Hip Hop Basics",
-    category: "Dance",
-    instructor: "Mary",
-    sessions: [
-      { id: "s1", date: "2025-09-10 18:00", capacity: 20 },
-      { id: "s2", date: "2025-09-17 18:00", capacity: 15 },
-    ],
-  },
-  {
-    id: 2,
-    title: "Music Production",
-    category: "Music",
-    instructor: "Luke",
-    sessions: [
-      { id: "s3", date: "2025-09-12 15:00", capacity: 10 },
-    ],
-  },
-];
+const DEMO_USER_ID = "111"; // fixed demo user ID for booking
 
-function CourseDetail() {
+export default function CourseDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const course = courses.find((c) => c.id === Number(id));
+  const nav = useNavigate();
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
 
-  if (!course) return <p>Course not found.</p>;
+  useEffect(() => {
+    (async () => {
+      try {
+        setErr(""); 
+        setMsg("");
+        const res = await api.getCourse(id); // get course details
+        setData(res);
+      } catch (e) { 
+        setErr(e.message); // load error
+      }
+    })();
+  }, [id]);
+
+  const onBook = async () => {
+    try {
+      setErr(""); 
+      setMsg("");
+      await api.createBooking({ userId: DEMO_USER_ID, courseId: id }); // make booking
+      setMsg("Booking successful!");
+      const res = await api.getCourse(id); // refresh course details   
+      setData(res);
+    } catch (e) { 
+      setErr(e.message); // booking error
+    }
+  };
+
+  if (!data) return <div style={{ padding:16 }}>Loading…</div>; // loading state
 
   return (
-    <div>
-      <h1 className="text-xl font-bold">{course.title}</h1>
-      <p>Category: {course.category}</p>
-      <p>Instructor: {course.instructor}</p>
-      <h2 className="font-semibold mt-4">Sessions</h2>
-      <ul className="list-disc ml-6">
-        {course.sessions.map((s) => (
-          <li key={s.id}>
-            {s.date} (Capacity: {s.capacity})
-          </li>
-        ))}
-      </ul>
-      <button
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        onClick={() => navigate("/coursecheckout")}
-      >
-        Book This Course
+    <div style={{ padding:16 }}>
+      <button onClick={()=>nav(-1)}>← Back</button> {/* Back button */}
+      <h2 style={{ marginTop:8 }}>{data.name}</h2>
+      <div style={{ color:"#666" }}>
+        {data.category} · {data.level || "All levels"}
+      </div>
+      <p style={{ marginTop:6 }}>{data.description}</p>
+      <p>
+        Capacity: {data.capacity}, Booked: {data.booked}, Remaining: <b>{data.remaining}</b> 
+        {data.lowCapacity && <span style={{ color:"#c00" }}> (Limited spots)</span>}
+      </p>
+      {data.startAt && (
+        <p>
+          Time: {new Date(data.startAt).toLocaleString()} —{" "}
+          {data.endAt ? new Date(data.endAt).toLocaleTimeString() : ""}
+        </p>
+      )}
+      <button disabled={data.remaining<=0} onClick={onBook}>
+        {data.remaining>0 ? "Book Now" : "Full"}
       </button>
+      {msg && <div style={{ color:"green", marginTop:8 }}>{msg}</div>}
+      {err && <div style={{ color:"#c00", marginTop:8 }}>{err}</div>}
     </div>
   );
 }
 
-export default CourseDetail;
+
+

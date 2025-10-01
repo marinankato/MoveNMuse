@@ -23,6 +23,12 @@ const Account = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
   const limit = 5; // or however many bookings you want per page
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNo: "",
+  });
 
   if (!user) {
     return (
@@ -35,18 +41,69 @@ const Account = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+
+    let errorMessage = "";
+
+    if (name === "phoneNo") {
+      const onlyDigits = value.replace(/\D/g, ""); // Remove non-digits
+      if (onlyDigits.length > 10) {
+        errorMessage = "Phone number must be exactly 10 digits.";
+      } else if (onlyDigits.length < 10) {
+        errorMessage = "Phone number must be exactly 10 digits.";
+      }
+      setFormData((prev) => ({ ...prev, [name]: onlyDigits }));
+    } else if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      errorMessage = emailRegex.test(value) ? "" : "Invalid email format.";
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    } else {
+      if (value.trim() === "") {
+        errorMessage = `${name === "firstName" ? "First name" : "Last name"} is required.`;
+      }
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    setErrors((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: errorMessage,
     }));
   };
+
 
   const handleSave = async () => {
     setLoading(true);
     setMessage("");
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required.";
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required.";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format.";
+    }
+
+    if (!formData.phoneNo.trim()) {
+      newErrors.phoneNo = "Phone number is required.";
+    } else if (formData.phoneNo.length !== 10) {
+      newErrors.phoneNo = "Phone number must be exactly 10 digits.";
+    }
+
+    // If any error exists, stop the process
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setLoading(false);
+      return;
+    }
 
     try {
-        const response = await fetch("http://localhost:5173/api/user/update", {
+      const response = await fetch("http://localhost:5001/api/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -55,11 +112,10 @@ const Account = () => {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to update account");
       }
-
+      dispatch(updateUser(data));
       setMessage("Account updated successfully!");
       setEditMode(false);
     } catch (error) {
@@ -71,25 +127,10 @@ const Account = () => {
 
   const handleToggle = async () => {
     if (editMode) {
-      try {
-        const res = await fetch("http://localhost:5001/api/user/update", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-
-        if (!res.ok) throw new Error("Failed to update user");
-
-        const updatedUser = await res.json();
-
-        dispatch(updateUser(updatedUser));
-
-      } catch (err) {
-        console.error(err);
-        alert("Failed to save changes.");
-      }
+      await handleSave(); 
+    } else {
+      setEditMode(true);
     }
-    setEditMode((prev) => !prev);
   };
 
   useEffect(() => {
@@ -114,24 +155,6 @@ const Account = () => {
 
     fetchBookings();
   }, [user, currentPage]);
-  
-  // const handleViewDetails = async (cartId) => {
-  //   try {
-  //     const res = await fetch(`http://localhost:5001/api/cart/${cartId}`);
-  //     if (!res.ok) throw new Error("Failed to fetch cart details");
-
-  //     const cart = await res.json();
-
-  //     // For now, just log or alert the details
-  //     console.log("Cart Details:", cart);
-  //     alert(JSON.stringify(cart, null, 2)); // Just for quick testing
-
-  //     // Later: show modal or navigate to detail view
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Could not load cart details");
-  //   }
-  // };
 
   return (
     <div className="max-w-xl mx-auto p-6">
@@ -147,22 +170,30 @@ const Account = () => {
         {/* Account Details Section */}
         <div className="space-y-4">
           {["firstName", "lastName", "email", "phoneNo"].map((field) => (
-            <div key={field}>
+            <div key={field} className="mb-4">
               <label className="font-semibold capitalize block mb-1">
                 {field === "phoneNo"
                   ? "Phone Number"
-                  : field.replace(/([A-Z])/g, " $1")}:
+                  : field === "email"
+                  ? "Email"
+                  : field.replace(/([A-Z])/g, " $1")}
               </label>
+
               {editMode ? (
-                <input
-                  type="text"
-                  name={field}
-                  value={formData[field]}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
+                <>
+                  <input
+                    type="text"
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                  {errors[field] && (
+                    <p className="text-red-600 text-sm mt-1">{errors[field]}</p>
+                  )}
+                </>
               ) : (
-                <p>{user[field] || "N/A"}</p>
+                <p>{formData[field]}</p>
               )}
             </div>
           ))}

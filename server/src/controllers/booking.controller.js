@@ -1,28 +1,69 @@
 import Booking from "../models/booking.model.js";
-import mongoose from "mongoose";
 
+// GET /api/bookings?userId=123&page=1&limit=5
 export const getUserBookings = async (req, res) => {
-  const { userId, page = 1, limit = 5 } = req.query;
+  let { userId, page = 1, limit = 5 } = req.query;
 
   try {
-    const objectUserId = new mongoose.Types.ObjectId(String(userId));
+    userId = parseInt(userId, 10);
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
 
-    const bookings = await Booking.find({ user: objectUserId })
-    .sort({ bookingDate: -1 }) // optional sorting  
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid or missing userId" });
+    }
 
-    const total = await Booking.countDocuments({ user: objectUserId });
+    const bookings = await Booking.find({ userId })
+      .sort({ bookingDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    res.json({
-      bookings,
-      total,
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
+    const total = await Booking.countDocuments({ userId });
+
+    res.json({ bookings, total, page, limit });
   } catch (err) {
     console.error("Error fetching bookings:", err);
     res.status(500).json({ message: "Failed to fetch bookings." });
   }
 };
 
+// POST /api/bookings
+export const createBooking = async (req, res) => {
+  let { userId, items, orderDate, orderTotal, status } = req.body || {};
+
+  try {
+    userId = parseInt(userId, 10);
+
+    if (
+      isNaN(userId) ||
+      !Array.isArray(items) ||
+      !orderDate ||
+      typeof orderTotal !== "number" ||
+      !status
+    ) {
+      return res.status(400).json({ message: "Missing or invalid fields" });
+    }
+
+    const lastBooking = await Booking.findOne().sort({ orderId: -1 });
+    const newOrderId = lastBooking ? lastBooking.orderId + 1 : 1;
+
+    const newBooking = new Booking({
+      userId,
+      items,
+      orderId: newOrderId,
+      orderDate,
+      orderTotal,
+      status,
+    });
+
+    await newBooking.save();
+
+    res.status(201).json({
+      message: "Booking created",
+      booking: newBooking,
+    });
+  } catch (err) {
+    console.error("Error creating booking:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

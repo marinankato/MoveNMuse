@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import { getUserBookings } from "../controllers/booking.controller.js";
+import { createBooking } from "../controllers/booking.controller.js";
 import Booking from "../models/booking.model.js";
 
 const router = express.Router();
@@ -17,7 +18,7 @@ router.get("/:bookingId", async (req, res) => {
       return res.status(400).json({ message: "Invalid booking ID format" });
     }
 
-    const booking = await Booking.findById(bookingId).populate("cart");
+    const booking = await Booking.findById(bookingId);
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -29,5 +30,10 @@ router.get("/:bookingId", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+//Create new booking
+router.post("/newBooking", createBooking);
+
+
 
 export default router;
