@@ -1,53 +1,21 @@
-# MoveNMuse# MERN Starter
+# MoveNMuse
+github: https://github.com/marinankato/MoveNMuse.git
 
-A boilerplate for building full-stack web applications using the **MERN stack** (MongoDB, Express.js, React.js, Node.js). This starter template provides a solid foundation to quickly start your projects.
 
-## Features
+## Repository Structure
 
-- **Backend**: Node.js and Express.js with environment-based configurations.
-- **Frontend**: React.js with Vite for blazing-fast development.
-- **Database**: MongoDB for efficient data management.
-- **Authentication**: (extendable).
-- **State Management**: Redux Toolkit for global state handling.
-- **Styling**: Tailwind CSS for fast, responsive UI design.
-- **API Integration**: Pre-configured Axios for making API calls.
-- **Code Quality**: ESLint and Prettier for consistent code style.
-- **Hot Reloading**: Enabled for both client and server during development.
+- **Backend (server)**: Node.js and Express.js — handles API endpoints, authentication, and database interactions.
+- **Frontend (client)**: React.js with Vite — user interface and client-side logic.
+- **Database**: MongoDB — stores user data, bookings, courses, and related information.
 
----
+The repo is divided into two main folders:
+/server for backend code and /client for frontend code.
+The project files are split into the frontend (client) and backend (server). 
 
-## Prerequisites
 
-Before running the project, ensure you have the following installed:
+## Feature Responsibilities
 
-- **Node.js** (v14 or above)
-- **MongoDB** (local or remote instance)
-- **Git** (optional for cloning the repository)
-
----
-
-## Getting Started
-
-Follow these steps to set up the project locally.
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/RyomenDev/MERN-JS-StarterKit.git
-cd MERN-JS-StarterKit
-```
-
-### Running the Application
-**Start the Backend**
-```
-cd server
-npm run dev
-```
-**Start the Frontend**
-```
-cd client
-npm run dev
-```
-
-## Feedback
-If you have any feedback or questions, feel free to open an issue or reach out to aakashvatsh007@gmail.com
+- **Marina Kato**: User, Login/Logout, Account, Booking
+- **Jiayu Dai**: Course Viewing, Course Management, Booking Course
+- **Xinyi Cai**: Room Viewing, Room Management, Room Slot
+- **Shirley Yi**: Cart, Payment, Payment Detail
