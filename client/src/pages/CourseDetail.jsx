@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api";
 
-const DEMO_USER_ID = "111"; // 临时固定 userId, replace with real userId after login integration
+const DEMO_USER_ID = "111"; // fixed demo user ID for booking
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -16,10 +16,10 @@ export default function CourseDetail() {
       try {
         setErr(""); 
         setMsg("");
-        const res = await api.getCourse(id); // 获取课程详情
+        const res = await api.getCourse(id); // get course details
         setData(res);
       } catch (e) { 
-        setErr(e.message); // 获取失败时提示错误
+        setErr(e.message); // load error
       }
     })();
   }, [id]);
@@ -28,20 +28,20 @@ export default function CourseDetail() {
     try {
       setErr(""); 
       setMsg("");
-      await api.createBooking({ userId: DEMO_USER_ID, courseId: id }); // 创建预约
-      setMsg("✅ Booking successful!");
-      const res = await api.getCourse(id); // 预约后刷新课程详情
+      await api.createBooking({ userId: DEMO_USER_ID, courseId: id }); // make booking
+      setMsg("Booking successful!");
+      const res = await api.getCourse(id); // refresh course details   
       setData(res);
     } catch (e) { 
-      setErr(e.message); // 预约失败时提示错误
+      setErr(e.message); // booking error
     }
   };
 
-  if (!data) return <div style={{ padding:16 }}>Loading…</div>; // 加载中提示
+  if (!data) return <div style={{ padding:16 }}>Loading…</div>; // loading state
 
   return (
     <div style={{ padding:16 }}>
-      <button onClick={()=>nav(-1)}>← Back</button> {/* 返回按钮 */}
+      <button onClick={()=>nav(-1)}>← Back</button> {/* Back button */}
       <h2 style={{ marginTop:8 }}>{data.name}</h2>
       <div style={{ color:"#666" }}>
         {data.category} · {data.level || "All levels"}

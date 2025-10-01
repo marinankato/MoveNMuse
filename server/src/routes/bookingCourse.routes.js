@@ -3,8 +3,8 @@ import { createBooking, listBookingsByUser, cancelBooking } from "../controllers
 
 const router = Router();
 
-router.post("/", createBooking);                     // 创建预订
-router.get("/user/:userId", listBookingsByUser);     // 用户所有预订
-router.patch("/:id/cancel", cancelBooking);          // 取消预订
+router.post("/", createBooking);                     // create a booking
+router.get("/user/:userId", listBookingsByUser);     // list bookings for a user
+router.patch("/:id/cancel", cancelBooking);          // cancel a booking
 
 export default router;

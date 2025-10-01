@@ -1,6 +1,6 @@
 const Instructor = require("../models/instructor.model");
 
-// 新增讲师
+// new instructor
 exports.createInstructor = async (req, res) => {
   try {
     const { name, email, phone, bio } = req.body;
@@ -15,7 +15,7 @@ exports.createInstructor = async (req, res) => {
   }
 };
 
-// 修改讲师
+// Update instructor info
 exports.updateInstructor = async (req, res) => {
   try {
     const { id } = req.params;
@@ -30,7 +30,7 @@ exports.updateInstructor = async (req, res) => {
   }
 };
 
-// 停用讲师（active=false）
+// Disable an instructor (set active to false)
 exports.disableInstructor = async (req, res) => {
   try {
     const { id } = req.params;
@@ -43,7 +43,7 @@ exports.disableInstructor = async (req, res) => {
   }
 };
 
-// 查看讲师列表
+// List all instructors
 exports.listInstructors = async (req, res) => {
   try {
     const docs = await Instructor.find().sort({ createdAt: -1 });

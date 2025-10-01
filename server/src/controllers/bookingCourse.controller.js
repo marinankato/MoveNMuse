@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import BookingCourse from "../models/bookingCourse.model.js";
 import Course from "../models/course.model.js";
 
-// 创建预订
+// create a booking
 export const createBooking = async (req, res) => {
   try {
     const { userId, courseId } = req.body;
@@ -14,7 +14,7 @@ export const createBooking = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ error: "Course not found" });
 
-    // 统计已预订人数
+    // check if already booked
     const bookedCount = await BookingCourse.countDocuments({
       course: courseId,
       status: "CONFIRMED",
@@ -30,8 +30,7 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 };
-
-// 查看某用户的预订
+// list bookings by user
 export const listBookingsByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -49,7 +48,7 @@ export const listBookingsByUser = async (req, res) => {
   }
 };
 
-// 取消预订
+// cancel a booking
 export const cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;

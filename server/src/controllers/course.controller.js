@@ -3,28 +3,22 @@ const mongoose = require("mongoose");
 const Course = require("../models/course.model");
 const Booking = require("../models/booking.model");
 
-// 允许的 level（含显示用的 All levels）
+// allowed levels for filtering
 const ALLOWED_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
-// 仅展示 active 课程
+// only show active courses
 const ACTIVE_STATUSES = ["active"];
 
-/** GET /api/courses
- * 支持：
- *  - ?kw=keyword
- *  - ?category=Dance
- *  - ?level=Beginner | Intermediate | Advanced（空串或 All levels 表示不过滤）
- *  - ?page=1&pageSize=10  （pageSize=0 表示不分页）
- */
+/** GET /api/courses */
 exports.listCourses = async (req, res) => {
   try {
     const kw = (req.query.kw || "").trim();
     const category = (req.query.category || "").trim();
-    const level = (req.query.level || "").trim(); // 可能是 "" / "All levels" / 具体级别
+    const level = (req.query.level || "").trim(); // optional
 
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize || "0", 10), 0), 50);
 
-    // 校验
+    //
     if (kw && (kw.length < 1 || kw.length > 50)) {
       return res.status(400).json({ error: "Keyword length must be between 1 and 50 characters" });
     }
@@ -32,10 +26,10 @@ exports.listCourses = async (req, res) => {
       return res.status(400).json({ error: "Invalid level parameter" });
     }
 
-    // 查询条件：只展示 active
+    //show only active courses
     const q = { status: { $in: ACTIVE_STATUSES } };
     if (category) q.category = category;
-    // 只有在 level 是具体级别（非空、非 All levels）时才加条件
+    // only filter by level if it's not "All levels"
     if (level && level !== "All levels") q.level = level;
     if (kw) {
       const regex = new RegExp(escapeRegex(kw), "i");
@@ -51,8 +45,7 @@ exports.listCourses = async (req, res) => {
       pageSize > 0 ? cursor.skip((page - 1) * pageSize).limit(pageSize) : cursor,
       Course.countDocuments(q),
     ]);
-
-    // 统计每门课的已预约数量（仅统计 Confirmed）
+    // count booked seats for each course
     const ids = items.map((c) => c._id);
     const agg = await Booking.aggregate([
       { $match: { course: { $in: ids }, status: "Confirmed" } },
@@ -193,7 +186,7 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 
-/** 可选：初始化样例课程 */
+
 // exports.seedIfEmpty = async () => {
 //   const count = await Course.countDocuments();
 //   if (count > 0) return;
@@ -226,7 +219,7 @@ exports.deleteCourse = async (req, res) => {
 //   ]);
 // };
 
-// 工具：转义正则
+// escape special characters for regex
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

@@ -6,7 +6,7 @@ const InstructorSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, trim: true },
     phone: { type: String, default: "" },
     bio: { type: String, default: "" },
-    active: { type: Boolean, default: true }, // true = 可用, false = 停用
+    active: { type: Boolean, default: true }, //default true means the instructor is active
   },
   { timestamps: true }
 );

@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 const ctrl = require("../controllers/course.controller");
 
-// 如果你们有鉴权中间件，可以在这里加上：
+// If you have auth middleware, uncomment these lines
 // const { requireAuth, requireRole } = require("../middlewares/auth.middleware");
 
-// ✅ 课程浏览
-router.get("/", ctrl.listCourses);        // 列出所有课程（支持筛选/搜索）
-router.get("/:id", ctrl.getCourse);       // 查看课程详情
+// Course browsing
+router.get("/", ctrl.listCourses);        // List all courses (supports filter/search)
+router.get("/:id", ctrl.getCourse);       // View course details
 
-// ✅ 课程管理（后台用）
+//  Course management (for admin/staff use)
 router.post(
   "/",
   // requireAuth, requireRole(["admin", "staff"]),
@@ -19,7 +19,7 @@ router.post(
 router.put(
   "/:id",
   // requireAuth, requireRole(["admin", "staff"]),
-  ctrl.updateCourse   // 新增的更新接口
+  ctrl.updateCourse   // Update course
 );
 
 router.delete(
@@ -29,4 +29,5 @@ router.delete(
 );
 
 module.exports = router;
+
 

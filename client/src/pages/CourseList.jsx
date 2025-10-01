@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 
 const CATEGORIES = ["", "Dance", "Music", "Workshop"];
-// 注意：这里的 "" 代表“全部”，label 用 All levels
+// attention: the value "" means "All categories"
 const LEVELS = [
   { value: "", label: "All levels" },
   { value: "Beginner", label: "Beginner" },
@@ -23,7 +23,7 @@ export default function CourseList() {
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState({ items: [], total: 0, page: 1, pageSize });
 
-  // 构造请求参数时：空串就代表不传
+  // memoize params to avoid unnecessary fetches
   const params = useMemo(
     () => ({
       kw: kw.trim(),
