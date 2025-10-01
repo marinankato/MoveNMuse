@@ -1,4 +1,4 @@
-import { Room } from "../models/room.model.js";
+import Room from "../models/room.model.js";
 
 export const roomController = {
     async list(_req, res) {
@@ -9,7 +9,7 @@ export const roomController = {
     async get(req, res) {
         const room = await Room.findById(req.params.id).lean();
         if (!room) return res.status(404).json({ message: "Room not found" });
-        res.status(room);
+        res.json(room);
     },
 
     async create(req, res) {
@@ -18,7 +18,7 @@ export const roomController = {
     },
 
     async update(req, res) {
-        const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const room = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true, }).lean();
         if (!room) return res.status(404).json({ message: "Room not found" });
         res.json(room);
     },
@@ -131,8 +131,8 @@ export const roomController = {
                         rating: 4.6,
                         img: "",
                         amenities: ["Microphone", "Monitor", "Keyboard", "Drum"],
-                    }
+                    },
         ]);
         res.json({ ok: true });
-    }
+    },
 };
