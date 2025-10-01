@@ -10,6 +10,9 @@ router.use("/cart", cartRoutes);
 import paymentRoutes from "./payment.routes.js";
 router.use("/payment", paymentRoutes);
 
+import roomRoutes from "./room.routes.js";
+router.use("/rooms", roomRoutes);
+
 import paymentDetailRoutes from "./paymentDetail.routes.js";
 router.use("/paymentDetail", paymentDetailRoutes);
 

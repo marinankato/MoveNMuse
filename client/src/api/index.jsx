@@ -1,5 +1,3 @@
-
-
 const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 async function request(path, options = {}) {
@@ -54,8 +52,30 @@ export const api = {
 
   listBookingsByUser: (userId) => {
     if (!userId) throw new Error("Invalid user ID");
-    return request(`/bookings/user/${encodeURIComponent(userId)}`);
+    return request(`/bookings?userId=${encodeURIComponent(userId)}`);
   },
+  
+
+  getCart: (userId) => request(`/cart/${userId}`),
+
+  removeCartItem: ({ cartId, itemId }) =>
+    request(
+      `/cart/${cartId}/${itemId}`,
+      {
+        method: "DELETE",
+      }
+    ),
+  getPaymentDetails: (userId) =>
+    request(`/paymentDetail?userId=${encodeURIComponent(userId)}`),
+
+  addPaymentDetail: (payload) =>
+    request(`/paymentDetail/addPaymentDetail`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  processPayment: ({ orderId, amount, userId, paymentDetailId }) =>
+    request(`/payment/processPayment`, {
+      method: "POST",
+      body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
+    }),
 };
-
-

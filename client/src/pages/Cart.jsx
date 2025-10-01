@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckoutBtn } from "../utils/index.jsx";
+import { api } from "../api";
 
 function CartPage() {
   // const [user, setUser] = useState(null);
@@ -13,20 +14,14 @@ function CartPage() {
   //load cart data when page first loads
   useEffect(() => {
     async function fetchCart() {
-      const response = await fetch(`/api/cart?userId=${userId}`, {
-        // credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-
-        // Add isSelected field to each item
-        const productsWithSelection = formatSelectedProducts(data);
-
-        setCart(data);
-        setProducts(productsWithSelection);
-      } else {
-        console.error("Failed to fetch cart");
-      }
+     try {
+       const data = await api.getCart(userId); // <- returns JSON
+       const productsWithSelection = formatSelectedProducts(data);
+       setCart(data);
+       setProducts(productsWithSelection);
+     } catch (err) {
+       console.error("Failed to fetch cart", err);
+     }
     }
     fetchCart();
   }, []);
@@ -63,20 +58,17 @@ function CartPage() {
   };
   //remove one item
   const removeHandler = async (itemId) => {
-    const response = await fetch(
-      `/api/cart/item/${itemId}?cartId=${cart.cartId}`,
-      { method: "DELETE" }
-    );
-    if (response.ok) {
-      const data = await response.json();
+    try {
+      const data = await api.removeCartItem({ cartId: cart.cartId, itemId });
       setCart(data.cart);
       setProducts((prev) => prev.filter((p) => itemId != p.itemId));
-    } else {
-      console.error("Failed to remove item");
+    } catch (err) {
+      console.error("Failed to remove item", err);
+    }
     }
 
-    // setProducts((prev) => prev.filter((p) => id != p.itemId));
-  };
+
+  
 
   return (
     <div className="py-8">

@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api/index.jsx";
 import PaymentMethodForm from "../components/PaymentMethodForm.jsx";
 
 export default function Payment() {
@@ -19,9 +20,8 @@ export default function Payment() {
   // load payment methods on mount
   useEffect(() => {
     (async () => {
-      const res = await fetch(`/api/paymentDetail?userId=${userId}`);
-      if (!res.ok) return;
-      const data = await res.json();
+
+      const data = await api.getPaymentDetails(userId)  ;
       const list = Array.isArray(data) ? data : data ? [data] : [];
       setPaymentDetails(list);
       setSelectedPaymentId(
