@@ -10,7 +10,7 @@ const bookingCourseSchema = new mongoose.Schema(
       default: "CONFIRMED",
     },
   },
-  { timestamps: true } // ✅ 自动生成 createdAt / updatedAt
+  { timestamps: true } 
 );
 
 export default mongoose.model("BookingCourse", bookingCourseSchema);

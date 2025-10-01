@@ -14,9 +14,7 @@ const instructorSchema = new mongoose.Schema(
 
 const Instructor = mongoose.model("Instructor", instructorSchema);
 
-// ✅ 默认导出（这样 controller 可以用 import Instructor from ...）
 export default Instructor;
 
-// （可选）具名导出，方便有需要时用 import { Instructor } from ...
 export { Instructor };
 

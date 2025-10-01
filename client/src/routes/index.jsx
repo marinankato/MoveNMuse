@@ -36,7 +36,7 @@ const router = createBrowserRouter(
 
         <Route path="rooms" element={<RoomView />} />
         <Route path="courses" element={<CourseList />} />
-        <Route path="course/:id" element={<CourseDetail />} />
+        <Route path="courses/:id" element={<CourseDetail />} />
 
         <Route path="coursecheckout" element={<CourseChekout />} />
         <Route path="room/:id" element={<RoomDetail />} />

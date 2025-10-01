@@ -1,6 +1,6 @@
 import Instructor from "../models/instructor.model.js";
 
-// 新建 instructor
+// create new instructor
 export async function createInstructor(req, res) {
   try {
     const { name, email, phone, bio } = req.body;
@@ -14,8 +14,7 @@ export async function createInstructor(req, res) {
     res.status(500).json({ error: e.message || "Server error" });
   }
 }
-
-// 更新 instructor
+// update instructor
 export async function updateInstructor(req, res) {
   try {
     const { id } = req.params;
@@ -30,7 +29,7 @@ export async function updateInstructor(req, res) {
   }
 }
 
-// 禁用 instructor
+// disable instructor
 export async function disableInstructor(req, res) {
   try {
     const { id } = req.params;
@@ -42,8 +41,7 @@ export async function disableInstructor(req, res) {
     res.status(500).json({ error: e.message || "Server error" });
   }
 }
-
-// 列出所有 instructors
+// list all instructors
 export async function listInstructors(req, res) {
   try {
     const docs = await Instructor.find().sort({ createdAt: -1 });

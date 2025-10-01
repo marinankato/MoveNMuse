@@ -1,11 +1,11 @@
-// server/src/controllers/course.controller.js  (ESM 统一版)
+// server/src/controllers/course.controller.js 
 import mongoose from "mongoose";
 import Course from "../models/course.model.js";
 import BookingCourse from "../models/bookingCourse.model.js";
 
-// 允许的 level（包含显示用的 All levels）
+// allowed levels
 const ALLOWED_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
-// 仅展示 active
+// only active courses
 const ACTIVE_STATUSES = ["active"];
 
 /** GET /api/courses */
@@ -42,7 +42,7 @@ export const listCourses = async (req, res) => {
       Course.countDocuments(q),
     ]);
 
-    // 先不统计预订，保证接口稳定
+    // add booked and remaining fields
     const withRemaining = items.map((c) => ({
       ...c,
       booked: 0,
@@ -74,7 +74,7 @@ export const getCourse = async (req, res) => {
       return res.status(404).json({ error: "Course not found or inactive" });
     }
 
-    // 注意：用 BookingCourse 且状态为 "CONFIRMED"
+    // add booked and remaining fields
     const booked = await BookingCourse.countDocuments({ course: item._id, status: "CONFIRMED" });
     const capacity = Number(item.capacity || 0);
     const remaining = Math.max(capacity - booked, 0);
@@ -170,7 +170,7 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
-// 工具：转义正则
+// escape regex special chars in the search keyword
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

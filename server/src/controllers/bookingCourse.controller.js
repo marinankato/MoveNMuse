@@ -15,7 +15,7 @@ export const createBooking = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ error: "Course not found" });
 
-    // 已确认的预约数
+    // check if course is full
     const bookedCount = await BookingCourse.countDocuments({
       course: courseId,
       status: "CONFIRMED",
@@ -74,6 +74,6 @@ export const cancelBooking = async (req, res) => {
   }
 };
 
-// 可选：默认导出一个对象（不是必须）
+// Below is the code of d:\Desktop\MoveNMuse\server\src\controllers\course.controller.js 
 // export default { createBooking, listBookingsByUser, cancelBooking };
 

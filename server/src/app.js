@@ -13,7 +13,7 @@ import instructorRoutes from "./routes/instructor.routes.js";
 import bookingCourseRoutes from "./routes/bookingCourse.routes.js";
 
 
-import roomRoutes from "./routes/room.routes.js";
+// import roomRoutes from "./routes/room.routes.js";
 
 const app = express();
 
@@ -27,24 +27,33 @@ app.use(bodyParser.json());
 //   })
 // );
 
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       const allowedOrigins = [
+//         conf.CORS_ORIGIN1.replace(/\/$/, ""),
+//         conf.CORS_ORIGIN2.replace(/\/$/, ""),
+//         conf.CORS_ORIGIN3.replace(/\/$/, ""),
+//       ];
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error(`Origin ${origin} not allowed by CORS`));
+//       }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+//   })
+// );
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        conf.CORS_ORIGIN1.replace(/\/$/, ""),
-        conf.CORS_ORIGIN2.replace(/\/$/, ""),
-        conf.CORS_ORIGIN3.replace(/\/$/, ""),
-      ];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
-      }
-    },
+    origin: ["http://localhost:5173"],   // allow to server to accept requests from this origin
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
+
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -59,7 +68,7 @@ app.use("/api/courses", instructorRoutes);
 app.use("/api/bookings", bookingCourseRoutes);
 
 
-app.use("/api/rooms", roomRoutes);
+// app.use("/api/rooms", roomRoutes);
 
 app.post("/testing", (req, res) => {
   console.log("Testing");

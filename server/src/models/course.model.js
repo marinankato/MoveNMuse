@@ -13,7 +13,7 @@ const courseSchema = new Schema(
     },
     instructor: { type: String, default: "TBA", trim: true },
     price: { type: Number, default: 0, min: 0 },
-    defaultPrice: { type: Number, required: true }, // ✅ 简化
+    defaultPrice: { type: Number, required: true }, 
     capacity: { type: Number, default: 0, min: 0 },
     description: { type: String, default: "", trim: true },
     status: { type: String, enum: ["active", "disabled"], default: "active" },
