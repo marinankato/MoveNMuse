@@ -44,7 +44,7 @@ app.use(
 app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
-
+app.use("/api", Routes); 
 app.use("/api/rooms", roomRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/bookings", bookingCourseRoutes);
