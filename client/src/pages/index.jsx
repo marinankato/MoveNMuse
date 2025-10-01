@@ -10,8 +10,22 @@ import RoomView from "./RoomView.jsx";
 import CourseList from "./CourseList.jsx";
 import CourseDetail from "./CourseDetail.jsx";  
 import CourseChekout from "./CourseCheckout.jsx";
-import Mybookings from "./Mybookings.jsx";
 import RoomDetail from "./RoomDetail.jsx";
 import BookingDetails from "./BookingDetails.jsx";
 
-export { Home, Account, Login, CartPage, Checkout, Payment, AddPaymentDetail, PaymentSuccess, RoomView, CourseList, CourseDetail, CourseChekout, Mybookings, RoomDetail, BookingDetails };
+export {
+  Home,
+  Account,
+  Login,
+  CartPage,
+  Checkout,
+  Payment,
+  AddPaymentDetail,
+  PaymentSuccess,
+  RoomView,
+  CourseList,
+  CourseDetail,
+  CourseChekout,
+  RoomDetail,
+  BookingDetails
+};

@@ -8,6 +8,13 @@ import bodyParser from "body-parser";
 import conf from "./conf/conf.js";
 import Routes from "./routes/index.js";
 
+import courseRoutes from "./routes/course.routes.js"; 
+import instructorRoutes from "./routes/instructor.routes.js";
+import bookingCourseRoutes from "./routes/bookingCourse.routes.js";
+
+
+import roomRoutes from "./routes/room.routes.js";
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -43,7 +50,15 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
 
+
 app.use("/api", Routes);
+
+
+app.use("/api/courses", courseRoutes);
+app.use("/api/courses", instructorRoutes);
+app.use("/api/bookings", bookingCourseRoutes);
+
+
 app.use("/api/rooms", roomRoutes);
 
 app.post("/testing", (req, res) => {
@@ -56,3 +71,4 @@ app.get("/", (req, res) => {
 });
 
 export { app };
+
