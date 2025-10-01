@@ -8,6 +8,8 @@ import bodyParser from "body-parser";
 import conf from "./conf/conf.js";
 import Routes from "./routes/index.js";
 import roomRoutes from "./routes/room.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import bookingCourseRoutes from "./routes/bookingCourse.routes.js";
 
 const app = express();
 
@@ -56,6 +58,8 @@ app.use(cookieParser());
 
 
 app.use("/api/rooms", roomRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/bookings", bookingCourseRoutes);
 
 app.post("/testing", (req, res) => {
   console.log("Testing");

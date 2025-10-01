@@ -19,7 +19,7 @@ export const createBooking = async (req, res) => {
       course = await Course.findById(courseId).lean();
     } else if (!Number.isNaN(Number(courseId))) {
       course = await Course.findOne({ courseId: Number(courseId) }).lean();
-      if (course) courseId = course._id.toString(); // 统一成 _id
+      if (course) courseId = course._id.toString(); 
     }
     if (!course) return res.status(404).json({ error: "Course not found" });
 

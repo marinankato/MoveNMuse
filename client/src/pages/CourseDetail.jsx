@@ -134,7 +134,11 @@ export default function CourseDetail() {
 
   // Fetch course details
   useEffect(() => {
-    if (!id) return;
+    if (!id || id === "undefined") { 
+      setErr("Invalid course ID");
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         setLoading(true);
@@ -149,6 +153,7 @@ export default function CourseDetail() {
       }
     })();
   }, [id]);
+
 
   // Normalize occurrences (support id/_id/occurrenceId)
   const occurrences = useMemo(() => {

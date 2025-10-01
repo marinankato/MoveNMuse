@@ -1,8 +1,13 @@
 
+
 const API_BASE = import.meta.env.VITE_API_BASE || "/api";
 
 async function request(path, options = {}) {
-  const res = await fetch(API_BASE + path, {
+  const url = path.startsWith("http")
+    ? path
+    : API_BASE.replace(/\/$/, "") + (path.startsWith("/") ? path : "/" + path);
+
+  const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     ...options,
@@ -10,7 +15,11 @@ async function request(path, options = {}) {
 
   const text = await res.text();
   let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: text };
+  }
 
   if (!res.ok) {
     throw new Error(data?.error || `${res.status} ${res.statusText}`);
@@ -18,29 +27,35 @@ async function request(path, options = {}) {
   return data;
 }
 
-
 export const api = {
- 
   listCourses: (params = {}) => {
-    const url = new URL(API_BASE + "/courses", window.location.origin);
+    const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && String(v).length) {
-        url.searchParams.set(k, v);
+      if (v !== undefined && v !== null && String(v).trim().length > 0) {
+        sp.set(k, v);
       }
     });
-    
-    return request("/courses?" + url.searchParams.toString());
+    const qs = sp.toString();
+    return request(`/courses${qs ? "?" + qs : ""}`);
   },
-  getCourse: (id) => request(`/courses/${id}`),
 
+  getCourse: (id) => {
+    if (!id) throw new Error("Invalid course ID");
+    return request(`/courses/${encodeURIComponent(id)}`);
+  },
 
-  createBooking: ({ userId, courseId }) =>
-    request(`/bookings`, {
+  createBooking: ({ userId, courseId }) => {
+    if (!userId || !courseId) throw new Error("Invalid booking data");
+    return request(`/bookings`, {
       method: "POST",
       body: JSON.stringify({ userId, courseId }),
-    }),
+    });
+  },
 
-
-  listBookingsByUser: (userId) => request(`/bookings/user/${userId}`),
+  listBookingsByUser: (userId) => {
+    if (!userId) throw new Error("Invalid user ID");
+    return request(`/bookings/user/${encodeURIComponent(userId)}`);
+  },
 };
+
 

@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 
-const CATEGORIES = ["", "Dance", "Music", "Workshop"]; // "" = All categories
+const CATEGORIES = ["", "Dance", "Music", "Workshop"];
 const LEVELS = [
   { value: "", label: "All levels" },
   { value: "Beginner", label: "Beginner" },
   { value: "Intermediate", label: "Intermediate" },
   { value: "Advanced", label: "Advanced" },
 ];
+
+function normCourseId(course) {
+  return String(course?._id ?? course?.id ?? course?.courseId ?? "");
+}
 
 export default function CourseList() {
   const [sp, setSp] = useSearchParams();
@@ -22,30 +26,26 @@ export default function CourseList() {
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState({ items: [], total: 0, page: 1, pageSize });
 
+  const params = useMemo(
+    () => ({
+      kw: kw.trim(),
+      category,
+      level: level === "" ? undefined : level,
+      page,
+      pageSize,
+    }),
+    [kw, category, level, page, pageSize]
+  );
+
   const fetchData = async () => {
     try {
       setError("");
       setLoading(true);
-      const params = {
-        kw: kw.trim(),
-        category,
-        level: level === "" ? undefined : level,
-        page,
-        pageSize,
-      };
       const res = await api.listCourses(params);
-      if (Array.isArray(res)) {
-        setPayload({ items: res, total: res.length, page, pageSize });
-      } else {
-        setPayload({
-          items: res.items || [],
-          total: res.total || 0,
-          page: res.page || page,
-          pageSize: res.pageSize || pageSize,
-        });
-      }
+      if (Array.isArray(res)) setPayload({ items: res, total: res.length, page, pageSize });
+      else setPayload(res);
     } catch (e) {
-      setError(e.message || "请求失败");
+      setError(e.message || "request failed");
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,20 @@ export default function CourseList() {
 
   useEffect(() => {
     fetchData();
-  }, [kw, category, level, page]);
+  }, [params.page, params.kw, params.category, params.level]);
+
+  // 按回车键时也触发搜索
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      if (!kw.trim()) {
+        setError("Keyword cannot be empty");
+        return;
+      }
+      setError("");
+      setPage(1);
+      fetchData();
+    }
+  };
 
   return (
     <div style={{ padding: "16px" }}>
@@ -79,6 +92,7 @@ export default function CourseList() {
         <input
           value={kw}
           onChange={(e) => setKw(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Keyword"
         />
         <select
@@ -89,7 +103,7 @@ export default function CourseList() {
           }}
         >
           {CATEGORIES.map((c) => (
-            <option key={c || "all"} value={c}>
+            <option key={c} value={c}>
               {c || "All categories"}
             </option>
           ))}
@@ -102,13 +116,18 @@ export default function CourseList() {
           }}
         >
           {LEVELS.map((l) => (
-            <option key={l.value || "all"} value={l.value}>
+            <option key={l.value} value={l.value}>
               {l.label}
             </option>
           ))}
         </select>
         <button
           onClick={() => {
+            if (!kw.trim()) {
+              setError("Keyword cannot be empty");
+              return;
+            }
+            setError("");
             setPage(1);
             fetchData();
           }}
@@ -122,10 +141,10 @@ export default function CourseList() {
 
       <ul style={{ display: "grid", gap: 10 }}>
         {payload.items.map((c) => {
-          const id = c.id || c._id || c.courseId; 
+          const cid = normCourseId(c);
           return (
             <li
-              key={id}
+              key={cid || c.name}
               style={{
                 border: "1px solid #eee",
                 borderRadius: 12,
@@ -146,7 +165,11 @@ export default function CourseList() {
                   )}
                 </div>
               </div>
-              <Link to={`/courses/${id}`}>View Details</Link>
+              {cid ? (
+                <Link to={`/courses/${cid}`}>View Details</Link>
+              ) : (
+                <span style={{ color: "#999" }}>No ID</span>
+              )}
             </li>
           );
         })}
@@ -171,8 +194,6 @@ export default function CourseList() {
     </div>
   );
 }
-
-
 
 
 

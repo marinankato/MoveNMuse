@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Course from "../models/course.model.js";
-// import BookingCourse from "../models/bookingCourse.model.js";
+import BookingCourse from "../models/bookingCourse.model.js";
 
 const ALLOWED_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
 
@@ -62,18 +62,13 @@ export const getCourse = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let course;
-    if (mongoose.isValidObjectId(id)) {
-      course = await Course.findById(id)
-        .select("courseName category level description defaultPrice capacity")
-        .lean();
-    } else if (!Number.isNaN(Number(id))) {
-      course = await Course.findOne({ courseId: Number(id) })
-        .select("courseName category level description defaultPrice capacity")
-        .lean();
-    } else {
+    if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid course ID" });
     }
+
+    const course = await Course.findById(id)
+      .select("courseName category level description defaultPrice capacity")
+      .lean();
 
     if (!course) return res.status(404).json({ error: "Course not found" });
 
@@ -91,13 +86,14 @@ export const getCourse = async (req, res) => {
       capacity,
       booked,
       remaining,
-      lowCapacity: remaining <= 3
+      lowCapacity: remaining <= 3,
     });
   } catch (e) {
     console.error("getCourse error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
+
 
 /** POST /api/courses */
 export const createCourse = async (req, res) => {
