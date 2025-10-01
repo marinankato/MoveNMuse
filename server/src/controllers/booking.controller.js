@@ -26,3 +26,28 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
+export const createBooking = async (req, res) => {
+  try {
+    const { userId, items, orderDate, orderTotal, status } = req.body || {};
+
+    if (!userId || !items || !orderDate || !orderTotal || !status) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+    const lastBooking = await Booking.findOne().sort({ orderId: -1 });
+    const newOrderId = lastBooking ? lastBooking.orderId + 1 : 1;
+    const newBooking = new Booking({
+      userId: userId,
+      items,
+      orderId: newOrderId,
+      orderDate: orderDate,
+      orderTotal: orderTotal,
+      status,
+    });
+
+    await newBooking.save();
+    res.status(201).json({ message: "Booking created", booking: newBooking });  
+  } catch (err) {
+    console.error("Error creating booking:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+}

@@ -41,3 +41,6 @@ locales/*.json
 
 #files
 .docx
+
+# mock data
+server/src/db/*.json
