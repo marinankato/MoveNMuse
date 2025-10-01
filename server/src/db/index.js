@@ -1,19 +1,25 @@
 import mongoose from "mongoose";
 import conf from "../conf/conf.js";
 
-const connectDB = async () => {
+export default async function connectDB() {
+  const uri = conf.MONGODB_URI; // make sure this comes from process.env in Azure
+
+  // Fail fast instead of hanging:
+  const opts = {
+    serverSelectionTimeoutMS: 5000, // give up if no primary is found in 5s
+    connectTimeoutMS: 5000,         // TCP connect timeout
+    socketTimeoutMS: 20000,         // in-flight ops timeout (20s)
+    maxPoolSize: 10,                // sane default
+    retryWrites: true,              // good for SRV/Atlas
+  };
+
   try {
-    const connectionInstance = await mongoose.connect(conf.MONGODB_URI, {
-      //options
-    });
-    console.log(
-      `✅ MongoDB connected! DB Host: ${connectionInstance.connection.host}`
-    );
-  } catch (error) {
-    console.error("❌ MongoDB connection failed:", error.message);
+    const conn = await mongoose.connect(uri, opts);
+    console.log(`✅ MongoDB connected. Host: ${conn.connection.host}`);
+    return conn;
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err?.message || err);
+
     process.exit(1);
   }
-};
-console.log("MONGO_URI:", conf.MONGODB_URI);
-
-export default connectDB;
+}
