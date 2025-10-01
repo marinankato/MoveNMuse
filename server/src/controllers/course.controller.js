@@ -1,12 +1,8 @@
-// server/src/controllers/course.controller.js 
 import mongoose from "mongoose";
 import Course from "../models/course.model.js";
-import BookingCourse from "../models/bookingCourse.model.js";
+// import BookingCourse from "../models/bookingCourse.model.js";
 
-// allowed levels
 const ALLOWED_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
-// only active courses
-const ACTIVE_STATUSES = ["active"];
 
 /** GET /api/courses */
 export const listCourses = async (req, res) => {
@@ -15,7 +11,7 @@ export const listCourses = async (req, res) => {
     const category = (req.query.category || "").trim();
     const level = (req.query.level || "").trim();
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
-    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize || "0", 10), 0), 50);
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize || "10", 10), 1), 50);
 
     if (kw && (kw.length < 1 || kw.length > 50)) {
       return res.status(400).json({ error: "Keyword length must be between 1 and 50 characters" });
@@ -24,86 +20,101 @@ export const listCourses = async (req, res) => {
       return res.status(400).json({ error: "Invalid level parameter" });
     }
 
-    const q = { status: { $in: ACTIVE_STATUSES } };
-    if (category) q.category = category;
+    const q = {};
+    if (category && category.toLowerCase() !== "all categories") q.category = category;
     if (level && level !== "All levels") q.level = level;
     if (kw) {
       const regex = new RegExp(escapeRegex(kw), "i");
-      q.$or = [{ name: regex }, { description: regex }];
+      q.$or = [{ courseName: regex }, { description: regex }];
     }
 
     const cursor = Course.find(q)
-      .sort({ startAt: 1, createdAt: -1 })
-      .select("name category level instructor price capacity startAt endAt status description")
+      .sort({ createdAt: -1 })
+      .select("courseName category level description defaultPrice capacity")
       .lean();
 
-    const [items, total] = await Promise.all([
-      pageSize > 0 ? cursor.skip((page - 1) * pageSize).limit(pageSize) : cursor,
+    const [rawItems, total] = await Promise.all([
+      cursor.skip((page - 1) * pageSize).limit(pageSize),
       Course.countDocuments(q),
     ]);
 
-    // add booked and remaining fields
-    const withRemaining = items.map((c) => ({
-      ...c,
+    const items = rawItems.map((c) => ({
+      id: String(c._id),
+      name: c.courseName,
+      category: c.category,
+      level: c.level || "All levels",
+      description: c.description || "",
+      price: Number(c.defaultPrice ?? 0),
+      capacity: Number(c.capacity ?? 0),
       booked: 0,
-      remaining: Number(c.capacity || 0),
+      remaining: Number(c.capacity ?? 0),
       lowCapacity: false,
     }));
 
-    if (pageSize > 0) return res.json({ items: withRemaining, total, page, pageSize });
-    return res.json(withRemaining);
+    return res.json({ items, total, page, pageSize });
   } catch (e) {
     console.error("listCourses error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
-/** GET /api/courses/:id */
 export const getCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
+
+    let course;
+    if (mongoose.isValidObjectId(id)) {
+      course = await Course.findById(id)
+        .select("courseName category level description defaultPrice capacity")
+        .lean();
+    } else if (!Number.isNaN(Number(id))) {
+      course = await Course.findOne({ courseId: Number(id) })
+        .select("courseName category level description defaultPrice capacity")
+        .lean();
+    } else {
       return res.status(400).json({ error: "Invalid course ID" });
     }
 
-    const item = await Course.findById(id)
-      .select("name category level instructor price capacity startAt endAt status description")
-      .lean();
+    if (!course) return res.status(404).json({ error: "Course not found" });
 
-    if (!item || !ACTIVE_STATUSES.includes(item.status)) {
-      return res.status(404).json({ error: "Course not found or inactive" });
-    }
-
-    // add booked and remaining fields
-    const booked = await BookingCourse.countDocuments({ course: item._id, status: "CONFIRMED" });
-    const capacity = Number(item.capacity || 0);
+    const booked = 0;
+    const capacity = Number(course.capacity || 0);
     const remaining = Math.max(capacity - booked, 0);
 
-    res.json({ ...item, booked, remaining, lowCapacity: remaining <= 3 });
+    return res.json({
+      id: String(course._id),
+      name: course.courseName,
+      category: course.category,
+      level: course.level || "All levels",
+      description: course.description || "",
+      price: Number(course.defaultPrice ?? 0),
+      capacity,
+      booked,
+      remaining,
+      lowCapacity: remaining <= 3
+    });
   } catch (e) {
-    console.error(e);
+    console.error("getCourse error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
-/** POST /api/courses (Admin/Staff) */
+/** POST /api/courses */
 export const createCourse = async (req, res) => {
   try {
     let {
-      name,
+      name, courseName,
       category,
       level,
-      instructor,
-      price,
+      price, defaultPrice,
       capacity,
       description,
-      startAt,
-      endAt,
-      status,
+      courseId
     } = req.body;
 
-    if (!name || String(name).trim().length < 2) {
-      return res.status(400).json({ error: "Name must be at least 2 characters" });
+    courseName = (courseName ?? name ?? "").trim();
+    if (!courseName || courseName.length < 2) {
+      return res.status(400).json({ error: "courseName (or name) must be at least 2 characters" });
     }
     if (!category || String(category).trim().length === 0) {
       return res.status(400).json({ error: "Category is required" });
@@ -111,69 +122,60 @@ export const createCourse = async (req, res) => {
     if (level && !ALLOWED_LEVELS.includes(level)) {
       return res.status(400).json({ error: "Invalid level value" });
     }
-    if (price != null && (isNaN(price) || Number(price) < 0)) {
+
+    const priceNum = Number(defaultPrice ?? price ?? 0);
+    if (Number.isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ error: "Price must be a number >= 0" });
     }
-    if (capacity == null || !Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
+    const capNum = Number(capacity);
+    if (!Number.isInteger(capNum) || capNum < 1) {
       return res.status(400).json({ error: "Capacity must be an integer >= 1" });
     }
 
-    if (startAt && endAt) {
-      const s = new Date(startAt);
-      const e = new Date(endAt);
-      if (isNaN(s.getTime()) || isNaN(e.getTime())) {
-        return res.status(400).json({ error: "startAt/endAt must be valid dates" });
-      }
-      if (s >= e) return res.status(400).json({ error: "startAt must be earlier than endAt" });
-    }
-
-    name = String(name).trim();
-    if (!["active", "disabled"].includes(status)) status = "active";
-
     const doc = await Course.create({
-      name,
+      courseId, 
+      courseName,
       category,
       level,
-      instructor,
-      price: Number(price || 0),
-      capacity: Number(capacity),
       description,
-      startAt: startAt ? new Date(startAt) : undefined,
-      endAt: endAt ? new Date(endAt) : undefined,
-      status,
+      defaultPrice: priceNum,
+      capacity: capNum
     });
 
     res.status(201).json({ id: doc._id, message: "Course created" });
   } catch (e) {
-    console.error(e);
+    console.error("createCourse error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
-/** DELETE /api/courses/:id (Admin/Staff) */
+/** DELETE /api/courses/:id */
 export const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
+
+    let deleted;
+    if (mongoose.isValidObjectId(id)) {
+      deleted = await Course.findByIdAndDelete(id);
+    } else if (!Number.isNaN(Number(id))) {
+      deleted = await Course.findOneAndDelete({ courseId: Number(id) });
+    } else {
       return res.status(400).json({ error: "Invalid course ID" });
     }
 
-    const course = await Course.findByIdAndDelete(id);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
+    if (!deleted) return res.status(404).json({ error: "Course not found" });
 
     res.json({ message: "Course deleted successfully" });
   } catch (e) {
-    console.error(e);
+    console.error("deleteCourse error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
 
-// escape regex special chars in the search keyword
 function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
 
 
 

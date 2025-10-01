@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 
-const CATEGORIES = ["", "Dance", "Music", "Workshop"];
-// attention: the value "" means "All categories"
+const CATEGORIES = ["", "Dance", "Music", "Workshop"]; // "" = All categories
 const LEVELS = [
   { value: "", label: "All levels" },
   { value: "Beginner", label: "Beginner" },
@@ -23,25 +22,28 @@ export default function CourseList() {
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState({ items: [], total: 0, page: 1, pageSize });
 
-  // memoize params to avoid unnecessary fetches
-  const params = useMemo(
-    () => ({
-      kw: kw.trim(),
-      category,
-      level: level === "" ? undefined : level,
-      page,
-      pageSize,
-    }),
-    [kw, category, level, page, pageSize]
-  );
-
   const fetchData = async () => {
     try {
       setError("");
       setLoading(true);
+      const params = {
+        kw: kw.trim(),
+        category,
+        level: level === "" ? undefined : level,
+        page,
+        pageSize,
+      };
       const res = await api.listCourses(params);
-      if (Array.isArray(res)) setPayload({ items: res, total: res.length, page, pageSize });
-      else setPayload(res);
+      if (Array.isArray(res)) {
+        setPayload({ items: res, total: res.length, page, pageSize });
+      } else {
+        setPayload({
+          items: res.items || [],
+          total: res.total || 0,
+          page: res.page || page,
+          pageSize: res.pageSize || pageSize,
+        });
+      }
     } catch (e) {
       setError(e.message || "请求失败");
     } finally {
@@ -60,7 +62,7 @@ export default function CourseList() {
 
   useEffect(() => {
     fetchData();
-  }, [params.page, params.kw, params.category, params.level]);
+  }, [kw, category, level, page]);
 
   return (
     <div style={{ padding: "16px" }}>
@@ -87,7 +89,7 @@ export default function CourseList() {
           }}
         >
           {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
+            <option key={c || "all"} value={c}>
               {c || "All categories"}
             </option>
           ))}
@@ -100,7 +102,7 @@ export default function CourseList() {
           }}
         >
           {LEVELS.map((l) => (
-            <option key={l.value} value={l.value}>
+            <option key={l.value || "all"} value={l.value}>
               {l.label}
             </option>
           ))}
@@ -119,32 +121,35 @@ export default function CourseList() {
       {loading && <div>Loading…</div>}
 
       <ul style={{ display: "grid", gap: 10 }}>
-        {payload.items.map((c) => (
-          <li
-            key={c._id}
-            style={{
-              border: "1px solid #eee",
-              borderRadius: 12,
-              padding: 12,
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 700 }}>{c.name}</div>
-              <div style={{ color: "#666" }}>
-                {c.category} · {c.level || "All levels"}
+        {payload.items.map((c) => {
+          const id = c.id || c._id || c.courseId; 
+          return (
+            <li
+              key={id}
+              style={{
+                border: "1px solid #eee",
+                borderRadius: 12,
+                padding: 12,
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700 }}>{c.name}</div>
+                <div style={{ color: "#666" }}>
+                  {c.category} · {c.level || "All levels"}
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  Remaining: <b>{c.remaining}</b>
+                  {c.lowCapacity && (
+                    <span style={{ color: "#c00" }}> (Limited spots)</span>
+                  )}
+                </div>
               </div>
-              <div style={{ marginTop: 6 }}>
-                Remaining: <b>{c.remaining}</b>
-                {c.lowCapacity && (
-                  <span style={{ color: "#c00" }}> (Limited spots)</span>
-                )}
-              </div>
-            </div>
-            <Link to={`/courses/${c._id}`}>View Details</Link>
-          </li>
-        ))}
+              <Link to={`/courses/${id}`}>View Details</Link>
+            </li>
+          );
+        })}
       </ul>
 
       {payload.total > payload.pageSize && (
@@ -166,6 +171,8 @@ export default function CourseList() {
     </div>
   );
 }
+
+
 
 
 

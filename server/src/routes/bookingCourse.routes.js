@@ -1,5 +1,5 @@
-// server/src/routes/bookingCourse.routes.js
 import { Router } from "express";
+import { verifyToken } from "../middlewares/auth.middleware.js";
 import {
   createBooking,
   listBookingsByUser,
@@ -8,9 +8,11 @@ import {
 
 const router = Router();
 
-router.post("/", createBooking);
-router.get("/user/:userId", listBookingsByUser);
-router.patch("/:id/cancel", cancelBooking);
+router.post("/", verifyToken, createBooking);
+router.get("/user/:userId", verifyToken, listBookingsByUser);
+router.patch("/:id/cancel", verifyToken, cancelBooking);
 
 export default router;
+
+
 
