@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const roomSchema = new mongoose.Schema(
+const RoomSchema = new mongoose.Schema(
     {
       name: {
         type: String,
@@ -14,35 +14,31 @@ const roomSchema = new mongoose.Schema(
       },
       capacity: {
         type: Number,
-        required: true,
+        default: 1,
         min: 1,
       },
       pricePerHour: {
         type: Number,
-        required: true,
+        default: 0,
         min: 0,
       },
-      amenities: [
-        {
-          type: String,
-          trim: true,
-        },
-      ],
       rating: {
         type: Number,
         default: 0,
         min: 0,
         max: 5,
       },
-      isAvailable: {
-        type: Boolean,
-        default: true,
+      images: {
+        type: [String],
+        default: [],
       },
+      amenities: {
+          type: [String],
+          default: [] 
+        },
     },
-    {
-      timestamps: true,
-    }
-  );
-  
-  const Room = mongoose.model("Room", roomSchema);
+        { timestamps: true }
+);
+     
+  const Room = mongoose.model("Room", RoomSchema);
   export default Room;

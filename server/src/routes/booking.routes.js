@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import { getUserBookings } from "../controllers/booking.controller.js";
+import { createBooking } from "../controllers/booking.controller.js";
 import Booking from "../models/booking.model.js";
 
 const router = express.Router();
@@ -29,5 +30,10 @@ router.get("/:bookingId", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+//Create new booking
+router.post("/newBooking", createBooking);
+
+
 
 export default router;

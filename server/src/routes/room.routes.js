@@ -1,10 +1,13 @@
 import express from "express";
-import { GetAllRooms, GetRoomById } from "../controllers/room.controller.js";
+import { roomController } from "../controllers/room.controller.js";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/", GetAllRooms);
-
-router.get("/:id", GetRoomById);
+router.get("/", roomController.list);
+router.get("/seeed", roomController.seed);
+router.get("/:id", roomController.get);
+router.post("/", roomController.create);
+router.put("/:id", roomController.update);
+router.delete("/:id", roomController.remove);
 
 export default router;

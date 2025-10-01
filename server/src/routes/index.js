@@ -7,6 +7,12 @@ router.use("/auth", authRoutes);
 import cartRoutes from "./cart.routes.js";
 router.use("/cart", cartRoutes);
 
+import paymentRoutes from "./payment.routes.js";
+router.use("/payment", paymentRoutes);
+
+import paymentDetailRoutes from "./paymentDetail.routes.js";
+router.use("/paymentDetail", paymentDetailRoutes);
+
 import userRoutes from "./user.js";
 router.use("/user", userRoutes);
 
