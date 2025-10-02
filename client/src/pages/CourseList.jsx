@@ -3,13 +3,16 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 
 const CATEGORIES = ["", "Dance", "Music", "Workshop"];
-// attention: the value "" means "All categories"
 const LEVELS = [
   { value: "", label: "All levels" },
   { value: "Beginner", label: "Beginner" },
   { value: "Intermediate", label: "Intermediate" },
   { value: "Advanced", label: "Advanced" },
 ];
+
+function normCourseId(course) {
+  return String(course?._id ?? course?.id ?? course?.courseId ?? "");
+}
 
 export default function CourseList() {
   const [sp, setSp] = useSearchParams();
@@ -23,7 +26,6 @@ export default function CourseList() {
   const [loading, setLoading] = useState(false);
   const [payload, setPayload] = useState({ items: [], total: 0, page: 1, pageSize });
 
-  // memoize params to avoid unnecessary fetches
   const params = useMemo(
     () => ({
       kw: kw.trim(),
@@ -43,7 +45,7 @@ export default function CourseList() {
       if (Array.isArray(res)) setPayload({ items: res, total: res.length, page, pageSize });
       else setPayload(res);
     } catch (e) {
-      setError(e.message || "请求失败");
+      setError(e.message || "request failed");
     } finally {
       setLoading(false);
     }
@@ -62,6 +64,19 @@ export default function CourseList() {
     fetchData();
   }, [params.page, params.kw, params.category, params.level]);
 
+  // 按回车键时也触发搜索
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      if (!kw.trim()) {
+        setError("Keyword cannot be empty");
+        return;
+      }
+      setError("");
+      setPage(1);
+      fetchData();
+    }
+  };
+
   return (
     <div style={{ padding: "16px" }}>
       <h2>Course List</h2>
@@ -77,6 +92,7 @@ export default function CourseList() {
         <input
           value={kw}
           onChange={(e) => setKw(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Keyword"
         />
         <select
@@ -107,6 +123,11 @@ export default function CourseList() {
         </select>
         <button
           onClick={() => {
+            if (!kw.trim()) {
+              setError("Keyword cannot be empty");
+              return;
+            }
+            setError("");
             setPage(1);
             fetchData();
           }}
@@ -119,32 +140,39 @@ export default function CourseList() {
       {loading && <div>Loading…</div>}
 
       <ul style={{ display: "grid", gap: 10 }}>
-        {payload.items.map((c) => (
-          <li
-            key={c._id}
-            style={{
-              border: "1px solid #eee",
-              borderRadius: 12,
-              padding: 12,
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 700 }}>{c.name}</div>
-              <div style={{ color: "#666" }}>
-                {c.category} · {c.level || "All levels"}
+        {payload.items.map((c) => {
+          const cid = normCourseId(c);
+          return (
+            <li
+              key={cid || c.name}
+              style={{
+                border: "1px solid #eee",
+                borderRadius: 12,
+                padding: 12,
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700 }}>{c.name}</div>
+                <div style={{ color: "#666" }}>
+                  {c.category} · {c.level || "All levels"}
+                </div>
+                <div style={{ marginTop: 6 }}>
+                  Remaining: <b>{c.remaining}</b>
+                  {c.lowCapacity && (
+                    <span style={{ color: "#c00" }}> (Limited spots)</span>
+                  )}
+                </div>
               </div>
-              <div style={{ marginTop: 6 }}>
-                Remaining: <b>{c.remaining}</b>
-                {c.lowCapacity && (
-                  <span style={{ color: "#c00" }}> (Limited spots)</span>
-                )}
-              </div>
-            </div>
-            <Link to={`/courses/${c._id}`}>View Details</Link>
-          </li>
-        ))}
+              {cid ? (
+                <Link to={`/courses/${cid}`}>View Details</Link>
+              ) : (
+                <span style={{ color: "#999" }}>No ID</span>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {payload.total > payload.pageSize && (

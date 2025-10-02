@@ -10,6 +10,9 @@ router.use("/cart", cartRoutes);
 import paymentRoutes from "./payment.routes.js";
 router.use("/payment", paymentRoutes);
 
+import roomRoutes from "./room.routes.js";
+router.use("/rooms", roomRoutes);
+
 import paymentDetailRoutes from "./paymentDetail.routes.js";
 router.use("/paymentDetail", paymentDetailRoutes);
 
@@ -18,5 +21,10 @@ router.use("/user", userRoutes);
 
 import bookingRoutes from "./booking.routes.js";
 router.use("/bookings", bookingRoutes); 
+import bookingCourseRoutes from "./bookingCourse.routes.js";
+router.use("/bookingCourses", bookingCourseRoutes);
+
+import courseRoutes from "./course.routes.js";
+router.use("/courses", courseRoutes);
 
 export default router;

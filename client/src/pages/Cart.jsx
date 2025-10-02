@@ -1,121 +1,143 @@
+// src/pages/CartPage.jsx
 import { useEffect, useState } from "react";
 import { CheckoutBtn } from "../utils/index.jsx";
+import { api } from "../api";
 
-function CartPage() {
-  // const [user, setUser] = useState(null);
+export default function CartPage() {
   const [cart, setCart] = useState(null);
+  const [products, setProducts] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [products, setProducts] = useState();
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingRemoveId, setPendingRemoveId] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+
   const userId = 1;
 
-  //load cart data when page first loads
+  // Load Cart
   useEffect(() => {
-    async function fetchCart() {
-      const response = await fetch(`/api/cart?userId=${userId}`, {
-        // credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-
-        // Add isSelected field to each item
-        const productsWithSelection = formatSelectedProducts(data);
-
+    (async () => {
+      try {
+        const data = await api.getCart(userId); 
         setCart(data);
-        setProducts(productsWithSelection);
-      } else {
-        console.error("Failed to fetch cart");
+        setProducts(
+          (data.cartItems || []).map((i) => ({ ...i, isSelected: false }))
+        );
+      } catch (e) {
+        console.error("Failed to fetch cart", e);
       }
-    }
-    fetchCart();
+    })();
   }, []);
 
-  function formatSelectedProducts(cart) {
-    console.log("Cart data:", cart);
-    const productsWithSelection = cart.cartItems.map((item) => ({
-      ...item,
-      isSelected: false,
-    }));
-    return productsWithSelection;
-  }
+  const priceOf = (p) =>
+    Number(p?.occurrence?.price?.$numberDecimal ?? p?.occurrence?.price ?? 0);
 
-  // Calculate subtotal of selected products
-  const subtotal = (products || [])
+  const subtotal = products
     .filter((p) => p.isSelected)
-    .reduce((sum, p) => sum + Number(p.occurrence.price.$numberDecimal), 0);
+    .reduce((sum, p) => sum + priceOf(p), 0);
 
-  // Toggle selection
-  const handleCheckboxChange = (id) => {
+  //  Toggle selection
+  const toggleOne = (itemId) => {
     setProducts((prev) =>
       prev.map((p) =>
-        p.itemId === id ? { ...p, isSelected: !p.isSelected } : p
+        p.itemId === itemId ? { ...p, isSelected: !p.isSelected } : p
       )
     );
     setSelectAll(false);
   };
-  // select all
-  const handleSelectAllCheckboxChange = (id) => {
-    setSelectAll(!selectAll);
-    setProducts((prev) => {
-      return prev.map((p) => ({ ...p, isSelected: !selectAll }));
+  // Toggle all
+  const toggleAll = () => {
+    setSelectAll((prev) => {
+      const next = !prev;
+      setProducts((ps) => ps.map((p) => ({ ...p, isSelected: next })));
+      return next;
     });
   };
-  //remove one item
-  const removeHandler = async (itemId) => {
-    const response = await fetch(
-      `/api/cart/item/${itemId}?cartId=${cart.cartId}`,
-      { method: "DELETE" }
-    );
-    if (response.ok) {
-      const data = await response.json();
-      setCart(data.cart);
-      setProducts((prev) => prev.filter((p) => itemId != p.itemId));
-    } else {
-      console.error("Failed to remove item");
-    }
 
-    // setProducts((prev) => prev.filter((p) => id != p.itemId));
+  //  Remove item 
+  const removeItem = async (itemId) => {
+    try {
+      const data = await api.removeCartItem({
+        cartId: cart.cartId,
+        itemId,
+      }); // expects { cart, message }
+      setCart(data.cart);
+      setProducts((prev) => prev.filter((p) => p.itemId !== itemId));
+    } catch (e) {
+      console.error("Failed to remove item", e);
+    } finally {
+      setConfirmId(null);
+    }
   };
 
+  //  Update item's occurrence (date/time) 
+  const updateOccurrence = async (itemId, sessionId) => {
+    // update UI
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.itemId !== itemId) return p;
+        const nextOcc =
+          p.occurrences?.find(
+            (o) => String(o.sessionId) === String(sessionId)
+          ) ?? p.occurrence;
+        return {
+          ...p,
+          occurrenceId: sessionId,
+          occurrence: nextOcc,
+        };
+      })
+    );
+    // update backend
+    try {
+      const data = await api.updateCartItem({
+        cartId: cart.cartId,
+        itemId,
+        occurrenceId: sessionId, 
+      }); 
+      setCart(data.cart);
+      setProducts(data.cart.cartItems);
+     
+    } catch (e) {
+      console.error("Failed to update occurrence", e);
+    }
+  };
+
+  //  Render 
   return (
     <div className="py-8">
       <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
+
       <div className="max-w-4xl mx-auto px-4">
-        {showConfirm && (
+        {/* Confirm popup */}
+        {confirmId != null && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
             <div className="absolute inset-0 bg-black/50" />
             <div className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6 relative z-10">
-              <div>
-                Are you sure you want to remove{" "}
-                {products.find((p) => p.itemId === pendingRemoveId).name}?
+              <div className="mb-4">
+                Remove{" "}
+                <b>
+                  {products.find((p) => p.itemId === confirmId)?.product
+                    ?.courseName || "this item"}
+                </b>
+                ?
               </div>
               <div className="flex justify-end gap-3">
                 <button
-                  className="mr-4 px-4 py-2 bg-red-500 text-white rounded"
-                  onClick={() => {
-                    removeHandler(pendingRemoveId);
-                    setShowConfirm(false);
-                    setPendingRemoveId(null);
-                  }}
-                >
-                  Yes
-                </button>
-                <button
-                  className="px-4 py-2 bg-gray-300 text-black rounded"
-                  onClick={() => {
-                    setShowConfirm(false);
-                    setPendingRemoveId(null);
-                  }}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                  onClick={() => setConfirmId(null)}
                 >
                   No
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                  onClick={() => removeItem(confirmId)}
+                >
+                  Yes
                 </button>
               </div>
             </div>
           </div>
         )}
+
         {!products || products.length === 0 ? (
-          <div className=" bg-white shadow-md rounded-lg p-6">
+          <div className="bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">Your cart is empty.</p>
           </div>
         ) : (
@@ -126,7 +148,7 @@ function CartPage() {
                   <input
                     type="checkbox"
                     checked={selectAll}
-                    onChange={() => handleSelectAllCheckboxChange()}
+                    onChange={toggleAll}
                   />
                 </th>
                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
@@ -141,75 +163,91 @@ function CartPage() {
                 <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
                   Price
                 </th>
-
-                <th className="py-3 px-6 text-left text-sm font-medium text-gray-700"></th>
+                <th />
               </tr>
             </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.itemId} className="border-b">
-                  <td className="py-4 px-6">
-                    <input
-                      type="checkbox"
-                      checked={p.isSelected}
-                      onChange={() => handleCheckboxChange(p.itemId)}
-                    />
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-900">{p.product.courseName}</td>
-                  <td>
-                  <select name="dates" id="dates" className="border p-2">
-                    {p.occurrences.map((o, index) => (
-                      <option key={index} value={o.startTime}>
-                        
-                        {new Date(o.startTime).toISOString().slice(0, 16).replace("T", " ")}
-                      </option>
-                    ))}
-                  </select>
-                  </td>
 
-                  <td className="py-4 px-6 text-sm text-gray-900">
-                    {p.occurrence.duration} min
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-900">
-                    ${p.occurrence.price.$numberDecimal}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-900 text-center">
-                    <button
-                      className="text-red-600 hover:text-red-800 font-bold text-center"
-                      onClick={() => (
-                        setShowConfirm(true), setPendingRemoveId(p.itemId)
-                      )}
-                    >
-                      X
-                    </button>
-                  </td>
-                </tr>
-              ))}
+            <tbody>
+              {products.map((p) => {
+                const selectedId =
+                  p?.occurrence?.sessionId ??
+                  p?.occurrenceId ??
+                  p?.occurrences?.[0]?.sessionId ??
+                  "";
+
+                return (
+                  <tr key={p.itemId} className="border-b">
+                    <td className="py-4 px-6">
+                      <input
+                        type="checkbox"
+                        checked={p.isSelected}
+                        onChange={() => toggleOne(p.itemId)}
+                      />
+                    </td>
+
+                    <td className="py-4 px-6 text-sm text-gray-900">
+                      {p?.product?.courseName || "Course"}
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <select
+                        id={`dates-${p.itemId}`}
+                        className="border p-2"
+                        value={String(selectedId)}
+                        onChange={(e) =>
+                          updateOccurrence(p.itemId, Number(e.target.value))
+                        }
+                      >
+                        {(p.occurrences || []).map((o) => (
+                          <option key={o.sessionId} value={String(o.sessionId)}>
+                            {new Date(o.startTime)
+                              .toISOString()
+                              .slice(0, 16)
+                              .replace("T", " ")}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    <td className="py-4 px-6 text-sm text-gray-900">
+                      {p?.occurrence?.duration ?? 0} min
+                    </td>
+
+                    <td className="py-4 px-6 text-sm text-gray-900">
+                      ${priceOf(p).toFixed(2)}
+                    </td>
+
+                    <td className="py-4 px-6 text-center">
+                      <button
+                        className="text-red-600 hover:text-red-800 font-bold"
+                        onClick={() => setConfirmId(p.itemId)}
+                      >
+                        X
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
+
             <tfoot>
               <tr>
                 <td className="py-4 px-6 text-sm text-gray-900" colSpan="3">
                   {products.filter((p) => p.isSelected).length} /{" "}
                   {products.length} items selected
                 </td>
-
-                <td
-                  className="py-4 px-6 text-sm text-gray-900 font-bold"
-                  colSpan="1"
-                >
+                <td className="py-4 px-6 text-sm text-gray-900 font-bold">
                   Subtotal
                 </td>
-                <td
-                  className="py-4 px-6 text-sm text-gray-900 font-bold"
-                  colSpan="1"
-                >
-                  ${subtotal}
+                <td className="py-4 px-6 text-sm text-gray-900 font-bold">
+                  ${subtotal.toFixed(2)}
                 </td>
-                <td
-                  className="py-4 px-6 text-sm text-gray-900 font-bold"
-                  colSpan="1"
-                >
-                  <CheckoutBtn selectedItems={products.filter((p) => p.isSelected)} subtotal={subtotal} userId={userId}  />
+                <td className="py-4 px-6">
+                  <CheckoutBtn
+                    selectedItems={products.filter((p) => p.isSelected)}
+                    subtotal={subtotal}
+                    userId={userId}
+                  />
                 </td>
               </tr>
             </tfoot>
@@ -219,5 +257,3 @@ function CartPage() {
     </div>
   );
 }
-
-export default CartPage;
