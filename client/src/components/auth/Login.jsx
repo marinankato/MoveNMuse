@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { login } from "../../store/authSlice"; 
 import { useNavigate } from "react-router-dom"; 
+import { api } from "../../api"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,30 +20,15 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5001/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Login failed");
-      }
+      const data = await api.login({ email, password });
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // Dispatch login to Redux
       dispatch(login(data.user));
-
       setLoading(false);
       alert("Logged in successfully!");
-
-      navigate("/") // redirect to home page
+      navigate("/");
 
     } catch (err) {
       setLoading(false);

@@ -26,6 +26,12 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  login: ({ email, password }) =>
+  request(`/auth/login`, {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  }),
+
   listCourses: (params = {}) => {
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
