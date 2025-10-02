@@ -8,12 +8,42 @@ const handleError = (res, error) => {
   return res.status(500).json({ message: "Internal Server Error" });
 };
 
+async function enrichCartItem(item) {
+  // Default shape if it's not a Course
+  if (item.productType !== "Course" || !item.productId) {
+    return { ...item, product: null, occurrence: null, occurrences: [] };
+  }
+
+  const [courseDetails, sessionDetails, courseSessions] = await Promise.all([
+    Course.findOne({ courseId: item.productId }).lean(),
+    CourseSession.findOne({ sessionId: Number(item.occurrenceId) }).lean(),
+    CourseSession.find({ courseId: item.productId }).lean(),
+  ]);
+
+  return {
+    ...item,
+    product: courseDetails ?? null,
+    occurrence: sessionDetails ?? null,
+    occurrences: (courseSessions ?? []).map((s) => s),
+  };
+}
+
+async function enrichCart(cartDoc) {
+  if (!cartDoc) return cartDoc;
+  const cart = cartDoc.toObject ? cartDoc.toObject() : cartDoc;
+  if (!Array.isArray(cart.cartItems) || cart.cartItems.length === 0) return cart;
+
+  const enrichedItems = await Promise.all(cart.cartItems.map(enrichCartItem));
+  return { ...cart, cartItems: enrichedItems };
+}
+
 // Read cart data, if cart not found, create a new cart
 const readCart = async (req, res) => {
   const userId = req.query.userId;
 
   try {
     let cart = await Cart.findOne({ userId }).lean();
+    // If no cart, create one
     if (!cart) {
       Cart.create({ cartId: userId, userId: userId, cartItems: [] });
       cart = await Cart.findOne({ userId: userId });
@@ -74,6 +104,28 @@ const removeCartItem = async (req, res) => {
   }
 };
 
+const updateCartItem = async (req, res) => {
+  const { cartId, itemId } = req.params; 
+  const { occurrenceId } = req.body;
+
+  try {
+    // Note: Number() is compulsory
+    const updated = await Cart.findOneAndUpdate(
+      { cartId: String(cartId), "cartItems.itemId": itemId },
+      { $set: { "cartItems.$.occurrenceId": occurrenceId } },
+      { new: true }
+    );
+     if (!updated) return res.status(404).json({ message: "Cart not found" });
+
+     const enriched = await enrichCart(updated);
+
+    return res.status(200).json({ message: "Item updated successfully",  cart: enriched});
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+
 // Find cart contents for booking by cart id
 const fetchCartByUserId = async (req, res) => {
   const userId = req.params.id;
@@ -102,6 +154,7 @@ const fetchCartByUserId = async (req, res) => {
           courseSessions = await CourseSession.find({
             courseId: item.productId,
           });
+          
         }
 
         return {
@@ -121,4 +174,4 @@ const fetchCartByUserId = async (req, res) => {
   }
 };
 
-export { readCart, removeCartItem, fetchCartByUserId as getCartById };
+export { readCart, removeCartItem, updateCartItem, fetchCartByUserId as getCartById };

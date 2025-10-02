@@ -54,17 +54,23 @@ export const api = {
     if (!userId) throw new Error("Invalid user ID");
     return request(`/bookings?userId=${encodeURIComponent(userId)}`);
   },
-  
 
   getCart: (userId) => request(`/cart/${userId}`),
 
   removeCartItem: ({ cartId, itemId }) =>
+    request(`/cart/${cartId}/${itemId}`, {
+      method: "DELETE",
+    }),
+
+  updateCartItem: ({ cartId, itemId, occurrenceId }) =>
     request(
-      `/cart/${cartId}/${itemId}`,
+      `/cart/${encodeURIComponent(cartId)}/${encodeURIComponent(itemId)}`,
       {
-        method: "DELETE",
+        method: "PUT",
+        body: JSON.stringify({ occurrenceId }),
       }
     ),
+    
   getPaymentDetails: (userId) =>
     request(`/paymentDetail?userId=${encodeURIComponent(userId)}`),
 
