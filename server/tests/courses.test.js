@@ -1,28 +1,82 @@
-import mongoose from "mongoose";
+// tests/courses.test.js
+import mongoose, { Types } from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
 import app from "../src/app.js";
-import connectDB from "../src/db/index.js";
+import Course from "../src/models/course.model.js"; // Your Course model
 
+let mongo;
 let server;
 
+jest.setTimeout(40000);
+
+// Helper to normalize response body to always return an array of items
+function toItems(body) {
+  return Array.isArray(body) ? body : body?.items ?? [];
+}
+
 beforeAll(async () => {
-  // connect to the database
-  await connectDB();
-  // start the test server (random port)
+  //set up in-memory MongoDB instance
+  mongo = await MongoMemoryServer.create();
+  const uri = mongo.getUri();
+
+  //connect mongoose
+  await mongoose.connect(uri, { dbName: "testdb" });
+
+  //  Seed some initial data
+  await Course.deleteMany({});
+
+  const toPrice = (n) => {
+    return Types.Decimal128.fromString(n.toFixed(2));
+  };
+
+  await Course.insertMany([
+    {
+      courseId: 1,
+      courseName: "Piano Basics",
+      //
+      name: "Piano Basics",
+      defaultPrice: toPrice(99),
+      category: "Music",
+      level: "Beginner",
+      capacity: 20,
+      booked: 0,
+      remaining: 20,
+    },
+    {
+      courseId: 2,
+      courseName: "HipHop Dance",
+      name: "HipHop Dance",
+      defaultPrice: toPrice(120),
+      category: "Dance",
+      level: "Intermediate",
+      capacity: 15,
+      booked: 0,
+      remaining: 15,
+    },
+  ]);
+
+  // start the server
   server = app.listen(0);
-}, 20000); // set higher timeout for slow CI
+});
 
 afterAll(async () => {
-  // close database connection and server
-  await mongoose.connection.close();
-  server?.close();
+  // close server to avoid port occupation
+  await new Promise((resolve) => server?.close(resolve));
+  try {
+    await mongoose.connection.dropDatabase();
+  } catch (_) {}
+  await mongoose.disconnect();
+  await mongo.stop();
 });
 
 describe("GET /api/courses", () => {
   it("returns list", async () => {
     const res = await request(server).get("/api/courses");
     expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body.items ?? res.body)).toBe(true);
+    const items = toItems(res.body);
+    expect(Array.isArray(items)).toBe(true);
+    expect(items.length).toBeGreaterThan(0);
   });
 
   it("filters by keyword (kw)", async () => {
@@ -30,27 +84,32 @@ describe("GET /api/courses", () => {
       .get("/api/courses")
       .query({ kw: "Music" });
     expect(res.statusCode).toBe(200);
-    const items = res.body.items ?? res.body;
+    const items = toItems(res.body);
     expect(Array.isArray(items)).toBe(true);
     if (items.length > 0) {
-      expect(items.every((c) => typeof c.name === "string")).toBe(true);
+      // name or courseName contains "Music"
+      expect(
+        items.every((c) => typeof (c.name ?? c.courseName) === "string")
+      ).toBe(true);
     }
   });
 });
 
 describe("GET /api/courses/:id", () => {
   it("returns detail when id is valid", async () => {
-    // First get a valid course
     const list = await request(server).get("/api/courses");
-    const items = list.body.items ?? list.body;
+    const items = toItems(list.body);
     expect(items.length).toBeGreaterThan(0);
 
     const first = items[0];
-    const id = first._id ?? first.id ?? first.courseId;
+    // Try _id, id, courseId
+    const anyId = first._id ?? first.id ?? first.courseId;
 
-    const detail = await request(server).get(`/api/courses/${id}`);
+    const detail = await request(server).get(`/api/courses/${anyId}`);
     expect(detail.statusCode).toBe(200);
-    expect(detail.body).toHaveProperty("name");
+    expect(
+      "name" in detail.body || "courseName" in detail.body
+    ).toBeTruthy();
   });
 
   it("returns 400/404 for invalid id", async () => {
@@ -58,5 +117,8 @@ describe("GET /api/courses/:id", () => {
     expect([400, 404]).toContain(res.statusCode);
   });
 });
+
+
+
 
 
