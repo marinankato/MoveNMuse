@@ -95,7 +95,6 @@ const Account = () => {
       newErrors.phoneNo = "Phone number must be exactly 10 digits.";
     }
 
-    // If any error exists, stop the process
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setLoading(false);
@@ -103,10 +102,13 @@ const Account = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
+
       const response = await fetch("http://localhost:5001/api/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, 
         },
         body: JSON.stringify(formData),
       });
@@ -115,7 +117,7 @@ const Account = () => {
       if (!response.ok) {
         throw new Error(data.message || "Failed to update account");
       }
-      dispatch(updateUser(data));
+      dispatch(updateUser(data.user));
       setMessage("Account updated successfully!");
       setEditMode(false);
     } catch (error) {
@@ -134,27 +136,39 @@ const Account = () => {
   };
 
   useEffect(() => {
-    // console.log("User ID:", user.id); 
-    // to check current user's id
-    if (!user) return;
-
-    const fetchBookings = async () => {
+    const fetchUserProfileAndBookings = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5001/api/bookings?userId=${user.id}&page=${currentPage}&limit=${limit}`
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const profileRes = await fetch("http://localhost:5001/api/user/profile", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!profileRes.ok) throw new Error("Failed to fetch profile");
+        const profileData = await profileRes.json();
+        dispatch(updateUser(profileData.user));
+
+        const userId = profileData.user.id;
+
+        const bookingsRes = await fetch(
+          `http://localhost:5001/api/bookings?userId=${userId}&page=${currentPage}&limit=${limit}`
         );
 
-        const data = await res.json();
-
+        const data = await bookingsRes.json();
         setBookings(data.bookings);
         setTotalBookings(data.total);
-      } catch (error) {
-        console.error("Failed to fetch bookings:", error);
+      } catch (err) {
+        console.error("Failed to fetch profile/bookings:", err.message);
       }
     };
 
-    fetchBookings();
-  }, [user, currentPage]);
+    fetchUserProfileAndBookings();
+  }, [currentPage]);
+
 
   return (
     <div className="max-w-xl mx-auto p-6">

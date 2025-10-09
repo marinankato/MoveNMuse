@@ -21,6 +21,7 @@ router.use("/user", userRoutes);
 
 import bookingRoutes from "./booking.routes.js";
 router.use("/bookings", bookingRoutes); 
+
 import bookingCourseRoutes from "./bookingCourse.routes.js";
 router.use("/bookingCourses", bookingCourseRoutes);
 
