@@ -17,7 +17,6 @@ import {
   RoomDetail,
   CourseList,
   CourseDetail,
-  CourseChekout,
   BookingDetails,
 } from "../pages";
 
@@ -39,7 +38,6 @@ const router = createBrowserRouter(
         <Route path="courses" element={<CourseList />} />
         <Route path="courses/:id" element={<CourseDetail />} />
 
-        <Route path="coursecheckout" element={<CourseChekout />} />
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
       </Route>
     </Route>

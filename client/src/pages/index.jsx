@@ -9,7 +9,6 @@ import PaymentSuccess from "./PaymentSuccess.jsx";
 import RoomView from "./RoomView.jsx";
 import CourseList from "./CourseList.jsx";
 import CourseDetail from "./CourseDetail.jsx";  
-import CourseChekout from "./CourseCheckout.jsx";
 import RoomDetail from "./RoomDetail.jsx";
 import BookingDetails from "./BookingDetails.jsx";
 
@@ -25,7 +24,6 @@ export {
   RoomView,
   CourseList,
   CourseDetail,
-  CourseChekout,
   RoomDetail,
   BookingDetails
 };
