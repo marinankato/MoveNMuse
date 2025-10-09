@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchRoomById } from "../api/room.js";
 
+
 export default function RoomDetail() {
     const { id } = useParams();
     const [room, setRoom] = useState(null);
@@ -46,8 +47,8 @@ export default function RoomDetail() {
             {/* buttom */}
             <div className="flex gap-3 pt-2">
                 <Link to="/rooms" className="rounded-xl border border-zinc-300 px-4 py-2 text-sm">Back</Link>
-                <Link to={`/checkout?roomId=${room.id}`} className="ml-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-medium hover:bg-black">
-                Continue to checkout
+                <Link to={`/checkout?roomId=${room._id || room.id}`} className="ml-auto inline-flex items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-medium hover:bg-black">
+                Add to cart
                 </Link>
             </div>
         </div>
