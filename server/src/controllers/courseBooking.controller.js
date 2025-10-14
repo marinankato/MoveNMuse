@@ -1,6 +1,6 @@
 // server/src/controllers/bookingCourse.controller.js
 import mongoose from "mongoose";
-import BookingCourse from "../models/bookingCourse.model.js";
+import BookingCourse from "../models/courseBooking.model.js";
 import Course from "../models/course.model.js";
 
 /** POST /api/bookings  body: { courseId } */
