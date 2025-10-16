@@ -73,6 +73,10 @@ const Login = () => {
               Show Password
             </label>
           </div>
+          <br></br>
+          <label className="text-sm text-gray-700">
+            Don't have an account yet? Sign up here.
+          </label>
 
           <button
             type="submit"
