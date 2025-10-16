@@ -1,0 +1,38 @@
+trigger:
+- dev
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureSubscription: 'Azure subscription 1 (a1473455-f01a-4afc-bafd-87af5d04d9f7)'
+  webAppName: 'movenmuse'
+  nodeVersion: '22.x'
+
+steps:
+# Use Node 22
+- task: NodeTool@0
+  inputs:
+    versionSpec: $(nodeVersion)
+  displayName: 'Use Node $(nodeVersion)'
+
+# Backend install + build
+- script: |
+    cd server
+    npm ci
+    npm run build
+  displayName: 'Backend: Install dependencies and build'
+
+# Frontend install + build
+- script: |
+    cd client
+    npm ci
+    npm run build
+  displayName: 'Frontend: Install dependencies and build'
+
+# Run the unit tests for backend
+- script: |
+    cd server 
+    npm test
+  displayName: 'Run tests'
+
