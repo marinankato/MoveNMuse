@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { Header, Footer } from "../components";
+import { Header } from "../components";
 import ScrollToTop from "../components/ScrollToTop";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -48,7 +48,6 @@ const Layout = () => {
         </div>
       </div>
 
-      <Footer />
     </>
   );
 };

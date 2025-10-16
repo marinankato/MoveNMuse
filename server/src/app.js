@@ -47,9 +47,6 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use("/api", Routes); 
-// app.use("/api/rooms", roomRoutes);
-// app.use("/api/courses", courseRoutes);
-// app.use("/api/bookings", bookingCourseRoutes);
 
 app.post("/testing", (req, res) => {
   console.log("Testing");
