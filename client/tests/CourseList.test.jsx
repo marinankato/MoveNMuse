@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import * as api from "../../api";
-import CourseList from "../CourseList";
+import * as api from "../src/api";
+import CourseList from "../src/pages/CourseList";
 
 describe("CourseList", () => {
   beforeEach(() => {

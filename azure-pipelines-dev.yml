@@ -32,7 +32,14 @@ steps:
 
 # Run the unit tests for backend
 - script: |
-    cd server 
+    cd server
+    npm install
     npm test
-  displayName: 'Run tests'
+  displayName: 'Run backend tests'
 
+# Run the unit tests for frontend
+- script: |
+    cd client
+    npm install
+    npm test
+  displayName: 'Run frontend tests'
