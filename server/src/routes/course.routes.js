@@ -1,14 +1,30 @@
 // server/src/routes/course.routes.js
 import { Router } from "express";
-import { listCourses, getCourse, createCourse, deleteCourse } from "../controllers/course.controller.js";
+import {
+  listCourses,
+  listOpenCourses,   
+  getCourse,
+  createCourse,
+  deleteCourse
+} from "../controllers/course.controller.js";
 
 const router = Router();
+
+// static open courses for all users (no auth)
+router.get("/open", listOpenCourses);
+
+// list all courses
 router.get("/", listCourses);
-router.get("/:id", getCourse);
+
+// get course details (match only numbers or 24-character ObjectId to avoid catching /open)
+router.get("/:id([0-9]+|[a-fA-F0-9]{24})", getCourse);
+
+// create/delete
 router.post("/", createCourse);
-router.delete("/:id", deleteCourse);
+router.delete("/:id([0-9]+|[a-fA-F0-9]{24})", deleteCourse);
 
 export default router;
+
 
 
 

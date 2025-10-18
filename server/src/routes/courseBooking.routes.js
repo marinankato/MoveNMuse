@@ -4,7 +4,7 @@ import {
   createBooking,
   listBookingsByUser,
   cancelBooking,
-} from "../controllers/bookingCourse.controller.js";
+} from "../controllers/courseBooking.controller.js";
 
 const router = Router();
 
