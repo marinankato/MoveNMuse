@@ -1,4 +1,4 @@
-// src/lib/api.js
+// src/api/api.js
 const BASE = "/api"; // adjust as needed
 
 async function request(path, { method = "GET", params, body, headers } = {}) {

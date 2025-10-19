@@ -5,7 +5,7 @@ const money = (n) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" })
     .format(Number(n || 0));
 
-export default function SessionList({ sessions = [], onBook }) {
+export default function SessionList({ sessions = [], onAddToCart  }) {
   if (!sessions.length) return <div className="text-gray-500 text-sm">No upcoming sessions</div>;
   return (
     <ul className="space-y-3">
@@ -27,10 +27,10 @@ export default function SessionList({ sessions = [], onBook }) {
             <div>
               <button
                 className="rounded-lg border px-3 py-1 text-sm disabled:opacity-50"
-                onClick={() => onBook?.(s.sessionId)}
+                onClick={() => onAddToCart?.(s)}
                 disabled={remaining === 0}
               >
-                {remaining === 0 ? "Full" : "Book"}
+                {remaining === 0 ? "Full" : "Add to Cart"}
               </button>
             </div>
           </li>
@@ -52,7 +52,7 @@ SessionList.propTypes = {
       capacity: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     })
   ).isRequired,
-  onBook: PropTypes.func, // optional
+  onAddToCart: PropTypes.func, // optional
 };
 
 

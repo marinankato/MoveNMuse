@@ -31,4 +31,8 @@ router.use("/courses", courseRoutes);
 import { capacityBoard } from "../controllers/courseBooking.controller.js";
 router.get("/dashboard/capacity", capacityBoard);
 
+import courseSessionRoutes from "./courseSession.routes.js";
+router.use("/course-sessions", courseSessionRoutes);
+
+
 export default router;
