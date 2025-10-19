@@ -2,11 +2,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCourse } from "../services/courseService";
-// import { bookSession } from "../services/sessionService";
 import SessionList from "../components/Course/SessionList.jsx";
 
-// use auth utils to get token/userId
-import { getToken, getUserIdFromToken } from "../utils/auth";
+// auth utils
+import { getToken, getUserIdFromToken, getRoleFromToken } from "../utils/auth";
 
 const money = (n) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(n || 0));
@@ -17,6 +16,30 @@ export function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [course, setCourse] = useState(null);
+
+  // ----- NEW: staff modal state -----
+  const [openEdit, setOpenEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    capacity: "",
+    category: "",
+    level: "",
+  });
+
+  function canBook(session) {
+    if (!session) return false;
+    const now = new Date();
+    const start = new Date(session.startTime);
+    const schedulable = (session.status ?? "Scheduled") === "Scheduled"; // 容错
+    const notStarted = start > now;
+    const cap = Number(session.capacity ?? course?.capacity ?? 0);
+    const booked = Number(session.seatsBooked ?? 0);
+    const hasSeats = cap > 0 ? booked < cap : true;
+    return schedulable && notStarted && hasSeats;
+  }
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -33,46 +56,120 @@ export function CourseDetail() {
 
   useEffect(() => {
     refresh();
-  }, [refresh]); // no more missing dependency warning
+  }, [refresh]);
+
+  // ----- NEW: open modal with current values -----
+  const role = getRoleFromToken?.() || null;
+  const isStaff = role === "staff";
+
+  function openEditModal() {
+    if (!course) return;
+    setForm({
+      name: course.name || "",
+      description: course.description || "",
+      price: course.price ?? "",
+      capacity: course.capacity ?? "",
+      category: course.category || "",
+      level: course.level || "",
+    });
+    setOpenEdit(true);
+  }
+
+  async function onSaveCourse() {
+    try {
+      setSaving(true);
+      const token = getToken();
+      if (!token || !isStaff) {
+        alert("Only staff can edit courses.");
+        return;
+      }
+      const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
+      const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(course.courseId)}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: form.name,
+          description: form.description,
+          price: Number(form.price),
+          capacity: Number(form.capacity),
+          category: form.category,
+          level: form.level,
+        }),
+        credentials: "include",
+      });
+
+      if (res.status === 401) {
+        alert("Session expired. Please log in again.");
+        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
+        return;
+      }
+      if (res.status === 403) {
+        alert("You do not have permission to edit this course.");
+        return;
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `Update failed: ${res.status}`);
+      }
+
+      setOpenEdit(false);
+      await refresh(); // 重新加载最新课程信息
+    } catch (e) {
+      alert(e.message || "Failed to update course");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function onAddToCart(session) {
     try {
       const token = getToken();
       const userId = getUserIdFromToken();
+      const role = getRoleFromToken?.() || null;
 
-      // require login
       if (!token || !userId) {
         alert("Please log in to add items to your cart.");
         nav("/login", { replace: false, state: { redirectTo: location.pathname } });
         return;
       }
+      if (role !== "customer") {
+        alert("Only customers can add items to the cart.");
+        return;
+      }
+      if (!canBook(session)) {
+        alert("This session cannot be booked (started / full / not scheduled).");
+        return;
+      }
 
-      // API base URL
       const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
-
-      // The path implemented by cart might be /cart/:userId/items
-      // If they later change to /cart/items (backend gets the user from the token), just change the path to `${API_BASE}/cart/items`
       const res = await fetch(`${API_BASE}/cart/${encodeURIComponent(userId)}/items`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, //if backend uses token to identify user,it will work
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           productType: "Course",
           productId: course.courseId,
           occurrenceId: session.sessionId,
-          // Optional fields
-          // title: course.name,
-          // price: course.price,
         }),
         credentials: "include",
       });
 
+      if (res.status === 401) {
+        alert("Your session has expired. Please log in again.");
+        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
+        return;
+      }
+      if (res.status === 403) {
+        alert("You do not have permission to add items to the cart.");
+        return;
+      }
       if (res.status === 404) {
-        alert(
-          "Shopping cart API is not ready yet. Please contact the Cart team or complete it later on the cart page."
-        );
+        alert("Shopping cart API is not ready yet. Please contact the Cart team or try later.");
         return;
       }
       if (!res.ok) {
@@ -81,7 +178,6 @@ export function CourseDetail() {
       }
 
       alert("Added to cart successfully");
-      // jump to cart page
       nav("/cart");
     } catch (e) {
       alert(e.message || "Failed to add to cart");
@@ -108,6 +204,21 @@ export function CourseDetail() {
         ← Back
       </button>
 
+      {/* ----- NEW: Staff tools (only visible for staff) ----- */}
+      {isStaff && (
+        <div className="mb-4 rounded-lg border p-3 bg-amber-50 text-amber-900">
+          <div className="font-semibold mb-2">Staff Tools</div>
+          <div className="flex gap-2">
+            <button
+              className="rounded border px-3 py-1 text-sm"
+              onClick={openEditModal}
+            >
+              ✏️ Edit Course Info
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-start gap-4">
         <div className="w-44 h-44 rounded-xl bg-gray-100 grid place-items-center text-sm text-gray-400">
           No Image
@@ -128,12 +239,88 @@ export function CourseDetail() {
       <div className="mt-8">
         <h2 className="text-xl font-semibold">Upcoming Sessions</h2>
         <div className="mt-3">
-          <SessionList sessions={course.upcomingSessions || []} onAddToCart={onAddToCart} />
+          <SessionList
+            sessions={course.upcomingSessions || []}
+            onAddToCart={onAddToCart}
+            canBook={canBook}
+            role={role}
+          />
         </div>
       </div>
+
+      {/* ----- NEW: Edit Course Modal ----- */}
+      {openEdit && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40">
+          <div className="w-full max-w-xl rounded-xl bg-white p-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Edit Course</h3>
+              <button className="text-sm opacity-70" onClick={() => setOpenEdit(false)}>✕</button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <label className="col-span-2 text-sm">
+                <span className="block mb-1">Name</span>
+                <input className="w-full rounded border px-2 py-1"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              </label>
+
+              <label className="col-span-2 text-sm">
+                <span className="block mb-1">Description</span>
+                <textarea className="w-full rounded border px-2 py-1"
+                  rows={4}
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+              </label>
+
+              <label className="text-sm">
+                <span className="block mb-1">Price (AUD)</span>
+                <input type="number" min="0" className="w-full rounded border px-2 py-1"
+                  value={form.price}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+              </label>
+
+              <label className="text-sm">
+                <span className="block mb-1">Capacity per session</span>
+                <input type="number" min="0" className="w-full rounded border px-2 py-1"
+                  value={form.capacity}
+                  onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} />
+              </label>
+
+              <label className="text-sm">
+                <span className="block mb-1">Category</span>
+                <input className="w-full rounded border px-2 py-1"
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
+              </label>
+
+              <label className="text-sm">
+                <span className="block mb-1">Level</span>
+                <input className="w-full rounded border px-2 py-1"
+                  value={form.level}
+                  onChange={e => setForm(f => ({ ...f, level: e.target.value }))} />
+              </label>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="rounded border px-3 py-1 text-sm" onClick={() => setOpenEdit(false)}>
+                Cancel
+              </button>
+              <button
+                className="rounded bg-black text-white px-3 py-1 text-sm disabled:opacity-50"
+                onClick={onSaveCourse}
+                disabled={saving}
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 
