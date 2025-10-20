@@ -21,10 +21,18 @@ router.use("/user", userRoutes);
 
 import bookingRoutes from "./booking.routes.js";
 router.use("/bookings", bookingRoutes); 
-import bookingCourseRoutes from "./bookingCourse.routes.js";
-router.use("/bookingCourses", bookingCourseRoutes);
+
+import courseBookingRoutes from "./courseBooking.routes.js";
+router.use("/courseBooking", courseBookingRoutes);
 
 import courseRoutes from "./course.routes.js";
 router.use("/courses", courseRoutes);
+
+import { capacityBoard } from "../controllers/courseBooking.controller.js";
+router.get("/dashboard/capacity", capacityBoard);
+
+import courseSessionRoutes from "./courseSession.routes.js";
+router.use("/course-sessions", courseSessionRoutes);
+
 
 export default router;

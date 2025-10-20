@@ -31,4 +31,4 @@ const roomSlotSchema = new Schema(
   }
 );
 
-export const Cart = mongoose.model("RoomSlot", roomSlotSchema);
+export default mongoose.model("RoomSlot", roomSlotSchema);
