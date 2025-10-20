@@ -55,7 +55,7 @@ export const api = {
     return request(`/bookings?userId=${encodeURIComponent(userId)}`);
   },
 
-  getCart: (userId) => request(`/cart/${userId}`),
+  getCartById: (userId) => request(`/cart/${userId}`),
 
   removeCartItem: ({ cartId, itemId }) =>
     request(`/cart/${cartId}/${itemId}`, {
