@@ -1,21 +1,28 @@
 // src/pages/CartPage.jsx
 import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { CheckoutBtn } from "../utils/index.jsx";
 import { api } from "../api";
 
 export default function CartPage() {
+  const user = useSelector((state) => state.auth.userData);
+  const dispatch = useDispatch();
+
   const [cart, setCart] = useState(null);
   const [products, setProducts] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const userId = 1;
+  const userId = user?.id;
 
   // Load Cart
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
-        const data = await api.getCart(userId); 
+
+        const data = await api.getCartById(userId);
         setCart(data);
         setProducts(
           (data.cartItems || []).map((i) => ({ ...i, isSelected: false }))
@@ -24,7 +31,20 @@ export default function CartPage() {
         console.error("Failed to fetch cart", e);
       }
     })();
-  }, []);
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <p className="text-center text-gray-600">Please log in to view your cart.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const priceOf = (p) =>
     Number(p?.occurrence?.price?.$numberDecimal ?? p?.occurrence?.price ?? 0);
@@ -51,7 +71,7 @@ export default function CartPage() {
     });
   };
 
-  //  Remove item 
+  //  Remove item
   const removeItem = async (itemId) => {
     try {
       const data = await api.removeCartItem({
@@ -67,7 +87,7 @@ export default function CartPage() {
     }
   };
 
-  //  Update item's occurrence (date/time) 
+  //  Update item's occurrence (date/time)
   const updateOccurrence = async (itemId, sessionId) => {
     // update UI
     setProducts((prev) =>
@@ -89,21 +109,19 @@ export default function CartPage() {
       const data = await api.updateCartItem({
         cartId: cart.cartId,
         itemId,
-        occurrenceId: sessionId, 
-      }); 
+        occurrenceId: sessionId,
+      });
       setCart(data.cart);
       setProducts(data.cart.cartItems);
-     
     } catch (e) {
       console.error("Failed to update occurrence", e);
     }
   };
 
-  //  Render 
+  //  Render
   return (
     <div className="py-8">
       <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
-
       <div className="max-w-4xl mx-auto px-4">
         {/* Confirm popup */}
         {confirmId != null && (
@@ -135,7 +153,6 @@ export default function CartPage() {
             </div>
           </div>
         )}
-
         {!products || products.length === 0 ? (
           <div className="bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">Your cart is empty.</p>
@@ -186,7 +203,7 @@ export default function CartPage() {
                     </td>
 
                     <td className="py-4 px-6 text-sm text-gray-900">
-                      {p?.product?.courseName || "Course"}
+                      {p?.product?.courseName || p?.product?.name || "Unnamed Product"}
                     </td>
 
                     <td className="py-4 px-6">

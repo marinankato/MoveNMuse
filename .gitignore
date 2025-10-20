@@ -38,6 +38,7 @@ coverage/
 
 # Local configuration files
 locales/*.json
+.json
 
 #files
 .docx
