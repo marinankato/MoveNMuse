@@ -3,8 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { fetchRoomById } from "../api/room.js";
 import { fetchRoomSlots } from "../api/roomSlot.js";
 
-const fmtTime = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-const fmtDate = (t) => new Date(t).toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
+const fmtTime = (t) => new Date(t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC", });
+const fmtDate = (t) => new Date(t).toLocaleDateString([], { year: "numeric", month: "short", day: "numeric", timeZone: "UTC", });
 const dayToLocalRange = (dayStr) => {
   const from = new Date(`${dayStr}T00:00:00`);
   const to = new Date(`${dayStr}T23:59:59`);

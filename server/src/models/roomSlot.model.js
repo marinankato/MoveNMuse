@@ -8,6 +8,10 @@ const roomSlotSchema = new Schema(
      type: Number,
      required: true,
    },
+   roomSlotId: {
+    type: Number,
+    unique: true,
+   },
    startTime: {
      type: Date,
      required: true,
@@ -16,34 +20,37 @@ const roomSlotSchema = new Schema(
      type: Date,
      required: true,
    },
-   price: {
-     type: Number,
-     required: true,
-     default: 0,
+   duration: {
+    type: Number,
+    default: 60
    },
+   price: { 
+    type: Schema.Types.Decimal128, 
+    default: 0 
+  },
    isAvailable: {
      type: Boolean,
      default: true,
    },
-   roomSlotId: {
-     type: String,
-     required: true,
-     unique: true,
-   },
-   userId: {
-     type: Number,
-     required: true,
-   },
-   roomSlotItems: [
-     {
-       itemId: { type: Number, required: true },
-       productId: { type: Number, required: true },
-       productType: { type: String, required: true },
-       occurenceId: { type: Number, required: true },
-       title: { type: String, required: true },
-       price: { type: Number, required: true },
-     },
-   ],
+  //  roomSlotId: {
+  //    type: String,
+  //    required: true,
+  //    unique: true,
+  //  },
+  //  userId: {
+  //    type: Number,
+  //    required: true,
+  //  },
+  //  roomSlotItems: [
+  //    {
+  //      itemId: { type: Number, required: true },
+  //      productId: { type: Number, required: true },
+  //      productType: { type: String, required: true },
+  //      occurenceId: { type: Number, required: true },
+  //      title: { type: String, required: true },
+  //      price: { type: Number, required: true },
+  //    },
+  //  ],
  },
  {
    timestamps: true,

@@ -2,10 +2,14 @@ import Room from "../models/room.model.js";
 
 const toPlainNumber = (val) => {
     if (val == null) return 0;
+    if (typeof val === "object" && val._bsontype === "Decimal128") {
+        return parseFloat(val.toString());
+    }
     if (typeof val === "object" && val.$numberDecimal) {
         return parseFloat(val.$numberDecimal);
     }
-    return Number(val);
+    const n = Number(val);
+    return Number.isFinite(n) ? n : 0;
 };
 
 const toDTO = (d) => {
