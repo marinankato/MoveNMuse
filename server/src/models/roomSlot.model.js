@@ -4,7 +4,7 @@ import mongoose, { Schema } from "mongoose";
 const roomSlotSchema = new Schema(
   {
     roomSlotId: {
-      type: String,
+      type: Number,
       required: true,
       unique: true,
     },
