@@ -29,3 +29,4 @@ courseSchema.index({ courseName: "text", description: "text" });
 
 export default mongoose.model("Course", courseSchema);
 
+

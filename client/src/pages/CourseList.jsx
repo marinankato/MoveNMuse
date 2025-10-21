@@ -1,11 +1,14 @@
 // src/pages/CourseList.jsx
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { listCourses } from "../services/courseService";
 import CourseCard from "../components/Course/CourseCard.jsx";
+import { getRoleFromToken } from "../utils/auth";
 
 export default function CourseList() {
   const [sp, setSp] = useSearchParams();
+  const navigate = useNavigate();
+
   const [kw, setKw] = useState(sp.get("kw") || "");
   const [category, setCategory] = useState(sp.get("category") || "");
   const [level, setLevel] = useState(sp.get("level") || "");
@@ -15,6 +18,10 @@ export default function CourseList() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [data, setData] = useState({ items: [], total: 0 });
+
+  // 角色判断
+  const role = (getRoleFromToken?.() || "").toLowerCase();
+  const isStaff = role === "staff";
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil((data.total || 0) / pageSize)),
@@ -35,6 +42,7 @@ export default function CourseList() {
         if (!dead) setLoading(false);
       }
     })();
+
     setSp((old) => {
       const p = new URLSearchParams(old);
       kw ? p.set("kw", kw) : p.delete("kw");
@@ -44,6 +52,7 @@ export default function CourseList() {
       p.set("pageSize", String(pageSize));
       return p;
     });
+
     return () => {
       dead = true;
     };
@@ -51,8 +60,28 @@ export default function CourseList() {
 
   return (
     <div className="mx-auto max-w-5xl p-4">
-      <h1 className="text-2xl font-bold">Course List</h1>
+      {/* 标题区 + staff 特权按钮 */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Course List</h1>
+        {isStaff && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate("/admin/courses")}
+              className="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm border border-amber-300"
+            >
+              🗂 Manage All Courses
+            </button>
+            <button
+              onClick={() => navigate("/admin/courses/new")}
+              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm shadow"
+            >
+              + New Course
+            </button>
+          </div>
+        )}
+      </div>
 
+      {/* 搜索过滤 */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <input
           className="w-64 rounded-lg border px-3 py-2 text-sm"
@@ -91,6 +120,7 @@ export default function CourseList() {
         </select>
       </div>
 
+      {/* 列表区 */}
       <div className="mt-4 min-h-40">
         {loading && <div className="text-gray-500 text-sm">Loading…</div>}
         {err && !loading && <div className="text-red-600 text-sm">{err}</div>}
@@ -98,7 +128,7 @@ export default function CourseList() {
           data.items.length ? (
             <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.items.map((c) => (
-                <CourseCard key={c.courseId} c={c} />
+                <CourseCard key={c.courseId || c._id} c={c} />
               ))}
             </ul>
           ) : (
@@ -107,6 +137,7 @@ export default function CourseList() {
         )}
       </div>
 
+      {/* 分页 */}
       {data.total > pageSize && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <button
@@ -131,6 +162,8 @@ export default function CourseList() {
     </div>
   );
 }
+
+
 
 
 
