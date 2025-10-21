@@ -104,3 +104,5 @@ export const api = {
       body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
     }),
 };
+
+export { request };
