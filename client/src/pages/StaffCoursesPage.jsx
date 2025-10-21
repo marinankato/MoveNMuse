@@ -21,7 +21,7 @@ export default function StaffCoursesPage() {
     setErr("");
     try {
       const data = await listCourses({ limit: 200, sort: "-createdAt" });
-      // 兼容返回结构：数组或 {items:[]}
+      // handle both array and paginated response
       const list = Array.isArray(data) ? data : data.items || [];
       setItems(list);
     } catch (e) {
@@ -44,9 +44,9 @@ export default function StaffCoursesPage() {
         return;
       }
       await deleteCourse(courseId, token);
-      // 立即更新 UI
+      // locally remove the deleted course from the list
       setItems((prev) => prev.filter((c) => (c._id || c.courseId) !== courseId && c.courseId !== courseId));
-      // 或者强制刷新
+      // force refresh
       // setRefreshKey(k => k + 1);
       alert("Deleted.");
     } catch (e) {
@@ -125,7 +125,7 @@ export default function StaffCoursesPage() {
             </tbody>
           </table>
 
-          {/* 底部工具条：刷新 */}
+          {/* bottom toolbar */}
           <div className="flex items-center justify-end px-4 py-3 border-t bg-gray-50 rounded-b-xl">
             <button
               onClick={() => setRefreshKey((k) => k + 1)}

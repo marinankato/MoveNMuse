@@ -13,7 +13,7 @@ export default function SessionTable({ sessions, onDelete }) {
 
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow">
-      {/* 顶部工具栏 */}
+      {/* top toolbar */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50 rounded-t-xl">
         <h3 className="text-lg font-semibold text-gray-800">Session List</h3>
         <button

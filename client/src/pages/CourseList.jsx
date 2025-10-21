@@ -19,7 +19,7 @@ export default function CourseList() {
   const [err, setErr] = useState("");
   const [data, setData] = useState({ items: [], total: 0 });
 
-  // 角色判断
+  // role check
   const role = (getRoleFromToken?.() || "").toLowerCase();
   const isStaff = role === "staff";
 
@@ -60,7 +60,7 @@ export default function CourseList() {
 
   return (
     <div className="mx-auto max-w-5xl p-4">
-      {/* 标题区 + staff 特权按钮 */}
+      {/* title area + staff privilege buttons */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Course List</h1>
         {isStaff && (
@@ -81,7 +81,7 @@ export default function CourseList() {
         )}
       </div>
 
-      {/* 搜索过滤 */}
+      {/* search filters */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <input
           className="w-64 rounded-lg border px-3 py-2 text-sm"
@@ -120,7 +120,7 @@ export default function CourseList() {
         </select>
       </div>
 
-      {/* 列表区 */}
+      {/* list area */}
       <div className="mt-4 min-h-40">
         {loading && <div className="text-gray-500 text-sm">Loading…</div>}
         {err && !loading && <div className="text-red-600 text-sm">{err}</div>}
@@ -137,7 +137,7 @@ export default function CourseList() {
         )}
       </div>
 
-      {/* 分页 */}
+      {/* pagination */}
       {data.total > pageSize && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <button

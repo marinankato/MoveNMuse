@@ -5,7 +5,7 @@ import { getCourse, createCourse, updateCourse } from "../services/courseService
 import { getRoleFromToken, getToken } from "../utils/auth";
 
 export default function CourseForm() {
-  const { id } = useParams(); // courseId（编辑时有）
+  const { id } = useParams(); // courseId
   const isEdit = !!id;
   const nav = useNavigate();
   const loc = useLocation();
@@ -13,7 +13,7 @@ export default function CourseForm() {
   const isStaff = role === "staff";
 
   const search = new URLSearchParams(loc.search);
-  const returnTo = search.get("return"); // 可选：从某处跳入后回跳
+  const returnTo = search.get("return"); // optional: return to a specific page after
 
   const [form, setForm] = useState({
     name: "",
@@ -84,7 +84,7 @@ export default function CourseForm() {
       } else {
         const created = await createCourse(payload, token);
         alert("Course created.");
-        // 如果后端返回 courseId，优先跳详情页；否则回列表
+        // create success redirect
         const cid = created?.courseId ?? null;
         if (returnTo) {
           nav(returnTo);
@@ -98,7 +98,7 @@ export default function CourseForm() {
         return;
       }
 
-      // 编辑成功后的跳转
+      // after update redirect
       if (returnTo) nav(returnTo);
       else nav(`/courses/${encodeURIComponent(id)}`);
     } catch (e) {

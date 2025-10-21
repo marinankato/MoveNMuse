@@ -111,15 +111,15 @@ courseSessionSchema.set("toJSON", {
   },
 });
 
-/** ✅ price: 增加 setter，把 number/string 统一为 Decimal128 */
+// setter: convert price to Decimal128
 courseSessionSchema.path("price").set(function (v) {
   if (v == null) return v;
   if (typeof v === "number") return mongoose.Types.Decimal128.fromString(String(v));
   if (typeof v === "string") return mongoose.Types.Decimal128.fromString(v);
-  return v; // 已是 Decimal128
+  return v; // assume already Decimal128
 });
 
-/** ✅ 自动分配 sessionId（最大值+1） */
+// pre-save hook: auto-assign sessionId
 courseSessionSchema.pre("save", async function autoAssignSessionId(next) {
   if (!this.isNew || this.sessionId != null) return next();
   const last = await mongoose.model("CourseSession").findOne({}, { sessionId: 1 })
@@ -128,7 +128,7 @@ courseSessionSchema.pre("save", async function autoAssignSessionId(next) {
   next();
 });
 
-/** ✅ 根据 start/end 自动计算或纠正 duration（分钟） */
+// pre-validate hook: sync duration with startTime/endTime
 courseSessionSchema.pre("validate", function syncDuration(next) {
   if (this.startTime && this.endTime) {
     const ms = new Date(this.endTime) - new Date(this.startTime);
@@ -140,16 +140,16 @@ courseSessionSchema.pre("validate", function syncDuration(next) {
   next();
 });
 
-/** ✅ 外键与业务校验：course存在、instructor存在且active */
+// pre-validate hook: validate references
 courseSessionSchema.pre("validate", async function validateRefs(next) {
   try {
-    // 课程存在
+    // courseId exists
     if (typeof this.courseId === "number") {
       const course = await Course.exists({ courseId: this.courseId });
       if (!course) return next(new Error("courseId does not exist"));
     }
 
-    // 讲师存在且 active（只在创建或更改 instructorId 时检查）
+    // instructorId exists and is active (check only on create or change)
     if (this.isNew || this.isModified("instructorId")) {
       const inst = await Instructor.findOne({ instructorId: this.instructorId })
         .select("status").lean();

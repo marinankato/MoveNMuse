@@ -59,7 +59,7 @@ export const createCourseSession = async (req, res) => {
       status = "Scheduled",
     } = req.body;
 
-    // 1) 基本校验与类型转换
+    // must have required fields
     courseId = Number(courseId);
     instructorId = Number(instructorId);
     capacity = Number(capacity);
@@ -76,10 +76,10 @@ export const createCourseSession = async (req, res) => {
       return res.status(400).json({ error: "endTime must be later than startTime" });
     }
 
-    // 2) 由后端计算 duration（分钟）
+    // calculate duration
     const duration = Math.round((end.getTime() - start.getTime()) / 60000);
 
-    // 3) 可选字段：价格
+    // prepare payload
     const payload = {
       courseId,
       instructorId,
@@ -96,13 +96,13 @@ export const createCourseSession = async (req, res) => {
       payload.price = p;
     }
 
-    // 4) 创建（sessionId 如需自增/钩子生成，不要从前端接收）
+    // generate next sessionId
     const last = await CourseSession
     .findOne({}, { sessionId: 1 })
     .sort({ sessionId: -1 })
     .lean();
 
-    const nextSessionId = (last?.sessionId || 9000) + 1; // 起始可自定
+    const nextSessionId = (last?.sessionId || 9000) + 1; 
     payload.sessionId = nextSessionId;
     const doc = await CourseSession.create(payload);
     return res

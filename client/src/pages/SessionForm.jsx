@@ -14,13 +14,13 @@ export default function SessionForm() {
 
   const isEdit = !!id;
 
-  // 读取查询参数：?courseId=123&return=/courses/123
+  // read query params
   const search = new URLSearchParams(location.search);
   const qCourseId = search.get("courseId");
   const returnTo = search.get("return");
 
   const [form, setForm] = useState({
-    courseId: isEdit ? "" : qCourseId || "", // 创建模式下预填
+    courseId: isEdit ? "" : qCourseId || "", 
     instructorId: "",
     startTime: "",
     endTime: "",
@@ -32,15 +32,15 @@ export default function SessionForm() {
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [originalCourseId, setOriginalCourseId] = useState(null); // ← 编辑页用于回跳
+  const [originalCourseId, setOriginalCourseId] = useState(null); 
 
-  // 加载编辑数据
+  // load existing session data if editing
   useEffect(() => {
     if (!isEdit) return;
     setLoading(true);
     getSession(id)
       .then((data) => {
-        // 注意：datetime-local 需要 "YYYY-MM-DDTHH:mm"（本地时间）
+        // helper to convert date to local datetime-local input format
         const toLocalInput = (d) => {
           if (!d) return "";
           const dt = new Date(d);
@@ -66,19 +66,19 @@ export default function SessionForm() {
           location: data.location ?? "",
           status: data.status ?? "Scheduled",
         });
-        setOriginalCourseId(data.courseId ?? null); // 记录原 courseId 以便回跳到详情页
+        setOriginalCourseId(data.courseId ?? null); // record original courseId for redirecting back to details page
       })
       .catch((e) => setErr(e.message || "Failed to load session"))
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
-  // 统一表单处理
+  // unified form handling
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  // 简单校验：结束时间需大于开始时间
+  // simple validation: end time must be later than start time
   const validateTimes = () => {
     const start = new Date(form.startTime).getTime();
     const end = new Date(form.endTime).getTime();
@@ -87,7 +87,7 @@ export default function SessionForm() {
     return "";
   };
 
-  // 统一的跳转策略
+  // unified redirect strategy
   const goAfterSaveOrBack = () => {
     if (returnTo) {
       navigate(returnTo);
@@ -171,7 +171,7 @@ export default function SessionForm() {
             required
             className="w-full border rounded-md px-3 py-2"
             placeholder="Enter Course ID"
-            // 从详情页带参创建时，锁定 courseId，避免误改
+            // detailed in earlier comment
             disabled={!isEdit && !!qCourseId}
           />
           {!isEdit && !!qCourseId && (

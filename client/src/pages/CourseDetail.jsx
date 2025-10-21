@@ -6,9 +6,9 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCourse } from "../services/courseService";
 import { getSessionsByCourse, deleteSession } from "../services/sessionService";
 
-// 顾客视图（customer版）
+// course components
 import SessionList from "../components/Course/SessionList.jsx";
-// staff 管理表（你当前在 Course 目录）
+// staff management table
 import SessionTable from "../components/Course/SessionTable.jsx";
 
 // auth utils
@@ -27,7 +27,7 @@ function CourseDetail() {
   const [err, setErr] = useState("");
   const [course, setCourse] = useState(null);
 
-  // sessions 分成两份：顾客用 upcoming；staff 用 all
+  // sessions state
   const [sessionsAll, setSessionsAll] = useState([]);
   const [sessionsUpcoming, setSessionsUpcoming] = useState([]);
 
@@ -290,7 +290,7 @@ function CourseDetail() {
         </div>
       )}
 
-      {/* 课程信息 */}
+      {/* course image */}
       <div className="flex items-start gap-4">
         <div className="w-44 h-44 rounded-xl bg-gray-100 grid place-items-center text-sm text-gray-400">
           No Image
@@ -308,13 +308,13 @@ function CourseDetail() {
         </div>
       </div>
 
-      {/* 顾客视图：仅非 staff 可见 */}
+      {/* customer view: only visible to non-staff */}
       {!isStaff && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold">Sessions</h2>
           <div className="mt-3">
             <SessionList
-              sessions={sessionsUpcoming} // 顾客只看 upcoming
+              sessions={sessionsUpcoming} // customer only sees upcoming
               onAddToCart={onAddToCart}
               canBook={canBook}
               role={role || null}
@@ -323,7 +323,7 @@ function CourseDetail() {
         </div>
       )}
 
-      {/* Staff 管理区（仅 staff 可见）：显示本课程的全部 sessions */}
+      {/* Staff management area (only visible to staff): shows all sessions for this course */}
       {isStaff && (
         <section className="mt-10">
           <div className="flex items-center justify-between">
@@ -341,9 +341,9 @@ function CourseDetail() {
 
           <div className="mt-3">
             <SessionTable
-              sessions={sessionsAll} // staff 看全部
+              sessions={sessionsAll} // staff sees all
               onDelete={handleDeleteSession}
-              // 编辑按钮在 SessionTable 内部应跳到 /admin/sessions/:id/edit
+              // Edit button in SessionTable should navigate to /admin/sessions/:id/edit
             />
           </div>
         </section>

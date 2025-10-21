@@ -12,7 +12,7 @@ import { CourseSession } from "../models/courseSession.model.js";
 
 const router = Router();
 
-// ✅ 在这里先定义 /course/:courseId
+// GET /api/course-sessions/course/:courseId
 router.get("/course/:courseId", async (req, res) => {
   try {
     const courseId = Number(req.params.courseId);
