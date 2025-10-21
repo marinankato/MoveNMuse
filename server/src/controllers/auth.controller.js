@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-const filterUserData = (user) => ({
+export const filterUserData = (user) => ({
   id: user.userId,
   firstName: user.firstName,
   lastName: user.lastName,
@@ -40,10 +40,12 @@ export const loginUser = async (req, res) => {
       id: user.userId,
       email: user.email,
       firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNo: user.phoneNo,
       role: user.role,
     };
 
-    const token = jwt.sign(payload, conf.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(payload, conf.JWT_SECRET, { expiresIn: "2h" });
     console.log("Token generated:", token);
 
     return res.status(200).json({

@@ -14,10 +14,9 @@ import {
   AddPaymentDetail,
   PaymentSuccess,
   RoomView,
+  RoomDetail,
   CourseList,
   CourseDetail,
-  CourseChekout,
-  RoomDetail,
   BookingDetails,
 } from "../pages";
 
@@ -35,11 +34,10 @@ const router = createBrowserRouter(
         <Route path="paymentSuccess" element={<PaymentSuccess />} />
 
         <Route path="rooms" element={<RoomView />} />
+        <Route path="rooms/:id" element={<RoomDetail />} />
         <Route path="courses" element={<CourseList />} />
         <Route path="courses/:id" element={<CourseDetail />} />
 
-        <Route path="coursecheckout" element={<CourseChekout />} />
-        <Route path="room/:id" element={<RoomDetail />} />
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
       </Route>
     </Route>

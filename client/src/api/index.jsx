@@ -5,8 +5,13 @@ async function request(path, options = {}) {
     ? path
     : API_BASE.replace(/\/$/, "") + (path.startsWith("/") ? path : "/" + path);
 
+  const token = localStorage.getItem("token"); 
+
   const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     credentials: "include",
     ...options,
   });
@@ -26,6 +31,20 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  login: ({ email, password }) =>
+  request(`/auth/login`, {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  }),
+
+  getUserProfile: () =>
+  request("/user/profile", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  }),
+
   listCourses: (params = {}) => {
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -85,3 +104,5 @@ export const api = {
       body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
     }),
 };
+
+export { request };

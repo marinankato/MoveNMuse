@@ -1,4 +1,5 @@
-import { User } from "../models/user.model.js";
+import User from "../models/user.model.js";
+import { filterUserData } from './auth.controller.js';
 
 // Common error handler function
 const handleError = (res, error) => {
@@ -7,10 +8,11 @@ const handleError = (res, error) => {
 };
 
 const UserViewProfileController = async (req, res) => {
-  const userId = req.user.uid;
+  console.log("Authenticated user:", req.user);
+  const userId = req.user.id;
 
   try {
-    const user = await User.findOne({ uid: userId });
+    const user = await User.findOne({ id: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -27,22 +29,19 @@ const UserViewProfileController = async (req, res) => {
 };
 
 const UserUpdateProfileController = async (req, res) => {
-  const userId = req.user.uid;
+  console.log("req.user:", req.user);
+
+  const userId = req.user.id;
   const updatedData = req.body;
 
   try {
-    const user = await User.findOne({ uid: userId });
+    const user = await User.findOne({ userId: req.user.id });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const allowedUpdates = [
-      "name",
-      "age",
-      "gender",
-      "address",
-      "phone",
-    ];
+    const allowedUpdates = ["firstName", "lastName", "email", "phoneNo"];
 
     allowedUpdates.forEach((field) => {
       if (updatedData[field] !== undefined) {

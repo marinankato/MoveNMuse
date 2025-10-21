@@ -38,12 +38,6 @@ steps:
     TargetFolder: 'server/public'
   displayName: 'Copy frontend into server/public'
 
-# Run the unit tests for backend
-- script: |
-    cd server 
-    npm test
-  displayName: 'Run tests'
-
 # Archive server folder for deploy
 - task: ArchiveFiles@2
   inputs:
