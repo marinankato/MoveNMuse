@@ -9,6 +9,7 @@ import conf from "./conf/conf.js";
 import Routes from "./routes/index.js";
 import cartRoutes from "./routes/cart.routes.js";
 import roomRoutes from "./routes/room.routes.js";
+import roomSlotRoutes from "./routes/roomSlot.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import courseBookingRoutes from "./routes/courseBooking.routes.js";
 
@@ -47,6 +48,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use("/api", Routes); 
+app.use("/api/roomSlots", roomSlotRoutes);
 
 app.post("/testing", (req, res) => {
   console.log("Testing");

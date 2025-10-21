@@ -2,7 +2,7 @@ import { Cart } from "../models/cart.model.js";
 import Course from "../models/course.model.js";
 import { CourseSession } from "../models/courseSession.model.js";
 import Room from "../models/room.model.js";
-import  RoomSlot from "../models/roomSlot.model.js"; 
+import { RoomSlot } from "../models/roomSlot.model.js"; 
 
 // error handler function
 const handleError = (res, error)=> {
@@ -14,9 +14,11 @@ async function enrichCartItem(item) {
   if (item.productType == "Room") {
     const [roomDetails, slotDetails, roomSlots] = await Promise.all([
       Room.findOne({ roomId: item.productId }).lean(),
-      RoomSlot.findOne({ roomSlotId: Number(item.occurrenceId) }).lean(),
+      RoomSlot.findOne({ roomId: item.productId, roomSlotId: Number(item.occurrenceId) }).lean(),
       RoomSlot.find({ roomId: item.productId }).lean(),
     ]);
+    console.log("item.occurrenceId:", item.occurrenceId);
+    console.log("slotDetails:", slotDetails);
 
     return {
       ...item,
