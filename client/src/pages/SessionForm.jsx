@@ -1,6 +1,8 @@
 // src/pages/SessionForm.jsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { listInstructors } from "../services/instructorService";
+
 import {
   getSession,
   createSession,
@@ -20,7 +22,7 @@ export default function SessionForm() {
   const returnTo = search.get("return");
 
   const [form, setForm] = useState({
-    courseId: isEdit ? "" : qCourseId || "", 
+    courseId: isEdit ? "" : qCourseId || "",
     instructorId: "",
     startTime: "",
     endTime: "",
@@ -32,7 +34,36 @@ export default function SessionForm() {
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [originalCourseId, setOriginalCourseId] = useState(null); 
+  const [originalCourseId, setOriginalCourseId] = useState(null);
+
+  // ===== New: instructors state =====
+  const [instructors, setInstructors] = useState([]);
+  const [insLoading, setInsLoading] = useState(false);
+  const [insErr, setInsErr] = useState("");
+
+  // load instructors (for dropdown)
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      setInsLoading(true);
+      setInsErr("");
+      try {
+        const r = await listInstructors({ page: 1, pageSize: 200 });
+        const list = Array.isArray(r) ? r : r.items || [];
+        if (!dead) setInstructors(list);
+      } catch (e) {
+        if (!dead) {
+          setInstructors([]); // fallback to manual input
+          setInsErr(e.message || "Failed to load instructors");
+        }
+      } finally {
+        if (!dead) setInsLoading(false);
+      }
+    })();
+    return () => {
+      dead = true;
+    };
+  }, []);
 
   // load existing session data if editing
   useEffect(() => {
@@ -171,7 +202,6 @@ export default function SessionForm() {
             required
             className="w-full border rounded-md px-3 py-2"
             placeholder="Enter Course ID"
-            // detailed in earlier comment
             disabled={!isEdit && !!qCourseId}
           />
           {!isEdit && !!qCourseId && (
@@ -181,19 +211,57 @@ export default function SessionForm() {
           )}
         </div>
 
+        {/* ===== New: Instructor select with graceful fallback ===== */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Instructor ID
-          </label>
-          <input
-            type="number"
-            name="instructorId"
-            value={form.instructorId}
-            onChange={handleChange}
-            required
-            className="w-full border rounded-md px-3 py-2"
-            placeholder="Enter Instructor ID"
-          />
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Instructor
+            </label>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(`/admin/instructors?return=${encodeURIComponent(location.pathname + location.search)}`)
+              }
+              className="text-xs underline text-blue-600 hover:text-blue-800"
+              title="Manage instructors"
+            >
+              Manage Instructors
+            </button>
+          </div>
+
+          {instructors.length > 0 ? (
+            <select
+              name="instructorId"
+              value={form.instructorId}
+              onChange={handleChange}
+              required
+              className="w-full border rounded-md px-3 py-2"
+            >
+              <option value="">Select an instructor</option>
+              {instructors.map((ins) => (
+                <option key={ins._id || ins.instructorId} value={ins.instructorId || ins._id}>
+                  {ins.name} {ins.email ? `(${ins.email})` : ""}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <input
+                type="number"
+                name="instructorId"
+                value={form.instructorId}
+                onChange={handleChange}
+                required
+                className="w-full border rounded-md px-3 py-2"
+                placeholder={insLoading ? "Loading instructors…" : "Enter Instructor ID"}
+              />
+              {insErr && (
+                <p className="text-xs text-amber-700 mt-1">
+                  {insErr} — fallback to manual input.
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -242,7 +310,7 @@ export default function SessionForm() {
             />
           </div>
 
-        <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Price (optional)
             </label>
@@ -309,5 +377,7 @@ export default function SessionForm() {
     </div>
   );
 }
+
+
 
 

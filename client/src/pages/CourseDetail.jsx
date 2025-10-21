@@ -256,6 +256,12 @@ function CourseDetail() {
     nav(`/admin/sessions/new?courseId=${cid}&return=${ret}`);
   }
 
+  // NEW: go to instructors admin with return back to this detail page
+  function goManageInstructors() {
+    const ret = encodeURIComponent(location.pathname + location.search);
+    nav(`/admin/instructors?return=${ret}`);
+  }
+
   if (loading) return <div className="p-4 text-gray-600">Loading course…</div>;
 
   if (err)
@@ -282,9 +288,17 @@ function CourseDetail() {
       {isStaff && (
         <div className="mb-4 rounded-lg border p-3 bg-amber-50 text-amber-900">
           <div className="font-semibold mb-2">Staff Tools</div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button className="rounded border px-3 py-1 text-sm" onClick={openEditModal}>
               ✏️ Edit Course Info
+            </button>
+            {/* NEW: Manage Instructors */}
+            <button
+              className="rounded border px-3 py-1 text-sm"
+              onClick={goManageInstructors}
+              title="Go to instructor admin"
+            >
+              👤 Manage Instructors
             </button>
           </div>
         </div>
@@ -442,6 +456,7 @@ function CourseDetail() {
 
 export { CourseDetail };
 export default CourseDetail;
+
 
 
 

@@ -23,6 +23,8 @@ import {
   StaffSessionsPage,
   StaffCoursesPage,
   CourseForm,
+  StaffInstructorsPage,
+  InstructorForm,
 } from "../pages";
 
 const router = createBrowserRouter(
@@ -51,6 +53,10 @@ const router = createBrowserRouter(
         <Route path="/admin/courses" element={<StaffCoursesPage />} />
         <Route path="/admin/courses/new" element={<CourseForm />} />
         <Route path="/admin/courses/:id/edit" element={<CourseForm />} />
+        <Route path="/admin/instructors" element={<StaffInstructorsPage />} />
+        <Route path="/admin/instructors/new" element={<InstructorForm />} />
+        <Route path="/admin/instructors/:id/edit" element={<InstructorForm />} />
+
 
 
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />

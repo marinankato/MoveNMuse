@@ -16,6 +16,8 @@ import SessionForm from "./SessionForm.jsx";
 import StaffSessionsPage from "./StaffSessionsPage.jsx";
 import CourseForm  from "./CourseForm.jsx";
 import StaffCoursesPage from "./StaffCoursesPage.jsx";
+import StaffInstructorsPage from "./StaffInstructorsPage.jsx";
+import InstructorForm from "./InstructorForm.jsx";
 
 export {
   Home,
@@ -36,4 +38,6 @@ export {
   StaffSessionsPage,
   StaffCoursesPage,
   CourseForm,
+  StaffInstructorsPage,
+  InstructorForm,
 };
