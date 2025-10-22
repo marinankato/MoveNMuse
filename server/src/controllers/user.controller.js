@@ -8,11 +8,11 @@ const handleError = (res, error) => {
 };
 
 const UserViewProfileController = async (req, res) => {
-  console.log("Authenticated user:", req.user);
-  const userId = req.user.id;
+  // console.log("Authenticated user:", req.user);
+  const userId = req.user.userId;
 
   try {
-    const user = await User.findOne({ id: userId });
+    const user = await User.findOne({ userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -31,11 +31,11 @@ const UserViewProfileController = async (req, res) => {
 const UserUpdateProfileController = async (req, res) => {
   console.log("req.user:", req.user);
 
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const updatedData = req.body;
 
   try {
-    const user = await User.findOne({ userId: req.user.id });
+    const user = await User.findOne({ userId });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

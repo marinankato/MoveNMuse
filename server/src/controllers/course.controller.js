@@ -138,7 +138,7 @@ export const getCourse = async (req, res) => {
       startTime: { $gte: new Date() }
     }, {
       sessionId: 1, startTime: 1, endTime: 1, duration: 1,
-      capacity: 1, seatsBooked: 1, location: 1, price: 1
+      capacity: 1, seatsBooked: 1, location: 1, price: 1, status: 1
     })
       .sort({ startTime: 1 })
       .limit(3)
@@ -170,7 +170,8 @@ export const getCourse = async (req, res) => {
         capacity: s.capacity,
         seatsBooked: s.seatsBooked,
         location: s.location,
-        price: toPrice(s.price)
+        price: toPrice(s.price),
+        status: s.status || "Scheduled" 
       })) ?? []
     });
   } catch (e) {
@@ -306,6 +307,28 @@ export const listOpenCourses = async (req, res) => {
   }
 };
 
+export async function updateCourse(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const updates = req.body;
+
+    const course = await Course.findOne({ courseId: id });
+    if (!course) return res.status(404).json({ error: "Course not found" });
+
+
+    if (updates.name) course.name = updates.name;
+    if (updates.description) course.description = updates.description;
+    if (updates.price != null) course.price = updates.price;
+    if (updates.capacity != null) course.capacity = updates.capacity;
+    if (updates.category) course.category = updates.category;
+    if (updates.level) course.level = updates.level;
+
+    await course.save();
+    res.json({ message: "Course updated successfully", course });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 
 
 

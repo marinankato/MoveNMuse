@@ -34,5 +34,10 @@ router.get("/dashboard/capacity", capacityBoard);
 import courseSessionRoutes from "./courseSession.routes.js";
 router.use("/course-sessions", courseSessionRoutes);
 
+import instructorRoutes from "./instructor.routes.js";
+router.use("/instructors", instructorRoutes);
+
+import accountRoutes from "./account.routes.js";
+router.use("/account", accountRoutes);
 
 export default router;

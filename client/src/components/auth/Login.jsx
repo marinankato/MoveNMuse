@@ -97,7 +97,23 @@ export default function Login() {
           </div>
           <br></br>
           <label className="text-sm text-gray-700">
-            Don't have an account yet? Sign up here.
+            Forgot password? {" "}
+            <span
+              onClick={() => navigate("/changePassword")}
+              className="text-blue-600 cursor-pointer hover:underline"
+            >
+              Reset
+            </span>
+          </label>
+          <br></br>
+          <label className="text-sm text-gray-700">
+            Don't have an account yet? Sign up {" "}
+            <span
+              onClick={() => navigate("/signUp")}
+              className="text-blue-600 cursor-pointer hover:underline"
+            >
+              here.
+            </span>
           </label>
 
           <button

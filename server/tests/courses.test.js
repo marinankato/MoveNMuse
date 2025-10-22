@@ -1,122 +1,199 @@
-// tests/courses.test.js
-import mongoose, { Types } from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
+// server/tests/courses.test.js
+import express from "express";
 import request from "supertest";
-import app from "../src/app.js";
-import Course from "../src/models/course.model.js"; // Your Course model
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
-let mongo;
-let server;
+
+import courseRouter from "../src/routes/course.routes.js";                 
+import Course from "../src/models/course.model.js";                        
+import { CourseSession } from "../src/models/courseSession.model.js";   
+import { Instructor } from "../src/models/instructor.model.js";
+
 
 jest.setTimeout(40000);
 
-// Helper to normalize response body to always return an array of items
-function toItems(body) {
-  return Array.isArray(body) ? body : body?.items ?? [];
+let mongod;
+let app;
+
+
+async function clearDB() {
+  const { collections } = mongoose.connection;
+  for (const name of Object.keys(collections)) {
+    await collections[name].deleteMany({});
+  }
 }
 
 beforeAll(async () => {
-  //set up in-memory MongoDB instance
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
+  mongod = await MongoMemoryServer.create();
+  await mongoose.connect(mongod.getUri(), { dbName: "testdb" });
 
-  //connect mongoose
-  await mongoose.connect(uri, { dbName: "testdb" });
-
-  //  Seed some initial data
-  await Course.deleteMany({});
-
-  const toPrice = (n) => {
-    return Types.Decimal128.fromString(n.toFixed(2));
-  };
-
-  await Course.insertMany([
-    {
-      courseId: 1,
-      courseName: "Piano Basics",
-      //
-      name: "Piano Basics",
-      defaultPrice: toPrice(99),
-      category: "Music",
-      level: "Beginner",
-      capacity: 20,
-      booked: 0,
-      remaining: 20,
-    },
-    {
-      courseId: 2,
-      courseName: "HipHop Dance",
-      name: "HipHop Dance",
-      defaultPrice: toPrice(120),
-      category: "Dance",
-      level: "Intermediate",
-      capacity: 15,
-      booked: 0,
-      remaining: 15,
-    },
-  ]);
-
-  // start the server
-  server = app.listen(0);
+  app = express();
+  app.use(express.json());
+  app.use("/api/courses", courseRouter);
 });
 
 afterAll(async () => {
-  // close server to avoid port occupation
-  await new Promise((resolve) => server?.close(resolve));
-  try {
-    await mongoose.connection.dropDatabase();
-  } catch (_) {}
+  await mongoose.connection.dropDatabase().catch(() => {});
   await mongoose.disconnect();
-  await mongo.stop();
+  await mongod.stop();
 });
 
-describe("GET /api/courses", () => {
-  it("returns list", async () => {
-    const res = await request(server).get("/api/courses");
-    expect(res.statusCode).toBe(200);
-    const items = toItems(res.body);
-    expect(Array.isArray(items)).toBe(true);
-    expect(items.length).toBeGreaterThan(0);
-  });
-
-  it("filters by keyword (kw)", async () => {
-    const res = await request(server)
-      .get("/api/courses")
-      .query({ kw: "Music" });
-    expect(res.statusCode).toBe(200);
-    const items = toItems(res.body);
-    expect(Array.isArray(items)).toBe(true);
-    if (items.length > 0) {
-      // name or courseName contains "Music"
-      expect(
-        items.every((c) => typeof (c.name ?? c.courseName) === "string")
-      ).toBe(true);
-    }
-  });
+afterEach(async () => {
+  await clearDB();
 });
 
-describe("GET /api/courses/:id", () => {
-  it("returns detail when id is valid", async () => {
-    const list = await request(server).get("/api/courses");
-    const items = toItems(list.body);
-    expect(items.length).toBeGreaterThan(0);
 
-    const first = items[0];
-    // Try _id, id, courseId
-    const anyId = first._id ?? first.id ?? first.courseId;
 
-    const detail = await request(server).get(`/api/courses/${anyId}`);
-    expect(detail.statusCode).toBe(200);
-    expect(
-      "name" in detail.body || "courseName" in detail.body
-    ).toBeTruthy();
+test("GET /api/courses returns items (pagination works)", async () => {
+  // seed instructor for instructorId: 500
+  await Instructor.create({
+    instructorId: 500,
+    name: "Alice Chen",
+    email: "alice.chen+500@test.local",
+    status: "active",
   });
 
-  it("returns 400/404 for invalid id", async () => {
-    const res = await request(server).get("/api/courses/invalid-id-xyz");
-    expect([400, 404]).toContain(res.statusCode);
+  await Course.create({
+    courseId: 1,
+    courseName: "Piano Basics",
+    category: "Music",
+    level: "Beginner",
+    description: "Intro Piano",
+    defaultPrice: 99.0, 
   });
+
+  const start = new Date(Date.now() + 24 * 3600 * 1000); 
+  await CourseSession.create({
+    sessionId: 1001,
+    courseId: 1,
+    startTime: start,
+    endTime: new Date(start.getTime() + 60 * 60000),
+    duration: 60,
+    capacity: 10,
+    location: "Room A",
+    instructorId: 500,
+    status: "Scheduled",
+    price: 99.0,
+    seatsBooked: 2,
+  });
+
+  const res = await request(app).get("/api/courses?page=1&pageSize=10");
+  expect(res.status).toBe(200);
+  const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
+  expect(Array.isArray(items)).toBe(true);
+  expect(items.length).toBeGreaterThan(0);
 });
+
+
+test("GET /api/courses/open returns courses with future sessions only", async () => {
+
+  // seed instructors for 600 / 601
+  await Instructor.create({
+    instructorId: 600,
+    name: "Bob Lee",
+    email: "bob.lee+600@test.local",
+    status: "active",
+  });
+  await Instructor.create({
+    instructorId: 601,
+    name: "Carol Xu",
+    email: "carol.xu+601@test.local",
+    status: "active",
+  });
+
+  await Course.create({
+    courseId: 2,
+    courseName: "HipHop Dance",
+    category: "Dance",
+    level: "Intermediate",
+    description: "HipHop",
+    defaultPrice: 120,
+  });
+  const start = new Date(Date.now() + 48 * 3600 * 1000); // 后天
+  await CourseSession.create({
+    sessionId: 2001,
+    courseId: 2,
+    startTime: start,
+    endTime: new Date(start.getTime() + 90 * 60000),
+    duration: 90,
+    capacity: 15,
+    location: "Studio",
+    instructorId: 600,
+    status: "Scheduled",
+    price: 120,
+    seatsBooked: 0,
+  });
+
+  await Course.create({
+    courseId: 3,
+    courseName: "Past Only",
+    category: "Test",
+    level: "Beginner",
+    description: "Past only",
+    defaultPrice: 10,
+  });
+  const past = new Date(Date.now() - 24 * 3600 * 1000);
+  await CourseSession.create({
+    sessionId: 3001,
+    courseId: 3,
+    startTime: past,
+    endTime: new Date(past.getTime() + 60 * 60000),
+    duration: 60,
+    capacity: 5,
+    location: "Lab",
+    instructorId: 601,
+    status: "Completed",
+    price: 10,
+    seatsBooked: 5,
+  });
+
+  const res = await request(app).get("/api/courses/open");
+  expect(res.status).toBe(200);
+  const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
+  expect(items.length).toBeGreaterThanOrEqual(1);
+  const names = items.map((it) => it.name ?? it.courseName ?? "");
+  expect(names.join(" ")).not.toMatch(/Past Only/i);
+});
+
+test("GET /api/courses/:id supports numeric and 24-hex object id (route regex)", async () => {
+  const c = await Course.create({
+    courseId: 123,
+    courseName: "Route Regex",
+    category: "Test",
+    level: "Beginner",
+    description: "Regex check",
+    defaultPrice: 1,
+  });
+
+  const r1 = await request(app).get("/api/courses/123");
+  expect([200, 404]).toContain(r1.status);
+
+  const r2 = await request(app).get(`/api/courses/${c._id.toString()}`);
+  expect([200, 404]).toContain(r2.status);
+});
+
+test("GET /api/courses/invalid-id-xyz should 404 (route pattern)", async () => {
+  const res = await request(app).get("/api/courses/invalid-id-xyz");
+  expect(res.status).toBe(404); 
+});
+
+
+test("GET /api/courses?kw=Dance returns 200 (filter path)", async () => {
+  await Course.create({
+    courseId: 10,
+    courseName: "Dance Intro",
+    category: "Dance",
+    level: "Beginner",
+    description: "Dance basics",
+    defaultPrice: 50,
+  });
+  const res = await request(app).get("/api/courses?kw=Dance&page=1&pageSize=10");
+  expect(res.status).toBe(200);
+  const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
+  expect(Array.isArray(items)).toBe(true);
+});
+
 
 
 

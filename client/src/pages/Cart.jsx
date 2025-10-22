@@ -33,7 +33,7 @@ export default function CartPage() {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, [user, userId]);
 
   if (!user) {
     return (
@@ -96,19 +96,46 @@ export default function CartPage() {
     }
   };
 
+  // Remove selected items
+  const removeSelectedItems = async () => {
+    try {
+      setLoading(true);
+      const selectedIds = products
+        .filter((p) => p.isSelected)
+        .map((p) => p.itemId);
+
+      const data = await api.removeMultipleCartItems({
+        cartId: cart.cartId,
+        itemIds: selectedIds,
+      });
+      setCart(data.cart);
+      setProducts((prev) =>
+        prev.filter((p) => !selectedIds.includes(p.itemId))
+      );
+    } catch (e) {
+      console.error("Failed to remove selected items", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   //  Update item's occurrence (date/time)
-  const updateOccurrence = async (itemId, sessionId) => {
+  const updateOccurrence = async (itemId, occurrenceId) => {
     // update UI
     setProducts((prev) =>
       prev.map((p) => {
         if (p.itemId !== itemId) return p;
         const nextOcc =
           p.occurrences?.find(
-            (o) => String(o.sessionId) === String(sessionId)
+            (o) =>
+              (o.sessionId != null &&
+                String(o.sessionId) === String(occurrenceId)) ||
+              (o.roomSlotId != null &&
+                String(o.roomSlotId) === String(occurrenceId))
           ) ?? p.occurrence;
         return {
           ...p,
-          occurrenceId: sessionId,
+          occurrenceId: occurrenceId,
           occurrence: nextOcc,
         };
       })
@@ -118,7 +145,7 @@ export default function CartPage() {
       const data = await api.updateCartItem({
         cartId: cart.cartId,
         itemId,
-        occurrenceId: sessionId,
+        occurrenceId: occurrenceId,
       });
       setCart(data.cart);
       setProducts(data.cart.cartItems);
@@ -138,12 +165,15 @@ export default function CartPage() {
             <div className="absolute inset-0 bg-black/50" />
             <div className="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6 relative z-10">
               <div className="mb-4">
-                Remove{" "}
+                Are you sure you want to remove{" "}
                 <b>
                   {products.find((p) => p.itemId === confirmId)?.product
-                    ?.courseName || "this item"}
-                </b>
-                ?
+                    ?.courseName ||
+                    products.find((p) => p.itemId === confirmId)?.product
+                      ?.name ||
+                    "this item"}
+                </b>{" "}
+                from cart?
               </div>
               <div className="flex justify-end gap-3">
                 <button
@@ -229,17 +259,20 @@ export default function CartPage() {
                         className="border p-2"
                         value={String(selectedId)}
                         onChange={(e) =>
-                          updateOccurrence(p.itemId, Number(e.target.value))
+                          updateOccurrence(p.itemId, e.target.value)
                         }
                       >
-                        {(p.occurrences || []).map((o) => (
-                          <option key={o.sessionId} value={String(o.sessionId)}>
-                            {new Date(o.startTime)
-                              .toISOString()
-                              .slice(0, 16)
-                              .replace("T", " ")}
-                          </option>
-                        ))}
+                        {(p.occurrences || []).map((o) => {
+                          const optId = o.sessionId ?? o.roomSlotId;
+                          return (
+                            <option key={String(optId)} value={String(optId)}>
+                              {new Date(o.startTime)
+                                .toISOString()
+                                .slice(0, 16)
+                                .replace("T", " ")}
+                            </option>
+                          );
+                        })}
                       </select>
                     </td>
 
@@ -267,8 +300,17 @@ export default function CartPage() {
             <tfoot>
               <tr>
                 <td className="py-4 px-6 text-sm text-gray-900" colSpan="3">
-                  {products?.filter((p) => p.isSelected).length} /{" "}
-                  {products?.length} items selected
+                  {/* {products?.filter((p) => p.isSelected).length} /{" "}
+                  {products?.length} items selected */}
+                  <div>
+
+                  <button
+                    className="text-red-600 font-bold"
+                    onClick={removeSelectedItems}
+                  >
+                    Remove selected
+                  </button>
+                  </div>
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-900 font-bold">
                   Subtotal
