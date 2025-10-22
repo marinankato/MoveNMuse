@@ -72,6 +72,7 @@ export const api = {
     request(`/cart/${cartId}/${itemId}`, {
       method: "DELETE",
     }),
+
   removeMultipleCartItems: ({ cartId, itemIds }) =>
     request(`/cart/removeItems`, {
       method: "DELETE",
@@ -112,6 +113,12 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
+
+    registerUser: (formData) =>
+    request(`/user/register`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    })
 };
 
 export { request };

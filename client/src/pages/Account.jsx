@@ -28,8 +28,8 @@ const Account = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
-  const limit = 5;
-  
+  const limit = 3; //set how many bookings you see at once
+
   if (!user) {
     return (
       <div className="py-8">
