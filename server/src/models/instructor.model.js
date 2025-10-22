@@ -33,6 +33,7 @@ const instructorSchema = new Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+      index: true,
     },
   },
   {
@@ -42,20 +43,10 @@ const instructorSchema = new Schema(
   }
 );
 
-// Auto-increment instructorId before saving a new instructor
-instructorSchema.pre("save", async function (next) {
-  if (!this.isNew || this.instructorId) return next();
-
-  const last = await mongoose.model("Instructor").findOne({}, { instructorId: 1 }).sort({ instructorId: -1 }).lean();
-  this.instructorId = (last?.instructorId ?? 0) + 1;
-  next();
-});
-
 instructorSchema.index({ name: 1 });
-instructorSchema.index({ status: 1, name: 1 });
+instructorSchema.index({ active: 1, name: 1 });
 
 export const Instructor = mongoose.model("Instructor", instructorSchema);
 export default Instructor;
-
 
 
