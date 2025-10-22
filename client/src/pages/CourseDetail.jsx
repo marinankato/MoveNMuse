@@ -191,16 +191,21 @@ function CourseDetail() {
       }
 
       const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
-      const res = await fetch(`${API_BASE}/cart/${encodeURIComponent(userId)}/items`, {
+
+      // The path implemented by cart might be /cart/:userId/items
+      // If they later change to /cart/items (backend gets the user from the token), just change the path to `${API_BASE}/cart/items`
+      const res = await fetch(`${API_BASE}/cart/addItem`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          userId: userId,
           productType: "Course",
           productId: course.courseId,
           occurrenceId: session.sessionId,
+
         }),
         credentials: "include",
       });
