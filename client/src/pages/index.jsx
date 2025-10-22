@@ -19,6 +19,7 @@ import StaffCoursesPage from "./StaffCoursesPage.jsx";
 import StaffInstructorsPage from "./StaffInstructorsPage.jsx";
 import InstructorForm from "./InstructorForm.jsx";
 import SignUp from "./SignUp.jsx";
+import ChangePassword from "./ChangePassword.jsx";
 
 export {
   Home,
@@ -41,5 +42,6 @@ export {
   CourseForm,
   StaffInstructorsPage,
   InstructorForm,
-  SignUp
+  SignUp,
+  ChangePassword
 };
