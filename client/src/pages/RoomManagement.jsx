@@ -47,7 +47,7 @@ export default function RoomManagement() {
             setForm({
                 roomId: "",
                 name: "",
-                type: "Dance Studio",
+                type: "Dance Room",
                 location: "",
                 capacity: "",
                 defaultPrice: "",
