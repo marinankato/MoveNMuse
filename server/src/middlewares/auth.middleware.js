@@ -7,7 +7,6 @@ export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.error("Unauthorized: No token provided or malformed header");
     return res.status(401).json({ message: "Unauthorized: No token provided" });
   }
 
@@ -19,7 +18,6 @@ export const authMiddleware = (req, res, next) => {
     req.user = decoded; // Attach decoded payload to req.user
     next();
   } catch (error) {
-    console.error("Unauthorized: Invalid or expired token", error.message);
     return res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };
