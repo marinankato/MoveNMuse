@@ -28,4 +28,7 @@ router.use("/bookingCourses", bookingCourseRoutes);
 import courseRoutes from "./course.routes.js";
 router.use("/courses", courseRoutes);
 
+import accountRoutes from "./account.routes.js";
+router.use("/account", accountRoutes);
+
 export default router;
