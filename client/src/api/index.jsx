@@ -117,11 +117,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  processPayment: ({ orderId, amount, userId, paymentDetailId }) =>
-    request(`/payment/processPayment`, {
-      method: "POST",
-      body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
-    }),
 
   getAccount: () =>
     request(`/account`, {
@@ -135,16 +130,21 @@ export const api = {
     }),
 
     registerUser: (formData) =>
-    request(`/user/register`, {
-      method: "POST",
-      body: JSON.stringify(formData),
+      request(`/user/register`, {
+        method: "POST",
+        body: JSON.stringify(formData),
     }),
 
     changePassword: (formData) =>
-    request(`/user/changePassword`, {
-      method: "POST",
-      body: JSON.stringify(formData),
-    })
+      request(`/user/changePassword`, {
+        method: "POST",
+        body: JSON.stringify(formData),
+    }),
+
+    getBookingDetails: (bookingId) =>
+      request(`/bookings/${bookingId}`, {
+        method: "GET",
+  })
 };
 
 export { request };

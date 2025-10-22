@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { api } from "../api";
 
 const BookingDetails = () => {
   const { bookingId } = useParams();
@@ -10,10 +11,8 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/bookings/${bookingId}`);
-        if (!res.ok) throw new Error("Booking not found");
-        const data = await res.json();
-        setBooking(data);
+        const res = await api.getBookingDetails(bookingId);
+        setBooking(res);
       } catch (err) {
         setError(err.message || "Something went wrong");
       } finally {
