@@ -27,6 +27,7 @@ import {
   CourseForm,
   StaffInstructorsPage,
   InstructorForm,
+  SignUp
 } from "../pages";
 
 const router = createBrowserRouter(
@@ -36,6 +37,7 @@ const router = createBrowserRouter(
         <Route index element={<Home />} />
         <Route path="account" element={<Account />} />
         <Route path="login" element={<Login />} />
+        <Route path="signUp" element={<SignUp />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
@@ -58,8 +60,6 @@ const router = createBrowserRouter(
         <Route path="/admin/instructors" element={<StaffInstructorsPage />} />
         <Route path="/admin/instructors/new" element={<InstructorForm />} />
         <Route path="/admin/instructors/:id/edit" element={<InstructorForm />} />
-
-
 
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
 

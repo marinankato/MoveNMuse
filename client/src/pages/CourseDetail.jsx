@@ -38,7 +38,6 @@ function CourseDetail() {
     name: "",
     description: "",
     price: "",
-    capacity: "",
     category: "",
     level: "",
   });
@@ -57,7 +56,7 @@ function CourseDetail() {
     const start = new Date(session.startTime);
     const schedulable = (session.status ?? "Scheduled") === "Scheduled";
     const notStarted = start > now;
-    const cap = Number(session.capacity ?? course?.capacity ?? 0);
+    const cap = Number(session.capacity ?? 0);
     const booked = Number(session.seatsBooked ?? 0);
     const hasSeats = cap > 0 ? booked < cap : true;
     return schedulable && notStarted && hasSeats;
@@ -110,14 +109,13 @@ function CourseDetail() {
   // open course edit modal (staff)
   function openEditModal() {
     if (!course) return;
-    setForm({
-      name: course.name || course.title || "",
-      description: course.description || "",
-      price: course.price ?? "",
-      capacity: course.capacity ?? "",
-      category: course.category || "",
-      level: course.level || "",
-    });
+  setForm({
+    name: course.name || course.title || "",
+    description: course.description || "",
+    price: course.price ?? "",
+    category: course.category || "",
+    level: course.level || "",
+  });
     setOpenEdit(true);
   }
 
@@ -140,7 +138,6 @@ function CourseDetail() {
           name: form.name,
           description: form.description,
           price: Number(form.price),
-          capacity: Number(form.capacity),
           category: form.category,
           level: form.level,
         }),
@@ -321,8 +318,6 @@ function CourseDetail() {
             {course.category && <span className="rounded-full border px-2 py-0.5">{course.category}</span>}
             {course.level && <span>{course.level}</span>}
             {"price" in course && <span>Price {money(course.price)}</span>}
-            {Number.isFinite(course.capacity) && <span>Capacity per session {course.capacity}</span>}
-            {"remaining" in course && <span>Remaining {Number(course.remaining || 0)}</span>}
           </div>
         </div>
       </div>
@@ -410,7 +405,7 @@ function CourseDetail() {
                 />
               </label>
 
-              <label className="text-sm">
+              {/* <label className="text-sm">
                 <span className="block mb-1">Capacity per session</span>
                 <input
                   type="number"
@@ -419,7 +414,7 @@ function CourseDetail() {
                   value={form.capacity}
                   onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
                 />
-              </label>
+              </label> */}
 
               <label className="text-sm">
                 <span className="block mb-1">Category</span>

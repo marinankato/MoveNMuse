@@ -25,7 +25,7 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data?.error || `${res.status} ${res.statusText}`);
+    throw new Error(data?.error || data?.message || `${res.status} ${res.statusText}`);
   }
   return data;
 }
@@ -72,6 +72,7 @@ export const api = {
     request(`/cart/${cartId}/${itemId}`, {
       method: "DELETE",
     }),
+
   removeMultipleCartItems: ({ cartId, itemIds }) =>
     request(`/cart/removeItems`, {
       method: "DELETE",
@@ -102,16 +103,22 @@ export const api = {
       body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
     }),
 
-    getAccount: () =>
+  getAccount: () =>
     request(`/account`, {
       method: "GET",
-    }),
+  }),
 
   updateAccount: (payload) =>
     request(`/account`, {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
+
+    registerUser: (formData) =>
+    request(`/user/register`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    })
 };
 
 export { request };
