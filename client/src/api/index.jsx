@@ -118,6 +118,12 @@ export const api = {
     request(`/user/register`, {
       method: "POST",
       body: JSON.stringify(formData),
+    }),
+
+    changePassword: (formData) =>
+    request(`/user/changePassword`, {
+      method: "POST",
+      body: JSON.stringify(formData),
     })
 };
 

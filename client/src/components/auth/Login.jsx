@@ -75,6 +75,16 @@ const Login = () => {
           </div>
           <br></br>
           <label className="text-sm text-gray-700">
+            Forgot password? {" "}
+            <span
+              onClick={() => navigate("/changePassword")}
+              className="text-blue-600 cursor-pointer hover:underline"
+            >
+              Reset
+            </span>
+          </label>
+          <br></br>
+          <label className="text-sm text-gray-700">
             Don't have an account yet? Sign up {" "}
             <span
               onClick={() => navigate("/signUp")}
