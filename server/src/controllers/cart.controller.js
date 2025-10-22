@@ -17,8 +17,6 @@ async function enrichCartItem(item) {
       RoomSlot.findOne({ roomId: item.productId, roomSlotId: Number(item.occurrenceId) }).lean(),
       RoomSlot.find({ roomId: item.productId }).lean(),
     ]);
-    console.log("item.occurrenceId:", item.occurrenceId);
-    console.log("slotDetails:", slotDetails);
 
     return {
       ...item,
@@ -77,12 +75,39 @@ const getCartById = async (req, res) => {
   }
 };
 
+//add item to cart
+const addCartItem = async (req, res) => {
+  const { userId, productType, productId, occurrenceId } = req.body;
+
+  try {
+    let cart = await Cart.findOne({ userId });
+    // If no cart, create one
+    if (!cart) {
+      cart = await Cart.create({ cartId: userId, userId: userId, cartItems: [] });
+    }
+
+    // Create new cart item
+    const newItem = {
+      itemId: Number(Date.now()),
+      productType,
+      productId,
+      occurrenceId,
+    };
+
+    // Add item to cart
+    cart.cartItems.push(newItem);
+    await cart.save();
+
+    return res.status(201).json({ message: "Item added to cart"});
+  } catch (error) {
+    handleError(res, error);
+  }
+}
 // Remove item from cart
 const removeCartItem = async (req, res) => {
   const { cartId, itemId } = req.params;
 
   try {
-    // Note: Number() is compulsory
     const cart = await Cart.findOne({ cartId: Number(cartId) });
 
     cart.cartItems = cart.cartItems.filter(
@@ -95,6 +120,24 @@ const removeCartItem = async (req, res) => {
     handleError(res, error);
   }
 };
+
+const removeMultipleCartItems = async (req, res) => {
+  const { cartId, itemIds } = req.body;
+
+  try {
+
+    const cart = await Cart.findOne({ cartId: Number(cartId) });
+
+    cart.cartItems = cart.cartItems.filter(
+      (item) => !itemIds.includes(item.itemId)
+    );
+    await cart.save();
+
+    return res.status(200).json({ message: "Items removed successfully", cart });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
 
 const updateCartItem = async (req, res) => {
   const { cartId, itemId } = req.params;
@@ -125,4 +168,6 @@ export {
   removeCartItem,
   updateCartItem,
   getCartById,
+  addCartItem,
+  removeMultipleCartItems,
 };

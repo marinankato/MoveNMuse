@@ -72,6 +72,12 @@ export const api = {
     request(`/cart/${cartId}/${itemId}`, {
       method: "DELETE",
     }),
+  removeMultipleCartItems: ({ cartId, itemIds }) =>
+    request(`/cart/removeItems`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cartId, itemIds }),
+    }),
 
   updateCartItem: ({ cartId, itemId, occurrenceId }) =>
     request(

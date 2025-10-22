@@ -29,6 +29,21 @@ const Account = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
   const limit = 5;
+  
+  if (!user) {
+    return (
+      <div className="py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <p className="text-center text-gray-600">
+              Please log in to view your cart.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Sync formData with Redux user — only when not editing
   useEffect(() => {
@@ -147,15 +162,6 @@ const Account = () => {
       setEditMode(true);
     }
   };
-
-  if (!user) {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-3xl font-bold">My Account</h1>
-        <p className="text-red-600 mt-4">Please log in to view your account details.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-xl mx-auto p-6">
