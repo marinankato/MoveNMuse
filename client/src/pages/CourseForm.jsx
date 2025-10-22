@@ -19,7 +19,7 @@ export default function CourseForm() {
     name: "",
     description: "",
     price: "",
-    capacity: "",
+    // capacity: "",
     category: "",
     level: "",
   });
@@ -36,7 +36,6 @@ export default function CourseForm() {
           name: c.name || c.title || "",
           description: c.description || "",
           price: ("price" in c) ? c.price : "",
-          capacity: Number.isFinite(c.capacity) ? c.capacity : "",
           category: c.category || "",
           level: c.level || "",
         });
@@ -73,7 +72,6 @@ export default function CourseForm() {
         name: form.name?.trim(),
         description: form.description?.trim(),
         price: form.price !== "" ? Number(form.price) : undefined,
-        capacity: form.capacity !== "" ? Number(form.capacity) : undefined,
         category: form.category?.trim(),
         level: form.level?.trim(),
       };
@@ -143,42 +141,13 @@ export default function CourseForm() {
 
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="block text-sm font-medium mb-1">Price (AUD)</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              className="w-full border rounded px-3 py-2"
-              name="price"
-              value={form.price}
-              onChange={handleChange}
-              placeholder="e.g. 49.00"
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-sm font-medium mb-1">Capacity (per session)</span>
-            <input
-              type="number"
-              min="0"
-              className="w-full border rounded px-3 py-2"
-              name="capacity"
-              value={form.capacity}
-              onChange={handleChange}
-              placeholder="e.g. 20"
-            />
-          </label>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <label className="block">
             <span className="block text-sm font-medium mb-1">Category</span>
             <input
               className="w-full border rounded px-3 py-2"
               name="category"
               value={form.category}
               onChange={handleChange}
-              placeholder="e.g. Dance / Yoga / Music"
+              placeholder="e.g. Dance / Yoga / Workshop"
             />
           </label>
 
@@ -192,6 +161,35 @@ export default function CourseForm() {
               placeholder="e.g. Beginner / Intermediate / Advanced"
             />
           </label>
+        </div>
+
+                <div className="grid grid-cols-2 gap-4">
+          <label className="block">
+            <span className="block text-sm font-medium mb-1">Price (AUD)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              className="w-full border rounded px-3 py-2"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              placeholder="e.g. 49.00"
+            />
+          </label>
+
+          {/* <label className="block">
+            <span className="block text-sm font-medium mb-1">Capacity (per session)</span>
+            <input
+              type="number"
+              min="0"
+              className="w-full border rounded px-3 py-2"
+              name="capacity"
+              value={form.capacity}
+              onChange={handleChange}
+              placeholder="e.g. 20"
+            />
+          </label> */}
         </div>
 
         <div className="flex justify-between mt-6">
