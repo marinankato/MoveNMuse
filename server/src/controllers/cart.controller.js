@@ -17,8 +17,6 @@ async function enrichCartItem(item) {
       RoomSlot.findOne({ roomId: item.productId, roomSlotId: Number(item.occurrenceId) }).lean(),
       RoomSlot.find({ roomId: item.productId }).lean(),
     ]);
-    console.log("item.occurrenceId:", item.occurrenceId);
-    console.log("slotDetails:", slotDetails);
 
     return {
       ...item,
@@ -57,13 +55,14 @@ async function enrichCart(cartDoc) {
 
 // Read cart data, if cart not found, create a new cart
 const getCartById = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = Number(req.params.userId);
 
   try {
     let cart = await Cart.findOne({ userId }).lean();
+    console.log("Fetched cart:", cart);
     // If no cart, create one
     if (!cart) {
-      Cart.create({ cartId: userId, userId: userId, cartItems: [] });
+      await Cart.create({ cartId: userId, userId: userId, cartItems: [] });
       cart = await Cart.findOne({ userId: userId });
     }
     // Enrich each cart item with course/rooms details

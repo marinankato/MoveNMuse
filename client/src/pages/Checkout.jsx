@@ -42,7 +42,7 @@ function Checkout() {
             <tbody>
               {items.map((p) => (
                 <tr key={p.itemId} className="border-b">
-                  <td className="py-4 px-6 text-sm text-gray-900">{p.product.courseName}</td>
+                  <td className="py-4 px-6 text-sm text-gray-900">{p.product.courseName || p.product.name }</td>
                   <td className="py-4 px-6 text-sm text-gray-900">{new Date(p.occurrence.startTime).toISOString().slice(0, 16).replace("T", " ")}</td>
                   <td className="py-4 px-6 text-sm text-gray-900">{p.occurrence.duration} min</td>
                   <td className="py-4 px-6 text-sm text-gray-900">

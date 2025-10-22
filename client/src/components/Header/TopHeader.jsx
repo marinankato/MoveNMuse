@@ -10,7 +10,7 @@ const Header = () => {
   const userData = useSelector((state) => state.auth.userData);
   const userName = userData?.firstName;
 
-  const { topHeader } = HeaderData;
+  const { topHeader, userHeader } = HeaderData;
 
   const handleLogoClick = () => {
     navigate("/");
@@ -27,20 +27,38 @@ const Header = () => {
         </div>
       </div>
       <div className="flex items-center justify-center gap-4">
-        {topHeader.navItems.map(
-          (item) =>
-            item.active && (
-              <button
-                key={item.name}
-                onClick={() => {
-                  navigate(item.slug);
-                }}
-                className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
-              >
-                {item.name}
-              </button>
-            )
-        )}
+        {topHeader.navItems
+          .map(
+            (item) =>
+              item.active && (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.slug);
+                  }}
+                  className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
+                >
+                  {item.name}
+                </button>
+              )
+          )}
+
+      </div>
+      <div>
+          {authStatus && userHeader.navItems.map(
+            (item) =>
+              item.active && (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.slug);
+                  }}
+                  className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
+                >
+                  {item.name}
+                </button>
+              )
+          )}
       </div>
 
       <div>

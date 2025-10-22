@@ -55,7 +55,6 @@ const paymentDetailSchema = new Schema(
   },
   {
     timestamps: true,
-    collection: "paymentDetails",
   }
 );
 
