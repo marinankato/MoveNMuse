@@ -125,13 +125,14 @@ export default function RoomDetail() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 p-6">
       <div className="mx-auto max-w-4xl rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
-        //image
         <div className="aspect-[16/9] bg-zinc-100">
           <img
             src={
               room.images?.[0] ||
               "https://via.placeholder.com/800x450?text=No+Image"
             }
+            alt={room.name}
+            className="w-full h-auto object-cover"
           />
         </div>
         {/* room detail */}
