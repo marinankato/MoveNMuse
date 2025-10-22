@@ -19,6 +19,9 @@ export default function CourseList() {
   const [err, setErr] = useState("");
   const [data, setData] = useState({ items: [], total: 0 });
 
+  // NEW: tip message for empty keyword submit
+  const [tip, setTip] = useState("");
+
   // role check
   const role = (getRoleFromToken?.() || "").toLowerCase();
   const isStaff = role === "staff";
@@ -90,8 +93,31 @@ export default function CourseList() {
           onChange={(e) => {
             setPage(1);
             setKw(e.target.value);
+            if (tip) setTip(""); // clear tip once user types
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (!kw.trim()) return setTip("Please enter a keyword.");
+              setTip("");
+              setPage(1); // triggers useEffect to fetch
+            }
           }}
         />
+
+        {/* NEW: Search button */}
+        <button
+          className="rounded-lg border px-3 py-2 text-sm"
+          onClick={(e) => {
+            e.preventDefault();
+            if (!kw.trim()) return setTip("Please enter a keyword.");
+            setTip("");
+            setPage(1); // triggers useEffect to fetch
+          }}
+        >
+          Search
+        </button>
+
         <select
           className="rounded-lg border px-3 py-2 text-sm"
           value={category}
@@ -105,6 +131,7 @@ export default function CourseList() {
           <option value="Workshop">Workshop</option>
           <option value="Music">Music</option>
         </select>
+
         <select
           className="rounded-lg border px-3 py-2 text-sm"
           value={level}
@@ -119,6 +146,9 @@ export default function CourseList() {
           <option value="Advanced">Advanced</option>
         </select>
       </div>
+
+      {/* tip message */}
+      {tip && <div className="mt-1 text-xs text-red-600">{tip}</div>}
 
       {/* list area */}
       <div className="mt-4 min-h-40">
@@ -162,6 +192,7 @@ export default function CourseList() {
     </div>
   );
 }
+
 
 
 
