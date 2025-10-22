@@ -32,25 +32,6 @@ const roomSlotSchema = new Schema(
      type: Boolean,
      default: true,
    },
-  //  roomSlotId: {
-  //    type: String,
-  //    required: true,
-  //    unique: true,
-  //  },
-  //  userId: {
-  //    type: Number,
-  //    required: true,
-  //  },
-  //  roomSlotItems: [
-  //    {
-  //      itemId: { type: Number, required: true },
-  //      productId: { type: Number, required: true },
-  //      productType: { type: String, required: true },
-  //      occurenceId: { type: Number, required: true },
-  //      title: { type: String, required: true },
-  //      price: { type: Number, required: true },
-  //    },
-  //  ],
  },
  {
    timestamps: true,

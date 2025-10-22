@@ -9,7 +9,7 @@ export default function CartPage() {
   const dispatch = useDispatch();
 
   const [cart, setCart] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function CartPage() {
     if (!user) return;
     (async () => {
       try {
-
+        setLoading(true);
         const data = await api.getCartById(userId);
         setCart(data);
         setProducts(
@@ -29,6 +29,8 @@ export default function CartPage() {
         );
       } catch (e) {
         console.error("Failed to fetch cart", e);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [user]);
@@ -39,7 +41,9 @@ export default function CartPage() {
         <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
         <div className="max-w-4xl mx-auto px-4">
           <div className="bg-white shadow-md rounded-lg p-6">
-            <p className="text-center text-gray-600">Please log in to view your cart.</p>
+            <p className="text-center text-gray-600">
+              Please log in to view your cart.
+            </p>
           </div>
         </div>
       </div>
@@ -49,7 +53,9 @@ export default function CartPage() {
   const priceOf = (p) =>
     Number(p?.occurrence?.price?.$numberDecimal ?? p?.occurrence?.price ?? 0);
 
-  const subtotal = products
+  // Calculate subtotal
+  const items = Array.isArray(products) ? products : [];
+  const subtotal = items
     .filter((p) => p.isSelected)
     .reduce((sum, p) => sum + priceOf(p), 0);
 
@@ -74,6 +80,8 @@ export default function CartPage() {
   //  Remove item
   const removeItem = async (itemId) => {
     try {
+      setLoading(true);
+
       const data = await api.removeCartItem({
         cartId: cart.cartId,
         itemId,
@@ -84,6 +92,7 @@ export default function CartPage() {
       console.error("Failed to remove item", e);
     } finally {
       setConfirmId(null);
+      setLoading(false);
     }
   };
 
@@ -153,7 +162,13 @@ export default function CartPage() {
             </div>
           </div>
         )}
-        {!products || products.length === 0 ? (
+        {loading || products === null ? (
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <p className="text-center text-gray-600 animate-pulse">
+              Loading your cart…
+            </p>
+          </div>
+        ) : !products.length ? (
           <div className="bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">Your cart is empty.</p>
           </div>
@@ -203,7 +218,9 @@ export default function CartPage() {
                     </td>
 
                     <td className="py-4 px-6 text-sm text-gray-900">
-                      {p?.product?.courseName || p?.product?.name || "Unnamed Product"}
+                      {p?.product?.courseName ||
+                        p?.product?.name ||
+                        "Unnamed Product"}
                     </td>
 
                     <td className="py-4 px-6">
@@ -250,8 +267,8 @@ export default function CartPage() {
             <tfoot>
               <tr>
                 <td className="py-4 px-6 text-sm text-gray-900" colSpan="3">
-                  {products.filter((p) => p.isSelected).length} /{" "}
-                  {products.length} items selected
+                  {products?.filter((p) => p.isSelected).length} /{" "}
+                  {products?.length} items selected
                 </td>
                 <td className="py-4 px-6 text-sm text-gray-900 font-bold">
                   Subtotal
