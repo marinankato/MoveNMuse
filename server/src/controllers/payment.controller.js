@@ -10,7 +10,7 @@ const handleError = (res, error) => {
 const processPayment = async (req, res) => {
   try {
     const body = req.body || {};
-    // pull raw values 
+    // pull raw values
     const rawOrderId = body.orderId;
     const rawAmount = body.amount;
     const rawUserId = body.userId;
@@ -25,7 +25,7 @@ const processPayment = async (req, res) => {
     const userId = Number(rawUserId);
     const amount = Number(rawAmount);
     const paymentDetailId = Number(rawPaymentDetailId);
-    
+
     const lastPayment = await Payment.findOne().sort({ paymentId: -1 });
     const newPaymentId = lastPayment ? lastPayment.paymentId + 1 : 1;
 
@@ -66,13 +66,19 @@ const getAllPayments = async (req, res) => {
           _id: 1,
           paymentId: 1,
           orderId: 1,
-          amount: 1,
           status: 1,
           userId: 1,
           paymentDate: 1,
           createdAt: 1,
           updatedAt: 1,
           paymentDetailId: 1,
+          amount: {
+            $cond: [
+              { $eq: [{ $type: "$amount" }, "decimal"] },
+              { $toDouble: "$amount" },
+              "$amount",
+            ],
+          },
 
           paymentDetail: {
             _id: "$paymentDetail._id",
@@ -136,13 +142,19 @@ const getPaymentHistoryById = async (req, res) => {
           _id: 1,
           paymentId: 1,
           orderId: 1,
-          amount: 1,
           status: 1,
           userId: 1,
           paymentDate: 1,
           createdAt: 1,
           updatedAt: 1,
           paymentDetailId: 1,
+          amount: {
+            $cond: [
+              { $eq: [{ $type: "$amount" }, "decimal"] },
+              { $toDouble: "$amount" },
+              "$amount",
+            ],
+          },
 
           paymentDetail: {
             _id: "$paymentDetail._id",
