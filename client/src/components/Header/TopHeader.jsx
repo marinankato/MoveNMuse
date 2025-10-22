@@ -11,7 +11,7 @@ const Header = () => {
   const userData = useSelector((state) => state.auth.userData);
   const userName = userData?.firstName;
 
-  const { topHeader } = HeaderData;
+  const { topHeader, userHeader } = HeaderData;
   const { user } = useAuth();
 
 
@@ -30,23 +30,38 @@ const Header = () => {
         </div>
       </div>
       <div className="flex items-center justify-center gap-4">
-        {topHeader.navItems.map(
-          (item) =>
-            item.active && (
-              <Link
-                key={item.name}
-                to={ normalize(item.slug) === "/rooms" && isStaff
-                  ? "/admin/rooms"
-                  : normalize(item.slug)
-                }
-                className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
-              >
-                {normalize(item.slug) === "/rooms" && isStaff
-                  ? "Room Management"
-                  : item.name}
-              </Link>
-            )
-        )}
+        {topHeader.navItems
+          .map(
+            (item) =>
+              item.active && (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.slug);
+                  }}
+                  className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
+                >
+                  {item.name}
+                </button>
+              )
+          )}
+
+      </div>
+      <div>
+          {authStatus && userHeader.navItems.map(
+            (item) =>
+              item.active && (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    navigate(item.slug);
+                  }}
+                  className="px-6 py-2 rounded-lg text-lg font-medium hover:bg-blue-500 hover:text-white transition duration-300"
+                >
+                  {item.name}
+                </button>
+              )
+          )}
       </div>
 
       <div>

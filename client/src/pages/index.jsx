@@ -4,6 +4,7 @@ import Login from "./Login";
 import CartPage from "./Cart.jsx";
 import Checkout from "./Checkout.jsx";
 import Payment from "./Payment.jsx";
+import PaymentHistory from "./PaymentHistory.jsx";
 import AddPaymentDetail from "./AddPaymentDetail.jsx";
 import PaymentSuccess from "./PaymentSuccess.jsx";
 import RoomView from "./RoomView.jsx";
@@ -29,6 +30,7 @@ export {
   Checkout,
   Payment,
   AddPaymentDetail,
+  PaymentHistory,
   PaymentSuccess,
   RoomView,
   CourseList,

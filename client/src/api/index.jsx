@@ -5,7 +5,7 @@ async function request(path, options = {}) {
     ? path
     : API_BASE.replace(/\/$/, "") + (path.startsWith("/") ? path : "/" + path);
 
-  const token = localStorage.getItem("token"); 
+  const token = localStorage.getItem("token");
 
   const res = await fetch(url, {
     headers: {
@@ -32,10 +32,18 @@ async function request(path, options = {}) {
 
 export const api = {
   login: ({ email, password }) =>
-  request(`/auth/login`, {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  }),
+    request(`/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  getUserProfile: () =>
+    request("/user/profile", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }),
 
   listCourses: (params = {}) => {
     const sp = new URLSearchParams();
@@ -65,7 +73,7 @@ export const api = {
     if (!userId) throw new Error("Invalid user ID");
     return request(`/bookings?userId=${encodeURIComponent(userId)}`);
   },
-
+// cart APIs
   getCartById: (userId) => request(`/cart/${userId}`),
 
   removeCartItem: ({ cartId, itemId }) =>
@@ -88,7 +96,19 @@ export const api = {
         body: JSON.stringify({ occurrenceId }),
       }
     ),
+    // payment APIs
+  getPaymentHistoryById: (userId) =>
+    request(`/payment/getPayments?userId=${encodeURIComponent(userId)}`),
+
+  getAllPaymentHistory: () => request(`/payment/getAllPayments`),
+
+  processPayment: ({ orderId, amount, userId, paymentDetailId }) =>
+    request(`/payment/processPayment`, {
+      method: "POST",
+      body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
+    }),
     
+    // payment detail APIs
   getPaymentDetails: (userId) =>
     request(`/paymentDetail?userId=${encodeURIComponent(userId)}`),
 
