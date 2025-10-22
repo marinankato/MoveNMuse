@@ -2,6 +2,12 @@ import mongoose, { Schema } from "mongoose";
 
 const instructorSchema = new Schema(
   {
+    instructorId: {
+      type: Number,
+      required: true,
+      unique: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -23,10 +29,10 @@ const instructorSchema = new Schema(
       trim: true,
       match: [/^[\d\s+()-]*$/, "Invalid phone number format"],
     },
-    status: { type: String, default: "", trim: true, maxlength: 500 },
-    active: {
-      type: Boolean,
-      default: true, // true = active
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
       index: true,
     },
   },
@@ -37,7 +43,6 @@ const instructorSchema = new Schema(
   }
 );
 
-// indexes
 instructorSchema.index({ name: 1 });
 instructorSchema.index({ active: 1, name: 1 });
 

@@ -25,7 +25,7 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data?.error || `${res.status} ${res.statusText}`);
+    throw new Error(data?.error || data?.message || `${res.status} ${res.statusText}`);
   }
   return data;
 }
@@ -81,6 +81,13 @@ export const api = {
       method: "DELETE",
     }),
 
+  removeMultipleCartItems: ({ cartId, itemIds }) =>
+    request(`/cart/removeItems`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cartId, itemIds }),
+    }),
+
   updateCartItem: ({ cartId, itemId, occurrenceId }) =>
     request(
       `/cart/${encodeURIComponent(cartId)}/${encodeURIComponent(itemId)}`,
@@ -110,6 +117,34 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  processPayment: ({ orderId, amount, userId, paymentDetailId }) =>
+    request(`/payment/processPayment`, {
+      method: "POST",
+      body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
+    }),
+
+  getAccount: () =>
+    request(`/account`, {
+      method: "GET",
+  }),
+
+  updateAccount: (payload) =>
+    request(`/account`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+    registerUser: (formData) =>
+    request(`/user/register`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    }),
+
+    changePassword: (formData) =>
+    request(`/user/changePassword`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    })
 };
 
 export { request };

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { login } from "../../store/authSlice"; 
-import { useNavigate } from "react-router-dom"; 
+import { login as setUser } from "../../store/authSlice"; 
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { api } from "../../api"; 
+import { useAuth } from "../../components/auth/AuthContext.jsx";
+import { jwtDecode } from "jwt-decode";
 
-const Login = () => {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -13,6 +15,8 @@ const Login = () => {
   
   const navigate = useNavigate(); 
   const dispatch = useDispatch();
+  const location = useLocation();
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,16 +27,34 @@ const Login = () => {
       const data = await api.login({ email, password });
 
       localStorage.setItem("token", data.token);
+      authLogin(data.token);
+
       localStorage.setItem("user", JSON.stringify(data.user));
+      dispatch(setUser(data.user));
 
-      dispatch(login(data.user));
-      setLoading(false);
-      alert("Logged in successfully!");
-      navigate("/");
+      // dispatch(login(data.user));
+      // setLoading(false);
+      // alert("Logged in successfully!");
+      // navigate("/");
+      const role = data.user?.role || (() => {
+        try { return jwtDecode(data.token)?.role; } catch { return undefined; }
+      })();
 
+      const isStaff = role === "staff" || role === "admin";
+        
+        const from = location.state?.from?.pathname;
+        if (isStaff) {
+          navigate("/admin/rooms", { replace: true });
+        } else if (from) {
+          navigate(from, { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
     } catch (err) {
-      setLoading(false);
+      // setLoading(false);
       setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,7 +97,23 @@ const Login = () => {
           </div>
           <br></br>
           <label className="text-sm text-gray-700">
-            Don't have an account yet? Sign up here.
+            Forgot password? {" "}
+            <span
+              onClick={() => navigate("/changePassword")}
+              className="text-blue-600 cursor-pointer hover:underline"
+            >
+              Reset
+            </span>
+          </label>
+          <br></br>
+          <label className="text-sm text-gray-700">
+            Don't have an account yet? Sign up {" "}
+            <span
+              onClick={() => navigate("/signUp")}
+              className="text-blue-600 cursor-pointer hover:underline"
+            >
+              here.
+            </span>
           </label>
 
           <button
@@ -91,4 +129,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+// export default Login;

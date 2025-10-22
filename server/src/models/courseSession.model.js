@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-
+import { Instructor } from "./instructor.model.js"; 
+import  Course  from "./course.model.js";
 const courseSessionSchema = new Schema(
   {
     sessionId: {
@@ -108,6 +109,58 @@ courseSessionSchema.set("toJSON", {
     }
     return ret;
   },
+});
+
+// setter: convert price to Decimal128
+courseSessionSchema.path("price").set(function (v) {
+  if (v == null) return v;
+  if (typeof v === "number") return mongoose.Types.Decimal128.fromString(String(v));
+  if (typeof v === "string") return mongoose.Types.Decimal128.fromString(v);
+  return v; // assume already Decimal128
+});
+
+// pre-save hook: auto-assign sessionId
+courseSessionSchema.pre("save", async function autoAssignSessionId(next) {
+  if (!this.isNew || this.sessionId != null) return next();
+  const last = await mongoose.model("CourseSession").findOne({}, { sessionId: 1 })
+    .sort({ sessionId: -1 }).lean();
+  this.sessionId = (last?.sessionId ?? 0) + 1;
+  next();
+});
+
+// pre-validate hook: sync duration with startTime/endTime
+courseSessionSchema.pre("validate", function syncDuration(next) {
+  if (this.startTime && this.endTime) {
+    const ms = new Date(this.endTime) - new Date(this.startTime);
+    const minutes = Math.max(Math.round(ms / 60000), 0);
+    if (!this.duration || this.duration !== minutes) {
+      this.duration = minutes;
+    }
+  }
+  next();
+});
+
+// pre-validate hook: validate references
+courseSessionSchema.pre("validate", async function validateRefs(next) {
+  try {
+    // courseId exists
+    if (typeof this.courseId === "number") {
+      const course = await Course.exists({ courseId: this.courseId });
+      if (!course) return next(new Error("courseId does not exist"));
+    }
+
+    // instructorId exists and is active (check only on create or change)
+    if (this.isNew || this.isModified("instructorId")) {
+      const inst = await Instructor.findOne({ instructorId: this.instructorId })
+        .select("status").lean();
+      if (!inst) return next(new Error("instructor not found"));
+      if (inst.status !== "active") return next(new Error("instructor is inactive"));
+    }
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 export const CourseSession = mongoose.model("CourseSession", courseSessionSchema);

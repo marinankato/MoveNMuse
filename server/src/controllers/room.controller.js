@@ -33,71 +33,115 @@ const toDTO = (d) => {
     };
 };
 
+const requireStaffRole = (user) =>
+    user && (user.role === "staff" || user.role === "admin");
+
 export const roomController = {
     async list(_req, res, next) {
         try {
         const rooms = await Room.find().lean();
-        res.json(rooms.map(toDTO));
-    } catch (e) {
-        next(e);
+        res.status(200).json(rooms.map(toDTO));
+    } catch (err) {
+        next(err);
     }
-    },
+},
 
-    async get(req, res, next) {
-        try{
-        const doc = await Room.findById(req.params.id).lean();
-        if (!doc) return res.status(404).json({ message: "Room not found" });
-        res.json(toDTO(doc));
-    } catch (e) {
-        next(e);
-    }
-    },
+async get(req, res, next) {
+    try {
+        const { id } = req.params;
+        let room = null;
 
-    async create(req, res) {
-        try {
-            const body = req.body ?? {};
-            const payload = {
-                ...body,
-                pricePerHour: body.pricePerHour ?? body.defaultPrice ?? 0,
-                images: Array.isArray(body.images) ? body.images : (body.img ? [body.img] : []),
-                amenities: Array.isArray(body.amenities) ? body.amenities : [],
-            };
-            const created = await Room.create(payload);
-            res.status(201).json(toDTO(created));
-        } catch (e) {
-            next(e);
+        if (id.length === 24) {
+            room = await Room.findById(id).lean();
         }
-    },
+        if (!room) {
+            const rid = Number(id);
+            if (Number.isFinite(rid)) {
+                room = await Room.findOne({ roomId: rid }).lean();
+            }
+        }
+        if (!room) return res.status(404).json({ message: "Room not found" });
+      res.json(toDTO(room));
+    } catch (err) {
+      next(err);
+    }
+},
 
-    async update(req, res, next) {
-        try {
+async create(req, res, next) {
+    try {
+        if (!requireStaffRole(req.user)) {
+            return res.status(403).json({ message: "Forbidden: staff only" });
+        }
+
         const body = req.body ?? {};
-        const patch = { ...body, };
+        const payload = {
+            ...body,
+            pricePerHour: body.pricePerHour ?? body.defaultPrice ?? 0,
+            images: Array.isArray(body.images)
+            ? body.images
+            : body.img
+            ? [body.img]
+            : [],
+            amenities: Array.isArray(body.amenities) ? body.amenities : [],
+        };
+
+        const created = await Room.create(payload);
+        res.status(201).json(toDTO(created));
+    } catch (err) {
+        next(err);
+    }
+},
+
+async update(req, res, next) {
+    try {
+        if (!requireStaffRole(req.user)) {
+            return res.status(403).json({message: "Forbidden: staff only"});
+        }
+        const { id } = req.params;
+        const body = req.body ?? {};
+        const patch = { ...body };
+
         if (body.defaultPrice != null && body.pricePerHour == null) {
             patch.pricePerHour = body.defaultPrice;
         }
         if (body.img && !Array.isArray(body.images)) {
             patch.images = [body.img];
         }
-        const updated = await Room.findByIdAndUpdate(
-            req.params.id,
+
+        const updated = 
+        id.length === 24
+        ? await Room.findByIdAndUpdate(id, { $set: patch }, { new: true })
+        : await Room.findOneAndUpdate(
+            { roomId: Number(id) },
             { $set: patch },
-            { new: true, runValidators: true }
+            { new: true }
         );
+
         if (!updated) return res.status(404).json({ message: "Room not found" });
         res.json(toDTO(updated));
-    } catch (e) {
-        next (e);
+    } catch (err) {
+        next(err);
     }
-    },
+},
 
     async remove(req, res, next) {
         try {
-        const del = await Room.findByIdAndDelete(req.params.id);
-        if (!del) return res.status(404).json({ message: "Room not found" });
-        res.status(204).send();
-        } catch (e) {
-            next(e);
+        if (!requireStaffRole(req.user)) {
+            return res.status(403).json({ message: "Forbidden: staff only" });
         }
-    },
+        
+        const { id } = req.params;
+        const deleted =
+        id.length === 24
+        ? await Room.findByIdAndDelete(id)
+        : await Room.findOneAndDelete({ roomId: Number(id) });
+
+        if (!deleted)
+            return res.status(404).json({message: "Room not found" });
+
+        res.status(200).json({ message: "Room deleted successfully" });
+        } catch (err) {
+    next(err);
+    }
+},
 };

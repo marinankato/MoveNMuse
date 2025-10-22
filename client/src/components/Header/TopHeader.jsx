@@ -1,8 +1,9 @@
 import { useState } from "react";
 import HeaderData from "../../Data/HeaderData.jsx";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { LogoutBtn, LoginButton } from "../../utils";
+import { useAuth } from "../../components/auth/AuthContext.jsx";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -11,16 +12,18 @@ const Header = () => {
   const userName = userData?.firstName;
 
   const { topHeader, userHeader } = HeaderData;
+  const { user } = useAuth();
 
-  const handleLogoClick = () => {
-    navigate("/");
-  };
+
+  const normalize = (slug) => (slug?.startsWith("/") ? slug : `/${slug || ""}`);
+
+  const isStaff = user?.role === "staff" || user?.role === "admin";
 
   return (
     <div className="sticky top-0 left-0 w-full z-50 flex flex-wrap justify-between items-center py-6 px-6 bg-gray-900 text-white shadow-lg border-b-4 border-gray-800">
       <div
         className="flex items-center justify-start cursor-pointer gap-2 hover:shadow-lg rounded-lg transition-all duration-300"
-        onClick={handleLogoClick}
+        onClick={() => navigate("/")}
       >
         <div className="ml-2 text-2xl font-semibold text-white md:text-3xl hover:text-indigo-400 transition-all duration-300">
           {topHeader.appName}

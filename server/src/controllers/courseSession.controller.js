@@ -50,29 +50,71 @@ export const getCourseSession = async (req, res) => {
 };
 
 // POST /api/course-sessions
+// POST /api/course-sessions
 export const createCourseSession = async (req, res) => {
   try {
-    const {
-      sessionId, courseId, startTime, endTime, duration,
-      capacity, location, instructorId, price, status = "Scheduled",
+    let {
+      courseId, startTime, endTime,
+      capacity, location, instructorId, price,
+      status = "Scheduled",
     } = req.body;
 
-    if ([sessionId, courseId, duration, capacity, instructorId].some(v => Number.isNaN(Number(v))))
-      return res.status(400).json({ error: "sessionId/courseId/duration/capacity/instructorId must be numbers" });
+    // must have required fields
+    courseId = Number(courseId);
+    instructorId = Number(instructorId);
+    capacity = Number(capacity);
+    if (Number.isNaN(courseId) || Number.isNaN(instructorId) || Number.isNaN(capacity)) {
+      return res.status(400).json({ error: "courseId/capacity/instructorId must be numbers" });
+    }
 
-    const doc = await CourseSession.create({
-      sessionId, courseId,
-      startTime, endTime, duration, capacity,
-      location, instructorId, status, price,
-    });
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    if (!(start instanceof Date && !isNaN(start)) || !(end instanceof Date && !isNaN(end))) {
+      return res.status(400).json({ error: "startTime/endTime must be valid datetimes" });
+    }
+    if (end <= start) {
+      return res.status(400).json({ error: "endTime must be later than startTime" });
+    }
 
-    res.status(201).json({ id: String(doc._id), sessionId: doc.sessionId, message: "Session created" });
+    // calculate duration
+    const duration = Math.round((end.getTime() - start.getTime()) / 60000);
+
+    // prepare payload
+    const payload = {
+      courseId,
+      instructorId,
+      startTime: start,
+      endTime: end,
+      duration,
+      capacity,
+      location,
+      status,
+    };
+    if (price !== undefined && price !== null && `${price}`.trim() !== "") {
+      const p = Number(price);
+      if (Number.isNaN(p)) return res.status(400).json({ error: "price must be a number" });
+      payload.price = p;
+    }
+
+    // generate next sessionId
+    const last = await CourseSession
+    .findOne({}, { sessionId: 1 })
+    .sort({ sessionId: -1 })
+    .lean();
+
+    const nextSessionId = (last?.sessionId || 9000) + 1; 
+    payload.sessionId = nextSessionId;
+    const doc = await CourseSession.create(payload);
+    return res
+      .status(201)
+      .json({ id: String(doc._id), sessionId: doc.sessionId, message: "Session created" });
   } catch (e) {
     if (e?.code === 11000) return res.status(409).json({ error: "Duplicate key", key: e.keyValue });
     console.error("createCourseSession error:", e);
-    res.status(400).json({ error: e.message || "Bad request" });
+    return res.status(400).json({ error: e.message || "Bad request" });
   }
 };
+
 
 // PATCH /api/course-sessions/:id   
 export const updateCourseSession = async (req, res) => {
