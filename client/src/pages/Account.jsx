@@ -1,28 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "../store/authSlice";
-import { useEffect } from "react"; // If not already imported
 import { Link } from "react-router-dom";
+import { api } from "../api";
 
 const Account = () => {
   const user = useSelector((state) => state.auth.userData);
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phoneNo: user?.phoneNo || "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNo: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
-  const [bookings, setBookings] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalBookings, setTotalBookings] = useState(0);
-  const limit = 5; // or however many bookings you want per page
   const [errors, setErrors] = useState({
     firstName: "",
     lastName: "",
@@ -30,25 +25,60 @@ const Account = () => {
     phoneNo: "",
   });
 
-  if (!user) {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-3xl font-bold">My Account</h1>
-        <p className="text-red-600 mt-4">Please log in to view your account details.</p>
-      </div>
-    );
-  }
+  const [bookings, setBookings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalBookings, setTotalBookings] = useState(0);
+  const limit = 5;
 
+  // Sync formData with Redux user — only when not editing
+  useEffect(() => {
+    if (user && !editMode) {
+      setFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phoneNo: user.phoneNo || "",
+      });
+    }
+  }, [user, editMode]);
+
+  // Fetch user and bookings
+  useEffect(() => {
+    const fetchUserProfileAndBookings = async () => {
+      try {
+        const res = await api.getAccount();
+        const user = res.user;
+
+        if (!user || !user.userId) {
+          console.error("User ID is missing in profileData:", res);
+          return;
+        }
+        dispatch(updateUser(user));
+        const userId = user.userId;
+
+        const bookingsRes = await fetch(
+          `/api/bookings?userId=${userId}&page=${currentPage}&limit=${limit}`
+        );
+        const data = await bookingsRes.json();
+
+        setBookings(data.bookings || []); 
+        setTotalBookings(data.total || 0); 
+      } catch (err) {
+        console.error("Failed to fetch profile/bookings:", err.message);
+      }
+    };
+
+    fetchUserProfileAndBookings();
+  }, [currentPage, dispatch]);
+
+  // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     let errorMessage = "";
-
     if (name === "phoneNo") {
-      const onlyDigits = value.replace(/\D/g, ""); // Remove non-digits
-      if (onlyDigits.length > 10) {
-        errorMessage = "Phone number must be exactly 10 digits.";
-      } else if (onlyDigits.length < 10) {
+      const onlyDigits = value.replace(/\D/g, "");
+      if (onlyDigits.length !== 10) {
         errorMessage = "Phone number must be exactly 10 digits.";
       }
       setFormData((prev) => ({ ...prev, [name]: onlyDigits }));
@@ -63,13 +93,10 @@ const Account = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
-    setErrors((prev) => ({
-      ...prev,
-      [name]: errorMessage,
-    }));
+    setErrors((prev) => ({ ...prev, [name]: errorMessage }));
   };
 
-
+  // Save form data to backend and update Redux
   const handleSave = async () => {
     setLoading(true);
     setMessage("");
@@ -102,22 +129,8 @@ const Account = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch("http://localhost:5001/api/user/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, 
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update account");
-      }
-      dispatch(updateUser(data.user));
+      const updatedUser = await api.updateAccount(formData);
+      dispatch(updateUser(updatedUser.user));
       setMessage("Account updated successfully!");
       setEditMode(false);
     } catch (error) {
@@ -129,46 +142,20 @@ const Account = () => {
 
   const handleToggle = async () => {
     if (editMode) {
-      await handleSave(); 
+      await handleSave();
     } else {
       setEditMode(true);
     }
   };
 
-  useEffect(() => {
-    const fetchUserProfileAndBookings = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const profileRes = await fetch("http://localhost:5001/api/user/profile", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!profileRes.ok) throw new Error("Failed to fetch profile");
-        const profileData = await profileRes.json();
-        dispatch(updateUser(profileData.user));
-
-        const userId = profileData.user.id;
-
-        const bookingsRes = await fetch(
-          `http://localhost:5001/api/bookings?userId=${userId}&page=${currentPage}&limit=${limit}`
-        );
-
-        const data = await bookingsRes.json();
-        setBookings(data.bookings);
-        setTotalBookings(data.total);
-      } catch (err) {
-        console.error("Failed to fetch profile/bookings:", err.message);
-      }
-    };
-
-    fetchUserProfileAndBookings();
-  }, [currentPage]);
-
+  if (!user) {
+    return (
+      <div className="p-6 text-center">
+        <h1 className="text-3xl font-bold">My Account</h1>
+        <p className="text-red-600 mt-4">Please log in to view your account details.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl mx-auto p-6">
@@ -258,7 +245,8 @@ const Account = () => {
                       {new Date(booking.orderDate).toLocaleString("en-AU", {
                         dateStyle: "medium"
                       })}
-                    </p><Link to={`/account/bookings/${booking._id}`} className="text-blue-600 hover:underline">
+                    </p>
+                    <Link to={`/account/bookings/${booking._id}`} className="text-blue-600 hover:underline">
                       View Booking Details
                     </Link>
                   </div>
@@ -266,22 +254,37 @@ const Account = () => {
               ))}
           </ul>
         )}
-        
         {/* View More Button */}
         {bookings.length < totalBookings && (
-          <div className="text-center mt-6">
+          <div className="flex justify-center mt-6 space-x-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-5 py-2 rounded ${
+                currentPage === 1
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
+            >
+              Previous
+            </button>
+
             <button
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+              disabled={bookings.length < limit}
+              className={`px-5 py-2 rounded ${
+                bookings.length < limit
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
             >
-              View More
+              Next
             </button>
           </div>
         )}
       </div>
     </div>
   );
-
 };
 
 export default Account;

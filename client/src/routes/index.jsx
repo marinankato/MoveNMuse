@@ -4,6 +4,8 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import Layout from "../Layout";
+import StaffRoute from "./StaffRoute.jsx";
+import RoomManagement from "../pages/RoomManagement.jsx";
 import {
   Home,
   Account,
@@ -39,6 +41,10 @@ const router = createBrowserRouter(
         <Route path="courses/:id" element={<CourseDetail />} />
 
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
+
+        <Route element={<StaffRoute />}>
+        <Route path="admin/rooms" element={<RoomManagement />} />
+        </Route>
       </Route>
     </Route>
   )
