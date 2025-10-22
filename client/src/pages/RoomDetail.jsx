@@ -138,7 +138,7 @@ export default function RoomDetail() {
         <div>
           <h1 className="text-2xl font-semibold">{room.name}</h1>
           <p className="text-sm text-zinc-600">
-            {room.type} capacity {room.capacity} people
+            {room.type} · capacity {room.capacity} people
           </p>
         </div>
         <div className="text-right">
