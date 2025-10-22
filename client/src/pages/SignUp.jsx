@@ -21,18 +21,37 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
+    const { firstName, lastName, email, phoneNo, password } = form;
+
+    if (!firstName || !lastName || !email || !phoneNo || !password) {
+      return setError("All fields are required.");
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return setError("Please enter a valid email address.");
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phoneNo)) {
+      return setError("Phone number must be exactly 10 digits.");
+    }
+
+    setLoading(true);
     try {
-      await api.registerUser(form); // This should call your backend POST /api/user/register
+      await api.registerUser(form);
       alert("Account created! You can now log in.");
       navigate("/login");
     } catch (err) {
-      setError(err.message || "Failed to create account.");
+      // err.message might not contain backend message, try err.response.data.message or err.message fallback
+      const serverMessage =
+        err.message || "Failed to create account.";
+      setError(serverMessage);
     } finally {
       setLoading(false);
     }
-  };
+    };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
