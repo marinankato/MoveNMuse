@@ -31,6 +31,20 @@ export default function PaymentHistory() {
     })();
   }, [user]);
 
+  // Helper
+  function toNumberMaybeDecimal(v) {
+  if (v && typeof v === "object" && "$numberDecimal" in v) {
+    return Number(v.$numberDecimal);
+  }
+  return Number(v);
+}
+
+// Format money values to 2 decimal places
+  function formatMoney(v) {
+  const n = toNumberMaybeDecimal(v);
+  if (!isFinite(n)) return "—";
+  return n.toFixed(2);
+}
   return (
     <div className="py-8">
       <h1 className="text-3xl font-bold text-center mb-6">Payment History</h1>
@@ -53,6 +67,7 @@ export default function PaymentHistory() {
             <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
               <thead className="bg-gray-200">
                 <tr>
+                  {/* one more userID role for staff View */}
                   {user.role == "staff" && (
                     <th className="py-3 px-6 text-left text-sm font-medium text-gray-700">
                       User ID
@@ -85,6 +100,8 @@ export default function PaymentHistory() {
                   paymentHistory.map((payment) => (
 
                     <tr key={payment.paymentId}>
+                  {/* one more userID role for staff View */}
+
                       {user.role == "staff"&& (
                         <td className="py-3 px-6 text-left text-sm font-medium text-gray-700">
                           {payment.userId}
@@ -97,7 +114,7 @@ export default function PaymentHistory() {
                         {payment.orderId}
                       </td>
                       <td className="py-3 px-6 text-left text-sm font-medium text-gray-700">
-                        {payment.amount}
+                        ${formatMoney(payment.amount)}
                       </td>
                       <td className="py-3 px-6 text-left text-sm font-medium text-gray-700">
                         {new Date(payment.paymentDate)
