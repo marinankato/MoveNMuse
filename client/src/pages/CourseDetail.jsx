@@ -23,10 +23,15 @@ function CourseDetail() {
   const { id } = useParams();
   const nav = useNavigate();
   const location = useLocation();
+  const [tip, setTip] = useState("");            // path message for empty keyword submit
+  const [vErr, setVErr] = useState({});          // validation errors for edit modal
+
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [course, setCourse] = useState(null);
+  const [successMsg, setSuccessMsg] = useState("");
+
 
   // sessions state
   const [sessionsAll, setSessionsAll] = useState([]);
@@ -123,11 +128,26 @@ function CourseDetail() {
   async function onSaveCourse() {
     try {
       setSaving(true);
+
+      // validation
+      const errs = {};
+      if (!form.name.trim()) errs.name = "Name is required.";
+      const priceNum = Number(form.price);
+      if (!Number.isFinite(priceNum) || priceNum < 0) errs.price = "Price must be a non-negative number.";
+
+      if (Object.keys(errs).length) {
+        setVErr(errs);
+        return; // stop saving
+      } else {
+        setVErr({});
+      }
+
       const token = getToken?.();
       if (!token || !isStaff) {
         alert("Only staff can edit courses.");
         return;
       }
+
       const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
       const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(course.courseId)}`, {
         method: "PUT",
@@ -168,15 +188,18 @@ function CourseDetail() {
     }
   }
 
+
     async function onAddToCart(session) {
       const token = getToken?.();
       const uid = getUserIdFromToken?.();
       const role = (getRoleFromToken?.() || "").toLowerCase();
       if (!token || !uid) {
+        setTip("Please log in to add sessions to your cart.");
         nav("/login");
         return;
       }
       if (role !== "customer") {
+        setTip(`Booking is available to customers. Your role is “${role}”.`);
         alert("Only customers can add items to the cart.");
         return;
       }
@@ -204,7 +227,8 @@ function CourseDetail() {
         return;
       }
 
-      nav("/cart"); // go to cart page
+      setSuccessMsg("✅ Added to cart successfully!");
+      setTimeout(() => setSuccessMsg(""), 3000); // clear success message after 3s
     }
 
 
@@ -261,6 +285,29 @@ function CourseDetail() {
       <button className="mb-3 rounded-lg border px-3 py-1 text-sm" onClick={() => nav(-1)}>
         ← Back
       </button>
+      {/* page-level tip message */}
+
+      {tip && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm px-3 py-2">
+          {tip}
+        </div>
+      )}
+
+      {/* success message */}
+      {successMsg && (
+        <div className="mb-3 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm px-3 py-2 flex items-center gap-3">
+          <span>{successMsg}</span>
+          <button
+            className="ml-auto rounded border px-3 py-1 text-sm"
+            onClick={() => nav("/cart")}
+          >
+            View cart
+          </button>
+        </div>
+      )}
+
+
+
 
       {/* only visible for staff */}
       {isStaff && (
@@ -297,6 +344,26 @@ function CourseDetail() {
           </div>
         </div>
       </div>
+      {/* customer hints */}
+      {!isStaff && (
+        <div className="mt-4">
+          {!getToken?.() && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-3 py-2">
+              Please <button className="underline" onClick={() => nav("/login")}>log in</button> to book a session.
+            </div>
+          )}
+          {getToken?.() && role !== "customer" && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 text-amber-900 text-sm px-3 py-2 mt-2">
+              Booking is available to customers. Your role is “{role}”.
+            </div>
+          )}
+          {Array.isArray(sessionsUpcoming) && sessionsUpcoming.length === 0 && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 text-gray-600 text-sm px-3 py-2 mt-2">
+              No upcoming sessions yet. Please check back later.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* customer view: only visible to non-staff */}
       {!isStaff && (
@@ -329,6 +396,12 @@ function CourseDetail() {
             Only visible to staff. All sessions (including past/cancelled) for this course.
           </p>
 
+          {Array.isArray(sessionsAll) && sessionsAll.length === 0 && (
+            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm px-3 py-2">
+              No sessions found for this course. Click “＋ New Session” to create one.
+            </div>
+          )}
+
           <div className="mt-3">
             <SessionTable
               sessions={sessionsAll} // staff sees all
@@ -358,6 +431,7 @@ function CourseDetail() {
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />
+                {vErr.name && <div className="mt-1 text-xs text-red-600">{vErr.name}</div>}
               </label>
 
               <label className="col-span-2 text-sm">
@@ -379,6 +453,7 @@ function CourseDetail() {
                   value={form.price}
                   onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                 />
+                {vErr.price && <div className="mt-1 text-xs text-red-600">{vErr.price}</div>}
               </label>
 
               {/* <label className="text-sm">
