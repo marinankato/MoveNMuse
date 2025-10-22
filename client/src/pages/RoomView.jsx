@@ -115,21 +115,27 @@ export default function RoomView() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((r) => {
                     const id = r.id || r._id;
-                    const cover = r.images?.[0] || r.img || "https://via.placeholder.com/640x360?text=Room";
+                    const coverRaw = r.images?.[0] || r.img || "/placeholder-room.jpg";
+                    const cover = encodeURI(coverRaw);
                     const price = r.pricePerHour ?? r.defaultPrice ?? 0;
                 
                     return (
                         <Link key={id} to={`/rooms/${id}`}
                         className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow">
                         <div className="aspect-[16/9] bg-zinc-100 overflow-hidden rounded-lg mb-3">
-                        <img src={r.images?.[0] || ""}/>
+                        <img src={cover}
+                        alt={r.name || "Room image"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.src = "/placeholder-room.jpg";
+                        }}/>
                         </div>
                         <h3 className="text-lg font-medium">{r.name}</h3>
                         <div className="text-sm text-zinc-600">
                         {r.type} capacity {r.capacity}
                         </div>
                         <div className="mt-1 flex justify-between text-sm">
-                        <span> {r.rating ?? 0}</span>
+                        <span>⭐️ Rating: {r.rating ?? 0}</span>
                         <span className="font-semibold">${price}/h</span>
                         </div>
                     </Link>

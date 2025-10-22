@@ -2,10 +2,12 @@ import {
   createBrowserRouter,
   Route,
   createRoutesFromElements,
+  Navigate,
 } from "react-router-dom";
 import Layout from "../Layout";
 import StaffRoute from "./StaffRoute.jsx";
 import RoomManagement from "../pages/RoomManagement.jsx";
+import { useAuth } from "../components/auth/AuthContext.jsx";
 import {
   Home,
   Account,
@@ -30,6 +32,12 @@ import {
   SignUp,
   ChangePassword
 } from "../pages";
+
+function RoomsGate() {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff" || user?.role === "admin";
+  return isStaff ? <Navigate to="/admin/rooms" replace /> : <RoomView />;
+}
 
 const router = createBrowserRouter(
   createRoutesFromElements(
