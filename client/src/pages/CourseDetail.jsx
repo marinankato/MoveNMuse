@@ -52,19 +52,18 @@ export function CourseDetail() {
 
       // The path implemented by cart might be /cart/:userId/items
       // If they later change to /cart/items (backend gets the user from the token), just change the path to `${API_BASE}/cart/items`
-      const res = await fetch(`${API_BASE}/cart/${encodeURIComponent(userId)}/items`, {
+      const res = await fetch(`${API_BASE}/cart/addItem`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`, //if backend uses token to identify user,it will work
         },
         body: JSON.stringify({
+          userId: userId,
           productType: "Course",
           productId: course.courseId,
           occurrenceId: session.sessionId,
-          // Optional fields
-          // title: course.name,
-          // price: course.price,
+
         }),
         credentials: "include",
       });
