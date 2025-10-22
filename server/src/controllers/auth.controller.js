@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const filterUserData = (user) => ({
-  id: user.userId,
+  userId: user.userId,
   firstName: user.firstName,
   lastName: user.lastName,
   email: user.email,
@@ -25,10 +25,9 @@ export const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-    console.log("Found user:", user);
+    // console.log("Found user:", user);
 
     if (!user || user.password !== password) {
-      console.log("Invalid credentials");
       return res.status(401).json({ message: "Invalid email or password." });
     }
 
@@ -37,7 +36,7 @@ export const loginUser = async (req, res) => {
 
     // Create payload for token (include any data you want to encode)
     const payload = {
-      id: user.userId,
+      userId: user.userId,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -46,7 +45,7 @@ export const loginUser = async (req, res) => {
     };
 
     const token = jwt.sign(payload, conf.JWT_SECRET, { expiresIn: "2h" });
-    console.log("Token generated:", token);
+    // console.log("Token generated:", token);
 
     return res.status(200).json({
       message: "Login successful",

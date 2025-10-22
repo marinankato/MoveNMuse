@@ -4,6 +4,8 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import Layout from "../Layout";
+import StaffRoute from "./StaffRoute.jsx";
+import RoomManagement from "../pages/RoomManagement.jsx";
 import {
   Home,
   Account,
@@ -18,6 +20,13 @@ import {
   CourseList,
   CourseDetail,
   BookingDetails,
+  SessionList, 
+  SessionForm,
+  StaffSessionsPage,
+  StaffCoursesPage,
+  CourseForm,
+  StaffInstructorsPage,
+  InstructorForm,
 } from "../pages";
 
 const router = createBrowserRouter(
@@ -37,8 +46,26 @@ const router = createBrowserRouter(
         <Route path="rooms/:id" element={<RoomDetail />} />
         <Route path="courses" element={<CourseList />} />
         <Route path="courses/:id" element={<CourseDetail />} />
+        <Route path="/sessions" element={<SessionList />} />
+        <Route path="/sessions/new" element={<SessionForm />} />
+        <Route path="/sessions/:id/edit" element={<SessionForm />} />
+        <Route path="/admin/sessions" element={<StaffSessionsPage />} />
+        <Route path="/admin/sessions/new" element={<SessionForm />} />
+        <Route path="/admin/sessions/:id/edit" element={<SessionForm />} /> 
+        <Route path="/admin/courses" element={<StaffCoursesPage />} />
+        <Route path="/admin/courses/new" element={<CourseForm />} />
+        <Route path="/admin/courses/:id/edit" element={<CourseForm />} />
+        <Route path="/admin/instructors" element={<StaffInstructorsPage />} />
+        <Route path="/admin/instructors/new" element={<InstructorForm />} />
+        <Route path="/admin/instructors/:id/edit" element={<InstructorForm />} />
+
+
 
         <Route path="/account/bookings/:bookingId" element={<BookingDetails />} />
+
+        <Route element={<StaffRoute />}>
+        <Route path="admin/rooms" element={<RoomManagement />} />
+        </Route>
       </Route>
     </Route>
   )

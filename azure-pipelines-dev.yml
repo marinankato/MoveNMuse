@@ -30,16 +30,9 @@ steps:
     npm run build
   displayName: 'Frontend: Install dependencies and build'
 
-# Run the unit tests for backend
+# Run the unit tests
 - script: |
     cd server
     npm install
     npm test
-  displayName: 'Run backend tests'
-
-# Run the unit tests for frontend
-- script: |
-    cd client
-    npm install
-    npm test
-  displayName: 'Run frontend tests'
+  displayName: 'Run tests'

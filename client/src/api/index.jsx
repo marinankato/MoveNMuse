@@ -37,14 +37,6 @@ export const api = {
     body: JSON.stringify({ email, password }),
   }),
 
-  getUserProfile: () =>
-  request("/user/profile", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  }),
-
   listCourses: (params = {}) => {
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -80,6 +72,12 @@ export const api = {
     request(`/cart/${cartId}/${itemId}`, {
       method: "DELETE",
     }),
+  removeMultipleCartItems: ({ cartId, itemIds }) =>
+    request(`/cart/removeItems`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cartId, itemIds }),
+    }),
 
   updateCartItem: ({ cartId, itemId, occurrenceId }) =>
     request(
@@ -102,6 +100,17 @@ export const api = {
     request(`/payment/processPayment`, {
       method: "POST",
       body: JSON.stringify({ orderId, amount, userId, paymentDetailId }),
+    }),
+
+    getAccount: () =>
+    request(`/account`, {
+      method: "GET",
+    }),
+
+  updateAccount: (payload) =>
+    request(`/account`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
     }),
 };
 

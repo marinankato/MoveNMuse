@@ -2,7 +2,6 @@ import { loginUser } from '../src/controllers/auth.controller.js';
 import User from '../src/models/user.model.js';
 import jwt from 'jsonwebtoken';
 
-// Mock User model and jwt.sign
 jest.mock('../src/models/user.model.js');
 jest.mock('jsonwebtoken');
 
@@ -20,24 +19,31 @@ describe('loginUser controller', () => {
 
   test('returns 400 if email or password missing', async () => {
     req.body = {}; // no email or password
-
     await loginUser(req, res);
-
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ message: "Email and password are required." });
   });
 
   test('returns 401 if user not found or password mismatch', async () => {
     req.body = { email: 'test@example.com', password: 'pass' };
-    User.findOne.mockResolvedValue(null); // user not found
 
+    // User not found
+    User.findOne.mockResolvedValue(null);
     await loginUser(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ message: "Invalid email or password." });
 
-    // now test user found but wrong password
-    User.findOne.mockResolvedValue({ password: 'different', save: jest.fn() });
-
+    // User found but wrong password
+    User.findOne.mockResolvedValue({ 
+      password: 'different', 
+      save: jest.fn(),
+      userId: 1,
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      phoneNo: '0412345678',
+      role: 'customer',
+    });
     await loginUser(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ message: "Invalid email or password." });
@@ -48,13 +54,13 @@ describe('loginUser controller', () => {
 
     const mockSave = jest.fn();
     const user = {
-      userId: '123',
+      userId: '1',
       firstName: 'John',
-      lastName: 'Doe',
+      lastName: 'Test',
       email: 'test@example.com',
-      role: 'user',
-      phoneNo: '1234567890',
-      loginDate: null,
+      role: 'customer',
+      phoneNo: '0412345678',
+      loginDate: new Date('2025-10-16T00:00:00Z'),
       logoutDate: null,
       password: 'pass',
       save: mockSave,
@@ -66,27 +72,34 @@ describe('loginUser controller', () => {
     await loginUser(req, res);
 
     expect(mockSave).toHaveBeenCalled();
+
     expect(jwt.sign).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: user.userId,
+        userId: user.userId,   
         email: user.email,
         firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNo: user.phoneNo,
         role: user.role,
       }),
       expect.any(String),
-      { expiresIn: "1d" }
+      { expiresIn: "2h" } 
     );
 
     expect(res.status).toHaveBeenCalledWith(200);
+
     expect(res.json).toHaveBeenCalledWith({
       message: "Login successful",
       token: 'mocked-token',
       user: expect.objectContaining({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        role: 'user',
-        phoneNo: '1234567890',
+        userId: user.userId,  // updated here
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        phoneNo: user.phoneNo,
+        loginDate: user.loginDate,
+        logoutDate: user.logoutDate,
       }),
     });
   });
@@ -94,9 +107,7 @@ describe('loginUser controller', () => {
   test('returns 500 if there is an exception', async () => {
     req.body = { email: 'test@example.com', password: 'pass' };
     User.findOne.mockRejectedValue(new Error('DB error'));
-
     await loginUser(req, res);
-
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ message: "Server error." });
   });
