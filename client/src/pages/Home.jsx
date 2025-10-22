@@ -69,6 +69,16 @@ const Home = () => {
           </button>
         </div>
       )}
+      {user && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/paymentHistory")}
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
+          >
+            View Payment History
+          </button>
+        </div>
+      )}
     </div>
   );
 };

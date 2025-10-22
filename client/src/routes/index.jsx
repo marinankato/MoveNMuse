@@ -15,6 +15,7 @@ import {
   CartPage,
   Checkout,
   Payment,
+  PaymentHistory,
   AddPaymentDetail,
   PaymentSuccess,
   RoomView,
@@ -51,6 +52,7 @@ const router = createBrowserRouter(
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
+        <Route path="paymentHistory" element={<PaymentHistory />} />
         <Route path="addPaymentDetail" element={<AddPaymentDetail />} />
         <Route path="paymentSuccess" element={<PaymentSuccess />} />
 

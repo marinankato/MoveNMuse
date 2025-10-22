@@ -12,7 +12,7 @@ const paymentSchema = new Schema(
       required: true,
     },
     amount: {
-      type: Number,
+      type: mongoose.Schema.Types.Decimal128,
       required: true,
     },
     status: {
@@ -29,6 +29,11 @@ const paymentSchema = new Schema(
     paymentDetailId: {
       type: Number,
       required: true,
+    },
+    paymentDetail: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PaymentDetail",
+      required: false,
     },
     paymentDate: {
       type: Date,
