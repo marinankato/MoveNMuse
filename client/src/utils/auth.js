@@ -32,9 +32,16 @@ export function getTokenPayload() {
 
 
 export function getUserIdFromToken() {
-  const payload = getTokenPayload();
-  return payload?.id ?? payload?.sub ?? null;
+  const p = getTokenPayload();
+  return p?.id ?? p?.sub ?? p?.userId ?? p?._id ?? p?.uid ?? null;
 }
+
+export function hasAuth() { 
+  const t = getToken();
+  return Boolean(t) && !isTokenExpired();
+}
+
+
 
 //gets the user role from the token payload
 export function getRoleFromToken() {
@@ -69,4 +76,5 @@ export function isCustomer() {
 export function isStaff() {
   return getRoleFromToken() === "staff";
 }
+
 

@@ -12,11 +12,12 @@ import SessionList from "../components/Course/SessionList.jsx";
 import SessionTable from "../components/Course/SessionTable.jsx";
 
 // auth utils
-import { getToken, getUserIdFromToken, getRoleFromToken } from "../utils/auth";
+import {getUserIdFromToken, getToken, getRoleFromToken } from "../utils/auth";
 
 // money formatter
 const money = (n) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(n || 0));
+
 
 function CourseDetail() {
   const { id } = useParams();
@@ -167,30 +168,20 @@ function CourseDetail() {
     }
   }
 
-  async function onAddToCart(session) {
-    try {
+    async function onAddToCart(session) {
       const token = getToken?.();
-      const userId = getUserIdFromToken?.();
-      const r = (getRoleFromToken?.() || "").toLowerCase();
-
-      if (!token || !userId) {
-        alert("Please log in to add items to your cart.");
-        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
+      const uid = getUserIdFromToken?.();
+      const role = (getRoleFromToken?.() || "").toLowerCase();
+      if (!token || !uid) {
+        nav("/login");
         return;
       }
-      if (r !== "customer") {
+      if (role !== "customer") {
         alert("Only customers can add items to the cart.");
-        return;
-      }
-      if (!canBook(session)) {
-        alert("This session cannot be booked (started / full / not scheduled).");
         return;
       }
 
       const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
-
-      // The path implemented by cart might be /cart/:userId/items
-      // If they later change to /cart/items (backend gets the user from the token), just change the path to `${API_BASE}/cart/items`
       const res = await fetch(`${API_BASE}/cart/addItem`, {
         method: "POST",
         headers: {
@@ -198,39 +189,24 @@ function CourseDetail() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: userId,
+          userId: uid,
           productType: "Course",
           productId: course.courseId,
           occurrenceId: session.sessionId,
-
+          qty: 1,
         }),
         credentials: "include",
       });
 
-      if (res.status === 401) {
-        alert("Your session has expired. Please log in again.");
-        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
-        return;
-      }
-      if (res.status === 403) {
-        alert("You do not have permission to add items to the cart.");
-        return;
-      }
-      if (res.status === 404) {
-        alert("Shopping cart API is not ready yet. Please contact the Cart team or try later.");
-        return;
-      }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        throw new Error(text || `Add to cart failed: ${res.status}`);
+        alert(text || `Add to cart failed: ${res.status}`);
+        return;
       }
 
-      alert("Added to cart successfully");
-      nav("/cart");
-    } catch (e) {
-      alert(e.message || "Failed to add to cart");
+      nav("/cart"); // go to cart page
     }
-  }
+
 
   async function handleDeleteSession(sessionId) {
     try {
