@@ -69,6 +69,7 @@ const Home = () => {
           </button>
         </div>
       )}
+      <br></br>
       {user && (
         <div className="flex justify-center">
           <button
