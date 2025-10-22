@@ -10,4 +10,6 @@ router.get("/profile", authMiddleware, UserViewProfileController);
 router.put("/update", authMiddleware, UserUpdateProfileController);
 router.post('/register', registerUser); 
 
+router.get("/test", (req, res) => res.send("User router is working"));
+
 export default router;
