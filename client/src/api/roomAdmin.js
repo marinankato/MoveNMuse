@@ -1,22 +1,27 @@
 import { request } from "./index.jsx";
 
-const api = {
-    listRooms: () => request("/rooms"),
+export const listRooms = () =>
+    request("/rooms");
 
-    createRoom: (payload) =>
-        request("/rooms", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        }),
+export const createRoom = (payload) =>
+    request("/rooms", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
 
-        deleteRoom: (id) =>
-            request(`/rooms/${encodeURIComponent(id)}`, {
-                method: "DELETE",
-            }),
-};
+export const updateRoom = (id, payload) => 
+    request(`/rooms/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
 
-export default api;
-export const { listRooms, createRoom, deleteRoom } = api;
+export const deleteRoom = (id) =>
+    request(`/rooms/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+    });
+
+
+// export default { listRooms, createRoom, updateRoom, deleteRoom };
 
 // export const listRooms = () => request("/rooms");
 
