@@ -1,4 +1,3 @@
-// src/pages/CartPage.jsx
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { CheckoutBtn } from "../utils/index.jsx";
@@ -14,7 +13,7 @@ export default function CartPage() {
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const userId = user?.id;
+  const userId = user?.id || user.userId || 1;
 
   // Load Cart
   useEffect(() => {
