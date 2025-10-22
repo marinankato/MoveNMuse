@@ -33,11 +33,11 @@ const Account = () => {
   if (!user) {
     return (
       <div className="py-8">
-        <h1 className="text-3xl font-bold text-center mb-6">My Cart</h1>
+        <h1 className="text-3xl font-bold text-center mb-6">My Account</h1>
         <div className="max-w-4xl mx-auto px-4">
           <div className="bg-white shadow-md rounded-lg p-6">
             <p className="text-center text-gray-600">
-              Please log in to view your cart.
+              Please log in to view your account.
             </p>
           </div>
         </div>
