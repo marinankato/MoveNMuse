@@ -42,3 +42,12 @@ The project files are split into the frontend (client) and backend (server).
     run cd client
     npm install
     npm run dev
+- Sample user info to test:
+    email: alice@example.com
+    password: pass123
+    
+    email: customer@example.com
+    password: pass123
+   
+   email: staff@example.com
+    password: pass123
