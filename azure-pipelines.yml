@@ -16,13 +16,6 @@ steps:
     versionSpec: $(nodeVersion)
   displayName: 'Use Node $(nodeVersion)'
 
-# Cache npm packages to speed up builds
-- task: Cache@2
-  inputs:
-    key: 'npm | "$(Agent.OS)" | package-lock.json'
-    path: ~/.npm
-  displayName: 'Cache npm dependencies'
-
 # Backend install + build
 - script: |
     cd server
@@ -45,15 +38,15 @@ steps:
     TargetFolder: 'server/public'
   displayName: 'Copy frontend into server/public'
 
-# Archive only required backend files (exclude node_modules/tests)
-# This step is what fixes the long deployment time
+# Archive only required backend files (exclude node_modules/tests/logs)
 - script: |
     cd server
     echo "Cleaning up unnecessary files..."
     rm -rf node_modules tests coverage *.log
+
     echo "Creating minimal deployment zip..."
-    zip -r ../$(Build.ArtifactStagingDirectory)/app.zip . \
-      -x "node_modules/*" "tests/*" "*.log"
+    mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
+    zip -r $BUILD_ARTIFACTSTAGINGDIRECTORY/app.zip . -x "node_modules/*" "tests/*" "*.log"
   displayName: 'Archive app (exclude node_modules, tests, logs)'
 
 # Publish artifact for deploy
