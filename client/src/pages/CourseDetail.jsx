@@ -18,6 +18,14 @@ import {getUserIdFromToken, getToken, getRoleFromToken } from "../utils/auth";
 const money = (n) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(n || 0));
 
+const normPrice = (p) => {
+  if (p && typeof p === "object" && p.$numberDecimal != null) return Number(p.$numberDecimal);
+  return Number(p ?? 0);
+};
+const getCoursePrice = (c) => normPrice(c?.defaultPrice ?? c?.price);
+
+const CATEGORY_OPTIONS = ["Dance", "Yoga", "Workshop"];
+const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
 
 function CourseDetail() {
   const { id } = useParams();
@@ -115,15 +123,16 @@ function CourseDetail() {
   // open course edit modal (staff)
   function openEditModal() {
     if (!course) return;
-  setForm({
-    name: course.name || course.title || "",
-    description: course.description || "",
-    price: course.price ?? "",
-    category: course.category || "",
-    level: course.level || "",
-  });
+    setForm({
+      name: course.name || course.title || "",
+      description: course.description || "",
+      price: String(getCoursePrice(course)),  
+      category: course.category || "",
+      level: course.level || "",
+    });
     setOpenEdit(true);
   }
+
 
   async function onSaveCourse() {
     try {
@@ -133,7 +142,7 @@ function CourseDetail() {
       const errs = {};
       if (!form.name.trim()) errs.name = "Name is required.";
       const priceNum = Number(form.price);
-      if (!Number.isFinite(priceNum) || priceNum < 0) errs.price = "Price must be a non-negative number.";
+      if (!Number.isFinite(priceNum) || priceNum < 0) errs.price = "Default price must be a non-negative number.";
 
       if (Object.keys(errs).length) {
         setVErr(errs);
@@ -158,7 +167,7 @@ function CourseDetail() {
         body: JSON.stringify({
           name: form.name,
           description: form.description,
-          price: Number(form.price),
+          defaultPrice: Number(form.price),   
           category: form.category,
           level: form.level,
         }),
@@ -340,7 +349,7 @@ function CourseDetail() {
           <div className="mt-3 text-xs text-gray-500 flex flex-wrap items-center gap-2">
             {course.category && <span className="rounded-full border px-2 py-0.5">{course.category}</span>}
             {course.level && <span>{course.level}</span>}
-            {"price" in course && <span>Price {money(course.price)}</span>}
+            <span>Price {money(getCoursePrice(course))}</span>
           </div>
         </div>
       </div>
@@ -456,33 +465,34 @@ function CourseDetail() {
                 {vErr.price && <div className="mt-1 text-xs text-red-600">{vErr.price}</div>}
               </label>
 
-              {/* <label className="text-sm">
-                <span className="block mb-1">Capacity per session</span>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full rounded border px-2 py-1"
-                  value={form.capacity}
-                  onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
-                />
-              </label> */}
-
               <label className="text-sm">
                 <span className="block mb-1">Category</span>
-                <input
+                <select
                   className="w-full rounded border px-2 py-1"
                   value={form.category}
                   onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                />
+                  required
+                >
+                  <option value="">-- Select Category --</option>
+                  {CATEGORY_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </label>
 
               <label className="text-sm">
                 <span className="block mb-1">Level</span>
-                <input
+                <select
                   className="w-full rounded border px-2 py-1"
                   value={form.level}
                   onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
-                />
+                  required
+                >
+                  <option value="">-- Select Level --</option>
+                  {LEVEL_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </label>
             </div>
 

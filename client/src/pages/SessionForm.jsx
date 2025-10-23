@@ -135,14 +135,31 @@ export default function SessionForm() {
     navigate("/admin/sessions");
   };
 
+  // pre-compute negative checks
+  const capNeg = String(form.capacity).trim() !== "" && Number(form.capacity) < 0;
+  const priceNeg = String(form.price).trim() !== "" && Number(form.price) < 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
+
+    // time validation
     const timeErr = validateTimes();
     if (timeErr) {
       setErr(timeErr);
       return;
     }
+
+    // number validation (prevent negative values)
+    if (capNeg) {
+      setErr("Capacity cannot be negative.");
+      return;
+    }
+    if (priceNeg) {
+      setErr("Price cannot be negative.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -211,7 +228,7 @@ export default function SessionForm() {
           )}
         </div>
 
-        {/* ===== New: Instructor select with graceful fallback ===== */}
+        {/* Instructor select with graceful fallback */}
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -220,7 +237,11 @@ export default function SessionForm() {
             <button
               type="button"
               onClick={() =>
-                navigate(`/admin/instructors?return=${encodeURIComponent(location.pathname + location.search)}`)
+                navigate(
+                  `/admin/instructors?return=${encodeURIComponent(
+                    location.pathname + location.search
+                  )}`
+                )
               }
               className="text-xs underline text-blue-600 hover:text-blue-800"
               title="Manage instructors"
@@ -239,7 +260,10 @@ export default function SessionForm() {
             >
               <option value="">Select an instructor</option>
               {instructors.map((ins) => (
-                <option key={ins._id || ins.instructorId} value={ins.instructorId || ins._id}>
+                <option
+                  key={ins._id || ins.instructorId}
+                  value={ins.instructorId || ins._id}
+                >
                   {ins.name} {ins.email ? `(${ins.email})` : ""}
                 </option>
               ))}
@@ -304,10 +328,15 @@ export default function SessionForm() {
               value={form.capacity}
               onChange={handleChange}
               required
-              min="1"
+              min="1" 
               className="w-full border rounded-md px-3 py-2"
-              placeholder="Total capacity"
+              placeholder="Total capacity (≥ 1)"
             />
+            {capNeg && (
+              <p className="text-xs text-red-600 mt-1">
+                Capacity cannot be less than 1.
+              </p>
+            )}
           </div>
 
           <div>
@@ -316,13 +345,20 @@ export default function SessionForm() {
             </label>
             <input
               type="number"
-              step="0.01"
+              step="1"
               name="price"
               value={form.price}
               onChange={handleChange}
+              min="0" 
+              inputMode="decimal"
               className="w-full border rounded-md px-3 py-2"
-              placeholder="e.g. 39.99"
+              placeholder="e.g. 39.99 (≥ 0)"
             />
+            {priceNeg && (
+              <p className="text-xs text-red-600 mt-1">
+                Price cannot be less than 0.
+              </p>
+            )}
           </div>
         </div>
 
@@ -377,6 +413,7 @@ export default function SessionForm() {
     </div>
   );
 }
+
 
 
 

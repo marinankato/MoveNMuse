@@ -187,8 +187,7 @@ export const createCourse = async (req, res) => {
       name, courseName,
       category,
       level,
-      price, defaultPrice,
-      capacity,
+      defaultPrice,
       description,
       courseId 
     } = req.body;
@@ -205,15 +204,10 @@ export const createCourse = async (req, res) => {
       return res.status(400).json({ error: "Invalid level value" });
     }
 
-    const priceNum = toPrice(defaultPrice ?? price ?? 0);
+    const priceNum = toPrice(defaultPrice ?? 0);
     if (Number.isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ error: "Price must be a number >= 0" });
     }
-    const capNum = Number(capacity);
-    if (!Number.isInteger(capNum) || capNum < 1) {
-      return res.status(400).json({ error: "Capacity must be an integer >= 1" });
-    }
-
     // create with retry on duplicate key (e.g. courseId)
     let assignedId = courseId ?? null;
     const MAX_RETRY = 3;
@@ -236,7 +230,6 @@ export const createCourse = async (req, res) => {
           level,
           description,
           defaultPrice: priceNum,  // use setter
-          capacity: capNum
         });
 
         return res.status(201).json({
@@ -316,10 +309,10 @@ export async function updateCourse(req, res) {
     if (!course) return res.status(404).json({ error: "Course not found" });
 
 
-    if (updates.name) course.name = updates.name;
+    if (updates.name) course.courseName = updates.name;
+    if (updates.courseName) course.courseName = updates.courseName;
     if (updates.description) course.description = updates.description;
-    if (updates.price != null) course.price = updates.price;
-    if (updates.capacity != null) course.capacity = updates.capacity;
+    if (updates.defaultPrice != null) course.defaultPrice = toPrice(updates.defaultPrice);
     if (updates.category) course.category = updates.category;
     if (updates.level) course.level = updates.level;
 

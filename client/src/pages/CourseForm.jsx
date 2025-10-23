@@ -4,6 +4,9 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCourse, createCourse, updateCourse } from "../services/courseService";
 import { getRoleFromToken, getToken } from "../utils/auth";
 
+const CATEGORY_OPTIONS = ["Dance", "Yoga", "Workshop"];
+const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
+
 export default function CourseForm() {
   const { id } = useParams(); // courseId
   const isEdit = !!id;
@@ -18,8 +21,7 @@ export default function CourseForm() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    // capacity: "",
+    defaultPrice: "0",
     category: "",
     level: "",
   });
@@ -35,7 +37,7 @@ export default function CourseForm() {
         setForm({
           name: c.name || c.title || "",
           description: c.description || "",
-          price: ("price" in c) ? c.price : "",
+          defaultPrice: (c.defaultPrice ?? 0).toString(),
           category: c.category || "",
           level: c.level || "",
         });
@@ -53,13 +55,32 @@ export default function CourseForm() {
 
   const goBack = () => {
     if (returnTo) nav(returnTo);
-    else if (isEdit) nav(`/courses/${encodeURIComponent(id)}`);
-    else nav("/admin/courses");
+    else nav("/admin/courses"); 
   };
+
+
+  const priceNeg = String(form.defaultPrice).trim() !== "" && Number(form.defaultPrice) < 0;
+  const categoryEmpty = String(form.category).trim() === "";
+  const levelEmpty = String(form.level).trim() === "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
+
+
+    if (categoryEmpty) {
+      setErr("Please select a category.");
+      return;
+    }
+    if (levelEmpty) {
+      setErr("Please select a level.");
+      return;
+    }
+    if (priceNeg) {
+      setErr("Price cannot be negative.");
+      return;
+    }
+
     setLoading(true);
     try {
       const token = getToken?.();
@@ -68,10 +89,13 @@ export default function CourseForm() {
         nav("/login", { replace: false, state: { redirectTo: location.pathname } });
         return;
       }
+
+      const priceStr = String(form.defaultPrice).trim();
       const payload = {
         name: form.name?.trim(),
         description: form.description?.trim(),
-        price: form.price !== "" ? Number(form.price) : undefined,
+  
+        defaultPrice: priceStr === "" ? 0 : Number(priceStr),
         category: form.category?.trim(),
         level: form.level?.trim(),
       };
@@ -80,27 +104,14 @@ export default function CourseForm() {
         await updateCourse(id, payload, token);
         alert("Course updated.");
       } else {
-        const created = await createCourse(payload, token);
+        await createCourse(payload, token);
         alert("Course created.");
-        // create success redirect
-        const cid = created?.courseId ?? null;
-        if (returnTo) {
-          nav(returnTo);
-          return;
-        }
-        if (cid) {
-          nav(`/courses/${encodeURIComponent(cid)}`);
-          return;
-        }
-        nav("/admin/courses");
-        return;
       }
 
-      // after update redirect
-      if (returnTo) nav(returnTo);
-      else nav(`/courses/${encodeURIComponent(id)}`);
-    } catch (e) {
-      setErr(e.message || "Failed to save course");
+      nav("/admin/courses");
+      return;
+    } catch (e2) {
+      setErr(e2.message || "Failed to save course");
     } finally {
       setLoading(false);
     }
@@ -139,57 +150,68 @@ export default function CourseForm() {
           />
         </div>
 
+        {/* Category & Level */}
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
             <span className="block text-sm font-medium mb-1">Category</span>
-            <input
+            <select
               className="w-full border rounded px-3 py-2"
               name="category"
               value={form.category}
               onChange={handleChange}
-              placeholder="e.g. Dance / Yoga / Workshop"
-            />
+              required
+            >
+              <option value="">-- Select Category --</option>
+              {CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {categoryEmpty && (
+              <p className="text-xs text-red-600 mt-1">Please select a category.</p>
+            )}
           </label>
 
           <label className="block">
             <span className="block text-sm font-medium mb-1">Level</span>
-            <input
+            <select
               className="w-full border rounded px-3 py-2"
               name="level"
               value={form.level}
               onChange={handleChange}
-              placeholder="e.g. Beginner / Intermediate / Advanced"
-            />
+              required
+            >
+              <option value="">-- Select Level --</option>
+              {LEVEL_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {levelEmpty && (
+              <p className="text-xs text-red-600 mt-1">Please select a level.</p>
+            )}
           </label>
         </div>
 
-                <div className="grid grid-cols-2 gap-4">
+        {/* Price */}
+        <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="block text-sm font-medium mb-1">Price (AUD)</span>
+            <span className="block text-sm font-medium mb-1">Default Price (AUD)</span>
             <input
               type="number"
               min="0"
-              step="0.01"
+              step="1"              
               className="w-full border rounded px-3 py-2"
-              name="price"
-              value={form.price}
+              name="defaultPrice"
+              value={form.defaultPrice}
               onChange={handleChange}
-              placeholder="e.g. 49.00"
+              placeholder="e.g. 49.00 (≥ 0)"
+              required
             />
+            {priceNeg && (
+              <p className="text-xs text-red-600 mt-1">
+                Price cannot be less than 0.
+              </p>
+            )}
           </label>
-
-          {/* <label className="block">
-            <span className="block text-sm font-medium mb-1">Capacity (per session)</span>
-            <input
-              type="number"
-              min="0"
-              className="w-full border rounded px-3 py-2"
-              name="capacity"
-              value={form.capacity}
-              onChange={handleChange}
-              placeholder="e.g. 20"
-            />
-          </label> */}
         </div>
 
         <div className="flex justify-between mt-6">
@@ -212,3 +234,5 @@ export default function CourseForm() {
     </div>
   );
 }
+
+
