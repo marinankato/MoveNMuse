@@ -12,7 +12,6 @@ import {
 
 const router = Router();
 
-
  // server/src/routes/courseSession.routes.js
  router.get("/", listCourseSessions);
  router.get("/course/:courseId", listByCourseId);   

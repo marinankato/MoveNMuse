@@ -24,6 +24,7 @@ async function clearDB() {
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create();
   await mongoose.connect(mongod.getUri(), { dbName: "testdb" });
+  await Instructor.create({ instructorId: 123, name: "Test", email: "test@t.com", status: "active"});
 
   app = express();
   app.use(express.json());
