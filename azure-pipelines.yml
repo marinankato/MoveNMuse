@@ -61,4 +61,5 @@ steps:
     packageForLinux: '$(Build.ArtifactStagingDirectory)/app.zip'
     RuntimeStack: 'NODE|22'
     StartupCommand: 'npm start'
-  displayName: 'Deploy to App Service'
+    deploymentMethod: 'runFromPackage'
+  displayName: 'Deploy to App Service (Run From Package)'
