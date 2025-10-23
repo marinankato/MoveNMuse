@@ -283,22 +283,61 @@ export const deleteCourse = async (req, res) => {
 export const listOpenCourses = async (req, res) => {
   try {
     const now = new Date();
-    const openCourses = await CourseSession.aggregate([
-      { $match: { status: "Scheduled", startTime: { $gte: now } } },
-      { $group: { _id: "$courseId" } }
+
+    const rows = await CourseSession.aggregate([
+      { $match: { status: "Scheduled", endTime: { $gt: now } } },
+
+      {
+        $lookup: {
+          from: "instructors",
+          localField: "instructorId",
+          foreignField: "instructorId",
+          as: "inst",
+        },
+      },
+      { $unwind: { path: "$inst", preserveNullAndEmptyArrays: false } },
+      { $match: { "inst.status": "active" } },
+
+      {
+        $lookup: {
+          from: "courses",
+          localField: "courseId",
+          foreignField: "courseId",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+
+      {
+        $group: {
+          _id: "$courseId",
+          course: { $first: "$course" },
+          nextSession: { $min: "$startTime" },
+        },
+      },
+      { $sort: { nextSession: 1 } },
+
+      {
+        $project: {
+          _id: 0,
+          courseId: "$_id",
+          name: "$course.courseName",
+          category: "$course.category",
+          level: "$course.level",
+          description: "$course.description",
+          price: "$course.defaultPrice",
+          nextSession: 1,
+        },
+      },
     ]);
-    const ids = openCourses.map(r => r._id);
 
-    const courses = await Course.find({ courseId: { $in: ids } })
-      .select("courseId courseName category level description defaultPrice")
-      .lean();
-
-    res.json({ items: courses });
-  } catch (e) {
-    console.error("listOpenCourses error:", e);
-    res.status(500).json({ error: e.message || "Server error" });
+    res.json({ items: rows });
+  } catch (err) {
+    console.error("listOpenCourses error:", err);
+    res.status(500).json({ error: err.message || "Server error" });
   }
 };
+
 
 export async function updateCourse(req, res) {
   try {
