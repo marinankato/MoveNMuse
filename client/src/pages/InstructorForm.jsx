@@ -20,8 +20,7 @@ export default function InstructorForm() {
     name: "",
     email: "",
     phone: "",
-    bio: "",
-    status: "Active", // Active / Inactive
+    status: "active", // active / inactive
   });
 
   const [loading, setLoading] = useState(false);
@@ -36,8 +35,7 @@ export default function InstructorForm() {
           name: d.name || "",
           email: d.email || "",
           phone: d.phone || "",
-          bio: d.bio || "",
-          status: d.status || "Active",
+          status: (d.status || "active").toLowerCase(),
         });
       })
       .catch((e) => setErr(e.message || "Failed to load instructor"))
@@ -65,8 +63,7 @@ export default function InstructorForm() {
           name: form.name?.trim(),
           email: form.email?.trim(),
           phone: form.phone?.trim(),
-          bio: form.bio?.trim(),
-          status: form.status,
+          status: form.status?.toLowerCase(),
         });
         alert("Instructor updated.");
       } else {
@@ -74,8 +71,7 @@ export default function InstructorForm() {
           name: form.name?.trim(),
           email: form.email?.trim(),
           phone: form.phone?.trim(),
-          bio: form.bio?.trim(),
-          status: form.status,
+          status: form.status?.toLowerCase(),
         });
         alert("Instructor created.");
       }
@@ -132,18 +128,6 @@ export default function InstructorForm() {
         </label>
 
         <label className="block">
-          <span className="block text-sm font-medium mb-1">Bio</span>
-          <textarea
-            rows={4}
-            className="w-full border rounded px-3 py-2"
-            name="bio"
-            value={form.bio}
-            onChange={handleChange}
-            placeholder="Background, specialties, certifications…"
-          />
-        </label>
-
-        <label className="block">
           <span className="block text-sm font-medium mb-1">Status</span>
           <select
             className="w-full border rounded px-3 py-2"
@@ -151,8 +135,8 @@ export default function InstructorForm() {
             value={form.status}
             onChange={handleChange}
           >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </label>
 

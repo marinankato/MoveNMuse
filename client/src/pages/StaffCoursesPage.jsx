@@ -85,7 +85,7 @@ export default function StaffCoursesPage() {
                 <th className="px-4 py-2 text-left text-sm font-semibold">Category</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Level</th>
                 <th className="px-4 py-2 text-left text-sm font-semibold">Price</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Capacity</th>
+                {/* <th className="px-4 py-2 text-left text-sm font-semibold">Capacity</th> */}
                 <th className="px-4 py-2 text-center text-sm font-semibold">Actions</th>
               </tr>
             </thead>
@@ -105,7 +105,7 @@ export default function StaffCoursesPage() {
                   <td className="px-4 py-2 text-sm">{c.category || "-"}</td>
                   <td className="px-4 py-2 text-sm">{c.level || "-"}</td>
                   <td className="px-4 py-2 text-sm">{("price" in c) ? money(c.price) : "-"}</td>
-                  <td className="px-4 py-2 text-sm">{Number.isFinite(c.capacity) ? c.capacity : "-"}</td>
+                  {/* <td className="px-4 py-2 text-sm">{Number.isFinite(c.capacity) ? c.capacity : "-"}</td> */}
                   <td className="px-4 py-2 text-center space-x-2">
                     <button
                       onClick={() => nav(`/admin/courses/${c.courseId}/edit`)}

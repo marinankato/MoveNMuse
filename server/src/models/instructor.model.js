@@ -1,19 +1,12 @@
 import mongoose, { Schema } from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+
+const AutoIncrement = AutoIncrementFactory(mongoose.connection);
 
 const instructorSchema = new Schema(
   {
-    instructorId: {
-      type: Number,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-      minlength: [2, "Name must be at least 2 characters"],
-    },
+    instructorId: { type: Number, unique: true },  
+    name: { type: String, required: true, trim: true },
     email: {
       type: String,
       required: true,
@@ -21,32 +14,24 @@ const instructorSchema = new Schema(
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
-      index: true,
     },
     phone: {
       type: String,
-      default: "",
       trim: true,
       match: [/^[\d\s+()-]*$/, "Invalid phone number format"],
     },
-    status: {
-      type: String,
-      enum: ["active", "inactive"],
-      default: "active",
-      index: true,
-    },
+    status: { type: String, enum: ["active", "inactive"], default: "active" },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-    collection: "instructors",
-  }
+  { timestamps: true, versionKey: false, collection: "instructors" }
 );
 
-instructorSchema.index({ name: 1 });
-instructorSchema.index({ active: 1, name: 1 });
+instructorSchema.plugin(AutoIncrement, {
+  inc_field: "instructorId", 
+  start_seq: 1,              
+});
 
 export const Instructor = mongoose.model("Instructor", instructorSchema);
 export default Instructor;
+;
 
 
