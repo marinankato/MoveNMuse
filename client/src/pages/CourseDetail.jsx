@@ -198,7 +198,7 @@ function CourseDetail() {
   }
 
 
-    async function onAddToCart(session) {
+  async function onAddToCart(session) {
       const token = getToken?.();
       const uid = getUserIdFromToken?.();
       const role = (getRoleFromToken?.() || "").toLowerCase();
