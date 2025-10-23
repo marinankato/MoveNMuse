@@ -9,10 +9,27 @@ const BookingDetails = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchBooking = async () => {
+    const fetchBookingWithSessions = async () => {
       try {
-        const res = await api.getBookingDetails(bookingId);
-        setBooking(res);
+        const bookingData = await api.getBookingDetails(bookingId);
+
+        // Fetch session details for each booked item
+        const itemsWithSessions = await Promise.all(
+          bookingData.items.map(async (item) => {
+            if (!item.occurrenceId) return item;
+
+            // Fetch session details by occurrenceId (sessionId)
+            try {
+              const session = await api.getCourseSession(item.occurrenceId);
+              return { ...item, session };
+            } catch (err) {
+              console.warn("Failed to fetch session:", err);
+              return { ...item, session: null };
+            }
+          })
+        );
+
+        setBooking({ ...bookingData, items: itemsWithSessions });
       } catch (err) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -20,7 +37,7 @@ const BookingDetails = () => {
       }
     };
 
-    fetchBooking();
+    fetchBookingWithSessions();
   }, [bookingId]);
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -30,6 +47,7 @@ const BookingDetails = () => {
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Booking Details</h1>
 
+      {/* Booking Info */}
       <div className="bg-white shadow-md rounded-lg p-6 space-y-4">
         <h2 className="text-xl font-semibold">Booking Info</h2>
         <p><strong>Booking ID:</strong> {booking._id}</p>
@@ -38,6 +56,7 @@ const BookingDetails = () => {
         <p><strong>Order Total:</strong> ${booking.orderTotal}</p>
       </div>
 
+      {/* Booked Items */}
       <div className="bg-white shadow-md rounded-lg p-6 mt-6 space-y-4">
         <h2 className="text-xl font-semibold">Booked Items</h2>
         {booking.items && booking.items.length > 0 ? (
@@ -45,8 +64,19 @@ const BookingDetails = () => {
             <div key={index} className="border-b pb-4 mb-4">
               <p><strong>Item ID:</strong> {item.itemId}</p>
               <p><strong>Type:</strong> {item.productType}</p>
-              <p><strong>Occurrence ID:</strong> {item.occurrenceId}</p>
-              {/* Add more fields here if needed */}
+
+              {item.session ? (
+                <>
+                  <p><strong>Course Name:</strong> {item.session.courseName}</p>
+                  <p><strong>Start Time:</strong> {new Date(item.session.startTime).toLocaleString()}</p>
+                  <p><strong>End Time:</strong> {new Date(item.session.endTime).toLocaleString()}</p>
+                  <p><strong>Instructor ID:</strong> {item.session.instructorId}</p>
+                  <p><strong>Location:</strong> {item.session.location}</p>
+                  {/* <p><strong>Price:</strong> ${item.session.price}</p> */}
+                </>
+              ) : (
+                <p className="text-red-600">Session details not available</p>
+              )}
             </div>
           ))
         ) : (
