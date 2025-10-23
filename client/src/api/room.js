@@ -1,7 +1,7 @@
-const SERVER = "http://localhost:5001";
-const API = `${SERVER}/api/rooms`;
 
-fetch("http://localhost:5001/")
+const API = `/api/rooms`;
+
+fetch("/")
 .then(r => r.text())
 .then(txt => console.log("[TEST] Backend / =>", txt))
 .catch(err => console.error("[TEST] Failed to reach backend /:", err));
