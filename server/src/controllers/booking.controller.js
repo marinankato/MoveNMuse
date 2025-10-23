@@ -1,6 +1,5 @@
 import Booking from "../models/booking.model.js";
 
-// GET /api/bookings?userId=123&page=1&limit=5
 export const getUserBookings = async (req, res) => {
   let { userId, page = 1, limit = 5 } = req.query;
 
