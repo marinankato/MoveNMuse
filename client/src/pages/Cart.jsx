@@ -13,10 +13,13 @@ export default function CartPage() {
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const userId = user?.id || user.userId || 1;
-
+  const userId = user?.userId;
+  
+  const allState = useSelector((state) => state);
+      console.log(allState);
   // Load Cart
   useEffect(() => {
+
     if (!user) return;
     (async () => {
       try {

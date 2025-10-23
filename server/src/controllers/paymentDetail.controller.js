@@ -10,7 +10,7 @@ const handleError = (res, error) => {
 
 // Read paymentDetail data, if paymentDetail not found, create a new paymentDetail
 const readPaymentDetail = async (req, res) => {
-  const userId = req.query.userId;
+  const userId = Number(req.query.userId);
 
   try {
     let paymentDetail = await PaymentDetail.find({ userId }).lean();
@@ -75,42 +75,53 @@ const addPaymentDetail = async (req, res) => {
       isDefault: makeDefault,
     });
 
-    res.status(201).json({
-      paymentDetailId: doc._id.toString(),
-      userId: doc.userId,
-      cardBrand: doc.cardBrand,
-      nickname: doc.nickname,
-      name: doc.name,
-      cardNumber: doc.cardNumber,
-      expiryMonth: doc.expiryMonth,
-      expiryYear: doc.expiryYear,
-      isDefault: doc.isDefault,
-    });
+res.status(201).json({
+  paymentDetailId: doc.paymentDetailId,
+  cardBrand: doc.cardBrand,
+  nickname: doc.nickname,
+  name: doc.name,
+  cardNumber: doc.cardNumber,
+  expiryMonth: doc.expiryMonth,
+  expiryYear: doc.expiryYear,
+  isDefault: doc.isDefault,
+});
   } catch (err) {
     console.error("addPaymentDetail error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// Remove item from paymentDetail
-const removePaymentDetailItem = async (req, res) => {
-  const userId = req.query.userId;
-
+// Remove a paymentDetail by paymentDetailId 
+const removePaymentDetail = async (req, res) => {
   try {
-    const paymentDetail = await PaymentDetail.findOne({ userId: userId });
+    const rawPid = req.params.paymentDetailId;
+    if (rawPid == null) {
+      return res.status(400).json({ message: "paymentDetailId is required" });
+    }
 
-    paymentDetail.items = paymentDetail.items.filter((item) => item.itemId !== itemId);
-    await paymentDetail.save();
 
-    return res.status(200).json({ message: "Item removed successfully", paymentDetail });
+    const pid = Number(rawPid);
+    if (!Number.isFinite(pid)) {
+      return res.status(400).json({ message: "paymentDetailId must be a number" });
+    }
+
+    const deleted = await PaymentDetail.findOneAndDelete({ paymentDetailId: pid});
+    if (!deleted) {
+      return res.status(404).json({ message: "PaymentDetail not found" });
+    }
+
+    return res.status(200).json({ message: "PaymentDetail removed successfully" });
   } catch (error) {
-    handleError(res, error);
+    console.error("removePaymentDetailItem error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
+
 // Find paymentDetail contents for booking by paymentDetail id
 const getPaymentDetailById = async (req, res) => {
-  const paymentDetailId = req.params.id;
+  const paymentDetailId = Number(req.params.paymentDetailId);
 
   try {
     const paymentDetail = await PaymentDetail.findById(paymentDetailId);
@@ -125,4 +136,32 @@ const getPaymentDetailById = async (req, res) => {
   }
 };
 
-export { readPaymentDetail, addPaymentDetail, removePaymentDetailItem, getPaymentDetailById };
+// Set default payment detail
+const setDefaultPaymentDetail = async (req, res) => {
+  const { userId, paymentDetailId } = req.body;
+
+  try {
+    await PaymentDetail.updateMany(
+      { userId, isDefault: true },
+      { $set: { isDefault: false } }
+    );
+
+    const updated = await PaymentDetail.findOneAndUpdate(
+      { userId, paymentDetailId },
+      { $set: { isDefault: true } },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "PaymentDetail not found" });
+    }
+
+    return res.status(200).json({ message: "Default payment detail set successfully" });
+  } catch (error) {
+    handleError(res, error);
+  }
+}
+
+
+
+export { readPaymentDetail, addPaymentDetail, removePaymentDetail, getPaymentDetailById,setDefaultPaymentDetail };

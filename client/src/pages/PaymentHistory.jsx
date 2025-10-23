@@ -8,7 +8,7 @@ export default function PaymentHistory() {
   const [paymentHistory, setPaymentHistory] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const userId = user?.id || user?.userId || 1;
+  const userId = user?.userId;
   useEffect(() => {
     // Fetch payment history data here when component mounts
     if (!user) return;
