@@ -61,6 +61,11 @@ export const api = {
     return request(`/courses/${encodeURIComponent(id)}`);
   },
 
+  getCourseSession: (sessionId) => {
+    if (!sessionId) throw new Error("Invalid session ID");
+    return request(`/course-sessions/${sessionId}`);
+  },
+
   createBooking: ({ userId, courseId }) => {
     if (!userId || !courseId) throw new Error("Invalid booking data");
     return request(`/bookings`, {
