@@ -16,6 +16,13 @@ steps:
     versionSpec: $(nodeVersion)
   displayName: 'Use Node $(nodeVersion)'
 
+# Cache npm packages to speed up builds
+- task: Cache@2
+  inputs:
+    key: 'npm | "$(Agent.OS)" | package-lock.json'
+    path: ~/.npm
+  displayName: 'Cache npm dependencies'
+
 # Backend install + build
 - script: |
     cd server
@@ -38,25 +45,21 @@ steps:
     TargetFolder: 'server/public'
   displayName: 'Copy frontend into server/public'
 
-# Archive server folder for deploy
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: 'server'
-    includeRootFolder: false
-    archiveType: zip
-    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
-    replaceExistingArchive: true
-    # Exclude node_modules, tests, logs, etc.
-    archiveFilePatterns: |
-      **/*
-      !**/node_modules/**
-      !**/tests/**
-      !**/*.log
-  displayName: 'Archive app (exclude node_modules)'
-  
-# Publish artifact
+# Archive only required backend files (exclude node_modules/tests)
+# This step is what fixes the long deployment time
+- script: |
+    cd server
+    echo "Cleaning up unnecessary files..."
+    rm -rf node_modules tests coverage *.log
+    echo "Creating minimal deployment zip..."
+    zip -r ../$(Build.ArtifactStagingDirectory)/app.zip . \
+      -x "node_modules/*" "tests/*" "*.log"
+  displayName: 'Archive app (exclude node_modules, tests, logs)'
+
+# Publish artifact for deploy
 - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
   artifact: drop
+  displayName: 'Publish deployment artifact'
 
 # Deploy to Azure App Service
 - task: AzureRmWebAppDeployment@4
