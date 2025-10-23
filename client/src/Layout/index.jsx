@@ -22,7 +22,7 @@ const Layout = () => {
 
         dispatch(
           login({
-            id: decoded.id, 
+            userId: decoded.userId, 
             email: decoded.email,
             firstName: decoded.firstName || decoded.name,
             lastName: decoded.lastName || "",

@@ -31,7 +31,8 @@ import {
   StaffInstructorsPage,
   InstructorForm,
   SignUp,
-  ChangePassword
+  ChangePassword,
+  ManagePaymentMethods
 } from "../pages";
 
 function RoomsGate() {
@@ -52,10 +53,10 @@ const router = createBrowserRouter(
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment" element={<Payment />} />
+        <Route path="managePaymentMethods" element={<ManagePaymentMethods />} />
         <Route path="paymentHistory" element={<PaymentHistory />} />
         <Route path="addPaymentDetail" element={<AddPaymentDetail />} />
         <Route path="paymentSuccess" element={<PaymentSuccess />} />
-
         <Route path="rooms" element={<RoomView />} />
         <Route path="rooms/:id" element={<RoomDetail />} />
         <Route path="courses" element={<CourseList />} />

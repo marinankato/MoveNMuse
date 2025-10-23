@@ -10,11 +10,6 @@ const HeaderData = {
     navItems: [
       { name: "Account", slug: "/account", active: true },
       { name: "Cart", slug: "/cart", active: true },
-      {
-        name: "Payment History",
-        slug: "paymentHistory",
-        active: true,
-      },
     ],
   },
 };

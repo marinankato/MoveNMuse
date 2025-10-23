@@ -59,7 +59,7 @@ const getCartById = async (req, res) => {
 
   try {
     let cart = await Cart.findOne({ userId }).lean();
-    console.log("Fetched cart:", cart);
+    // console.log("Fetched cart:", cart);
     // If no cart, create one
     if (!cart) {
       await Cart.create({ cartId: userId, userId: userId, cartItems: [] });
