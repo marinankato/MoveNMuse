@@ -46,8 +46,14 @@ steps:
     archiveType: zip
     archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
     replaceExistingArchive: true
-  displayName: 'Archive app'
-
+    # Exclude node_modules, tests, logs, etc.
+    archiveFilePatterns: |
+      **/*
+      !**/node_modules/**
+      !**/tests/**
+      !**/*.log
+  displayName: 'Archive app (exclude node_modules)'
+  
 # Publish artifact
 - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
   artifact: drop
