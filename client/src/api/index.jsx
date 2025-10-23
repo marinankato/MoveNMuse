@@ -117,6 +117,18 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  setDefaultPaymentDetail: ({ userId, paymentDetailId }) =>
+    request(`/paymentDetail/setDefault`, {
+      method: "POST",
+      body: JSON.stringify({ userId, paymentDetailId }),
+    }),
+
+deletePaymentDetail: (paymentDetailId) =>
+  request(`/paymentDetail/${encodeURIComponent(paymentDetailId)}`, {
+    method: "DELETE",
+  }),
+
+    // account APIs
 
   getAccount: () =>
     request(`/account`, {

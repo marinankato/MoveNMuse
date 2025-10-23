@@ -3,10 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "../store/authSlice";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-
+import { useNavigate } from "react-router-dom";
 const Account = () => {
   const user = useSelector((state) => state.auth.userData);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -308,6 +309,30 @@ const Account = () => {
           </div>
         )}
       </div>
+      <div className="mb-10">      <br></br>
+      {user && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/paymentHistory")}
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
+          >
+            View Payment History
+          </button>
+        </div>
+      )}
+      <br></br>
+
+      {user && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => navigate("/managePaymentMethods")}
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
+          >
+            Manage Payment Methods
+          </button>
+        </div>
+      )}
+    </div>
     </div>
   );
 };

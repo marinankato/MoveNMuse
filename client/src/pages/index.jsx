@@ -7,6 +7,7 @@ import Payment from "./Payment.jsx";
 import PaymentHistory from "./PaymentHistory.jsx";
 import AddPaymentDetail from "./AddPaymentDetail.jsx";
 import PaymentSuccess from "./PaymentSuccess.jsx";
+import ManagePaymentMethods from "./ManagePaymentMethods.jsx";
 import RoomView from "./RoomView.jsx";
 import CourseList from "./CourseList.jsx";
 import { CourseDetail } from "./CourseDetail.jsx"; 
@@ -32,6 +33,7 @@ export {
   AddPaymentDetail,
   PaymentHistory,
   PaymentSuccess,
+  ManagePaymentMethods,
   RoomView,
   CourseList,
   CourseDetail,
