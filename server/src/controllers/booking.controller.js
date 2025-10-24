@@ -1,7 +1,7 @@
 import Booking from "../models/booking.model.js";
 
 export const getUserBookings = async (req, res) => {
-  let { userId, page = 1, limit = 5 } = req.query;
+  let { userId, page = 1, limit = 5, sortBy = "newest" } = req.query;
 
   try {
     userId = parseInt(userId, 10);
@@ -12,8 +12,26 @@ export const getUserBookings = async (req, res) => {
       return res.status(400).json({ message: "Invalid or missing userId" });
     }
 
+    // Determine sort order
+    let sortObj;
+    switch (sortBy) {
+      case "oldest":
+        sortObj = { orderDate: 1, _id: 1 }; // oldest first
+        break;
+      case "priceHigh":
+        sortObj = { orderTotal: -1, _id: -1 }; // highest total first
+        break;
+      case "priceLow":
+        sortObj = { orderTotal: 1, _id: 1 }; // lowest total first
+        break;
+      case "newest":
+      default:
+        sortObj = { orderDate: -1, _id: -1 }; // newest first
+        break;
+    }
+
     const bookings = await Booking.find({ userId })
-      .sort({ bookingDate: -1 })
+      .sort(sortObj)
       .skip((page - 1) * limit)
       .limit(limit);
 

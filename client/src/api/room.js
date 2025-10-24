@@ -3,11 +3,11 @@ const API = `/api/rooms`;
 
 fetch("/")
 .then(r => r.text())
-.then(txt => console.log("[TEST] Backend / =>", txt))
-.catch(err => console.error("[TEST] Failed to reach backend /:", err));
+// .then(txt => console.log("[TEST] Backend / =>", txt))
+// .catch(err => console.error("[TEST] Failed to reach backend /:", err));
 
 export async function fetchRooms() {
-    console.log("[room.js] GET", API);
+    // console.log("[room.js] GET", API);
     const res = await fetch(API);
     if (!res.ok) throw new Error("Failed");
     return res.json();
