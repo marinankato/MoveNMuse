@@ -12,34 +12,38 @@ import SessionList from "../components/Course/SessionList.jsx";
 import SessionTable from "../components/Course/SessionTable.jsx";
 
 // auth utils
-import {getUserIdFromToken, getToken, getRoleFromToken } from "../utils/auth";
+import { getUserIdFromToken, getToken, getRoleFromToken } from "../utils/auth";
 
 // money formatter
 const money = (n) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(n || 0));
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "AUD",
+  }).format(Number(n || 0));
 
 const normPrice = (p) => {
-  if (p && typeof p === "object" && p.$numberDecimal != null) return Number(p.$numberDecimal);
+  if (p && typeof p === "object" && p.$numberDecimal != null)
+    return Number(p.$numberDecimal);
   return Number(p ?? 0);
 };
 const getCoursePrice = (c) => normPrice(c?.defaultPrice ?? c?.price);
-
+// predefined options
 const CATEGORY_OPTIONS = ["Dance", "Yoga", "Workshop"];
 const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
 
 function CourseDetail() {
+  // route params and navigation
   const { id } = useParams();
   const nav = useNavigate();
   const location = useLocation();
-  const [tip, setTip] = useState("");            // path message for empty keyword submit
-  const [vErr, setVErr] = useState({});          // validation errors for edit modal
+  const [tip, setTip] = useState(""); // path message for empty keyword submit
+  const [vErr, setVErr] = useState({}); // validation errors for edit modal
 
-
+  // course state
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [course, setCourse] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
-
 
   // sessions state
   const [sessionsAll, setSessionsAll] = useState([]);
@@ -55,15 +59,15 @@ function CourseDetail() {
     category: "",
     level: "",
   });
-
+  // user role
   const role = (getRoleFromToken?.() || "").toLowerCase();
   const isStaff = role === "staff";
-
+  // normalize courseId type
   const courseIdNum = useMemo(() => {
     const num = Number(id);
     return Number.isFinite(num) ? num : id;
   }, [id]);
-
+  // determine if session is bookable
   function canBook(session) {
     if (!session) return false;
     const now = new Date();
@@ -75,7 +79,7 @@ function CourseDetail() {
     const hasSeats = cap > 0 ? booked < cap : true;
     return schedulable && notStarted && hasSeats;
   }
-
+  // refresh course details
   const refreshCourse = useCallback(async () => {
     setLoading(true);
     setErr("");
@@ -88,7 +92,7 @@ function CourseDetail() {
       setLoading(false);
     }
   }, [id]);
-
+  // refresh sessions for this course
   const refreshSessions = useCallback(async (cid) => {
     try {
       const list = await getSessionsByCourse(cid);
@@ -102,18 +106,20 @@ function CourseDetail() {
       setSessionsAll(normalized);
 
       const now = Date.now();
-      setSessionsUpcoming(normalized.filter((s) => new Date(s.endTime).getTime() > now));
+      setSessionsUpcoming(
+        normalized.filter((s) => new Date(s.endTime).getTime() > now)
+      );
     } catch (e) {
       console.error("load sessions failed:", e);
       setSessionsAll([]);
       setSessionsUpcoming([]);
     }
   }, []);
-
+  // initial load
   useEffect(() => {
     refreshCourse();
   }, [refreshCourse]);
-
+  // load sessions when course or id changes
   useEffect(() => {
     const cid = course?.courseId ?? courseIdNum;
     if (!cid) return;
@@ -126,14 +132,14 @@ function CourseDetail() {
     setForm({
       name: course.name || course.title || "",
       description: course.description || "",
-      price: String(getCoursePrice(course)),  
+      price: String(getCoursePrice(course)),
       category: course.category || "",
       level: course.level || "",
     });
     setOpenEdit(true);
   }
 
-
+  // save course edits (staff)
   async function onSaveCourse() {
     try {
       setSaving(true);
@@ -142,7 +148,8 @@ function CourseDetail() {
       const errs = {};
       if (!form.name.trim()) errs.name = "Name is required.";
       const priceNum = Number(form.price);
-      if (!Number.isFinite(priceNum) || priceNum < 0) errs.price = "Default price must be a non-negative number.";
+      if (!Number.isFinite(priceNum) || priceNum < 0)
+        errs.price = "Default price must be a non-negative number.";
 
       if (Object.keys(errs).length) {
         setVErr(errs);
@@ -157,26 +164,35 @@ function CourseDetail() {
         return;
       }
 
-      const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
-      const res = await fetch(`${API_BASE}/courses/${encodeURIComponent(course.courseId)}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          defaultPrice: Number(form.price),   
-          category: form.category,
-          level: form.level,
-        }),
-        credentials: "include",
-      });
+      const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(
+        /\/$/,
+        ""
+      );
+      const res = await fetch(
+        `${API_BASE}/courses/${encodeURIComponent(course.courseId)}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: form.name,
+            description: form.description,
+            defaultPrice: Number(form.price),
+            category: form.category,
+            level: form.level,
+          }),
+          credentials: "include",
+        }
+      );
 
       if (res.status === 401) {
         alert("Session expired. Please log in again.");
-        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
+        nav("/login", {
+          replace: false,
+          state: { redirectTo: location.pathname },
+        });
         return;
       }
       if (res.status === 403) {
@@ -197,50 +213,53 @@ function CourseDetail() {
     }
   }
 
-
+  // add session to cart (customer)
   async function onAddToCart(session) {
-      const token = getToken?.();
-      const uid = getUserIdFromToken?.();
-      const role = (getRoleFromToken?.() || "").toLowerCase();
-      if (!token || !uid) {
-        setTip("Please log in to add sessions to your cart.");
-        nav("/login");
-        return;
-      }
-      if (role !== "customer") {
-        setTip(`Booking is available to customers. Your role is “${role}”.`);
-        alert("Only customers can add items to the cart.");
-        return;
-      }
-
-      const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(/\/$/, "");
-      const res = await fetch(`${API_BASE}/cart/addItem`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: uid,
-          productType: "Course",
-          productId: course.courseId,
-          occurrenceId: session.sessionId,
-          qty: 1,
-        }),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        alert(text || `Add to cart failed: ${res.status}`);
-        return;
-      }
-
-      setSuccessMsg("✅ Added to cart successfully!");
-      setTimeout(() => setSuccessMsg(""), 3000); // clear success message after 3s
+    const token = getToken?.();
+    const uid = getUserIdFromToken?.();
+    const role = (getRoleFromToken?.() || "").toLowerCase();
+    if (!token || !uid) {
+      setTip("Please log in to add sessions to your cart.");
+      nav("/login");
+      return;
+    }
+    if (role !== "customer") {
+      setTip(`Booking is available to customers. Your role is “${role}”.`);
+      alert("Only customers can add items to the cart.");
+      return;
     }
 
+    const API_BASE = (import.meta.env?.VITE_API_BASE || "/api").replace(
+      /\/$/,
+      ""
+    );
+    const res = await fetch(`${API_BASE}/cart/addItem`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId: uid,
+        productType: "Course",
+        productId: course.courseId,
+        occurrenceId: session.sessionId,
+        qty: 1,
+      }),
+      credentials: "include",
+    });
 
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      alert(text || `Add to cart failed: ${res.status}`);
+      return;
+    }
+
+    setSuccessMsg("✅ Added to cart successfully!");
+    setTimeout(() => setSuccessMsg(""), 3000); // clear success message after 3s
+  }
+
+  // delete session (staff)
   async function handleDeleteSession(sessionId) {
     try {
       const token = getToken?.();
@@ -248,7 +267,8 @@ function CourseDetail() {
         alert("Only staff can delete sessions.");
         return;
       }
-      if (!confirm(`Delete session ${sessionId}? This cannot be undone.`)) return;
+      if (!confirm(`Delete session ${sessionId}? This cannot be undone.`))
+        return;
 
       await deleteSession(sessionId);
 
@@ -260,14 +280,14 @@ function CourseDetail() {
       alert(e?.message || "Delete failed");
     }
   }
-
+  // go to create session page with return back to this detail page
   function goCreateSession() {
     const ret = encodeURIComponent(location.pathname);
     const cid = course?.courseId ?? courseIdNum;
     nav(`/admin/sessions/new?courseId=${cid}&return=${ret}`);
   }
 
-  // NEW: go to instructors admin with return back to this detail page
+  // go to instructors admin with return back to this detail page
   function goManageInstructors() {
     const ret = encodeURIComponent(location.pathname + location.search);
     nav(`/admin/instructors?return=${ret}`);
@@ -280,7 +300,10 @@ function CourseDetail() {
       <div className="p-4 text-red-600">
         {err}
         <div>
-          <button className="mt-2 rounded-lg border px-3 py-1 text-sm" onClick={() => nav(-1)}>
+          <button
+            className="mt-2 rounded-lg border px-3 py-1 text-sm"
+            onClick={() => nav(-1)}
+          >
             Back
           </button>
         </div>
@@ -291,7 +314,10 @@ function CourseDetail() {
 
   return (
     <div className="mx-auto max-w-4xl p-4">
-      <button className="mb-3 rounded-lg border px-3 py-1 text-sm" onClick={() => nav(-1)}>
+      <button
+        className="mb-3 rounded-lg border px-3 py-1 text-sm"
+        onClick={() => nav(-1)}
+      >
         ← Back
       </button>
       {/* page-level tip message */}
@@ -315,15 +341,15 @@ function CourseDetail() {
         </div>
       )}
 
-
-
-
       {/* only visible for staff */}
       {isStaff && (
         <div className="mb-4 rounded-lg border p-3 bg-amber-50 text-amber-900">
           <div className="font-semibold mb-2">Staff Tools</div>
           <div className="flex flex-wrap gap-2">
-            <button className="rounded border px-3 py-1 text-sm" onClick={openEditModal}>
+            <button
+              className="rounded border px-3 py-1 text-sm"
+              onClick={openEditModal}
+            >
               ✏️ Edit Course Info
             </button>
             {/* NEW: Manage Instructors */}
@@ -344,10 +370,18 @@ function CourseDetail() {
           No Image
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{course.name || course.title || `Course ${id}`}</h1>
-          <p className="text-sm text-gray-700 mt-2 leading-relaxed">{course.description}</p>
+          <h1 className="text-2xl font-bold">
+            {course.name || course.title || `Course ${id}`}
+          </h1>
+          <p className="text-sm text-gray-700 mt-2 leading-relaxed">
+            {course.description}
+          </p>
           <div className="mt-3 text-xs text-gray-500 flex flex-wrap items-center gap-2">
-            {course.category && <span className="rounded-full border px-2 py-0.5">{course.category}</span>}
+            {course.category && (
+              <span className="rounded-full border px-2 py-0.5">
+                {course.category}
+              </span>
+            )}
             {course.level && <span>{course.level}</span>}
             <span>Price {money(getCoursePrice(course))}</span>
           </div>
@@ -358,7 +392,11 @@ function CourseDetail() {
         <div className="mt-4">
           {!getToken?.() && (
             <div className="rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm px-3 py-2">
-              Please <button className="underline" onClick={() => nav("/login")}>log in</button> to book a session.
+              Please{" "}
+              <button className="underline" onClick={() => nav("/login")}>
+                log in
+              </button>{" "}
+              to book a session.
             </div>
           )}
           {getToken?.() && role !== "customer" && (
@@ -393,7 +431,9 @@ function CourseDetail() {
       {isStaff && (
         <section className="mt-10">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Manage Sessions (this course)</h2>
+            <h2 className="text-xl font-semibold">
+              Manage Sessions (this course)
+            </h2>
             <button
               className="rounded bg-black text-white px-3 py-1 text-sm"
               onClick={goCreateSession}
@@ -402,12 +442,14 @@ function CourseDetail() {
             </button>
           </div>
           <p className="mt-1 text-sm text-gray-600">
-            Only visible to staff. All sessions (including past/cancelled) for this course.
+            Only visible to staff. All sessions (including past/cancelled) for
+            this course.
           </p>
 
           {Array.isArray(sessionsAll) && sessionsAll.length === 0 && (
             <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm px-3 py-2">
-              No sessions found for this course. Click “＋ New Session” to create one.
+              No sessions found for this course. Click “＋ New Session” to
+              create one.
             </div>
           )}
 
@@ -427,7 +469,10 @@ function CourseDetail() {
           <div className="w-full max-w-xl rounded-xl bg-white p-4 shadow-lg">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Edit Course</h3>
-              <button className="text-sm opacity-70" onClick={() => setOpenEdit(false)}>
+              <button
+                className="text-sm opacity-70"
+                onClick={() => setOpenEdit(false)}
+              >
                 ✕
               </button>
             </div>
@@ -438,9 +483,13 @@ function CourseDetail() {
                 <input
                   className="w-full rounded border px-2 py-1"
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
                 />
-                {vErr.name && <div className="mt-1 text-xs text-red-600">{vErr.name}</div>}
+                {vErr.name && (
+                  <div className="mt-1 text-xs text-red-600">{vErr.name}</div>
+                )}
               </label>
 
               <label className="col-span-2 text-sm">
@@ -449,7 +498,9 @@ function CourseDetail() {
                   className="w-full rounded border px-2 py-1"
                   rows={4}
                   value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description: e.target.value }))
+                  }
                 />
               </label>
 
@@ -460,9 +511,13 @@ function CourseDetail() {
                   min="0"
                   className="w-full rounded border px-2 py-1"
                   value={form.price}
-                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, price: e.target.value }))
+                  }
                 />
-                {vErr.price && <div className="mt-1 text-xs text-red-600">{vErr.price}</div>}
+                {vErr.price && (
+                  <div className="mt-1 text-xs text-red-600">{vErr.price}</div>
+                )}
               </label>
 
               <label className="text-sm">
@@ -470,12 +525,16 @@ function CourseDetail() {
                 <select
                   className="w-full rounded border px-2 py-1"
                   value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, category: e.target.value }))
+                  }
                   required
                 >
                   <option value="">-- Select Category --</option>
-                  {CATEGORY_OPTIONS.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -485,19 +544,26 @@ function CourseDetail() {
                 <select
                   className="w-full rounded border px-2 py-1"
                   value={form.level}
-                  onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, level: e.target.value }))
+                  }
                   required
                 >
                   <option value="">-- Select Level --</option>
-                  {LEVEL_OPTIONS.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
+                  {LEVEL_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
                   ))}
                 </select>
               </label>
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
-              <button className="rounded border px-3 py-1 text-sm" onClick={() => setOpenEdit(false)}>
+              <button
+                className="rounded border px-3 py-1 text-sm"
+                onClick={() => setOpenEdit(false)}
+              >
                 Cancel
               </button>
               <button
@@ -517,20 +583,3 @@ function CourseDetail() {
 
 export { CourseDetail };
 export default CourseDetail;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

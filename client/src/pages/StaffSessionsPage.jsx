@@ -5,14 +5,15 @@ import SessionTable from "../components/Course/SessionTable.jsx";
 import { listSessions, deleteSession } from "../services/sessionService.js";
 
 export default function AdminSessionsPage() {
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions] = useState([]); // session data
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [err, setErr] = useState(""); // error message
+  const [refreshKey, setRefreshKey] = useState(0); // to trigger data refresh
   const nav = useNavigate();
-
+  // fetch session data
   const fetchData = useCallback(async () => {
-    setLoading(true); setErr("");
+    setLoading(true);
+    setErr("");
     try {
       const data = await listSessions({ limit: 50 });
       setSessions(data.items || []);
@@ -23,14 +24,20 @@ export default function AdminSessionsPage() {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData, refreshKey]);
-
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, refreshKey]);
+  // handle session deletion
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this session?")) return;
-    try { await deleteSession(id); setRefreshKey(k => k + 1); }
-    catch (e) { alert("Failed: " + e.message); }
+    try {
+      await deleteSession(id);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      alert("Failed: " + e.message);
+    }
   };
-
+  // main render
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">

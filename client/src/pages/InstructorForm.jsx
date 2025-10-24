@@ -1,20 +1,24 @@
 // src/pages/InstructorForm.jsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getInstructor, createInstructor, updateInstructor } from "../services/instructorService";
+import {
+  getInstructor,
+  createInstructor,
+  updateInstructor,
+} from "../services/instructorService";
 import { getRoleFromToken } from "../utils/auth";
 
 export default function InstructorForm() {
-  const { id } = useParams();            // instructorId or _id
+  const { id } = useParams(); // instructorId or _id
   const isEdit = !!id;
   const nav = useNavigate();
   const loc = useLocation();
-
+  // role check
   const role = (getRoleFromToken?.() || "").toLowerCase();
   const isStaff = role === "staff";
 
   const search = new URLSearchParams(loc.search);
-  const returnTo = search.get("return"); 
+  const returnTo = search.get("return");
 
   const [form, setForm] = useState({
     name: "",
@@ -25,7 +29,7 @@ export default function InstructorForm() {
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-
+  // load instructor data if editing
   useEffect(() => {
     if (!isEdit) return;
     setLoading(true);
@@ -42,7 +46,8 @@ export default function InstructorForm() {
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
-  if (!isStaff) return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
+  if (!isStaff)
+    return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,10 +58,11 @@ export default function InstructorForm() {
     if (returnTo) nav(returnTo);
     else nav("/admin/instructors");
   };
-
+  // handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErr(""); setLoading(true);
+    setErr("");
+    setLoading(true);
     try {
       if (isEdit) {
         await updateInstructor(id, {
@@ -82,7 +88,7 @@ export default function InstructorForm() {
       setLoading(false);
     }
   };
-
+  // render form
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">
@@ -91,7 +97,10 @@ export default function InstructorForm() {
 
       {err && <p className="text-red-600 mb-4">{err}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-xl shadow">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 bg-white p-6 rounded-xl shadow"
+      >
         <label className="block">
           <span className="block text-sm font-medium mb-1">Name</span>
           <input
@@ -141,10 +150,18 @@ export default function InstructorForm() {
         </label>
 
         <div className="flex justify-between mt-6">
-          <button type="button" onClick={goBack} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
+          <button
+            type="button"
+            onClick={goBack}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+          >
             ← Back
           </button>
-          <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow">
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow"
+          >
             {loading ? "Saving..." : isEdit ? "Update" : "Create"}
           </button>
         </div>

@@ -6,20 +6,22 @@ import CourseCard from "../components/Course/CourseCard.jsx";
 import { getRoleFromToken } from "../utils/auth";
 
 export default function CourseList() {
+  // manage URL search params
   const [sp, setSp] = useSearchParams();
   const navigate = useNavigate();
 
+  // filter states
   const [kw, setKw] = useState(sp.get("kw") || "");
   const [category, setCategory] = useState(sp.get("category") || "");
   const [level, setLevel] = useState(sp.get("level") || "");
   const pageSize = 9;
   const [page, setPage] = useState(Math.max(1, Number(sp.get("page") || 1)));
-
+  // data states
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [data, setData] = useState({ items: [], total: 0 });
 
-  // NEW: tip message for empty keyword submit
+  // tip message for empty keyword submit
   const [tip, setTip] = useState("");
 
   // role check
@@ -30,7 +32,7 @@ export default function CourseList() {
     () => Math.max(1, Math.ceil((data.total || 0) / pageSize)),
     [data.total]
   );
-
+  // fetch data when filters or pagination change
   useEffect(() => {
     let dead = false;
     (async () => {
@@ -38,14 +40,15 @@ export default function CourseList() {
       setErr("");
       try {
         const r = await listCourses({ kw, category, level, page, pageSize });
-        if (!dead) setData({ items: r.items || [], total: Number(r.total) || 0 });
+        if (!dead)
+          setData({ items: r.items || [], total: Number(r.total) || 0 });
       } catch (e) {
         if (!dead) setErr(e.message || "Failed to load");
       } finally {
         if (!dead) setLoading(false);
       }
     })();
-
+    // sync URL search params
     setSp((old) => {
       const p = new URLSearchParams(old);
       kw ? p.set("kw", kw) : p.delete("kw");
@@ -60,7 +63,7 @@ export default function CourseList() {
       dead = true;
     };
   }, [kw, category, level, page, pageSize, setSp]);
-
+  // render component
   return (
     <div className="mx-auto max-w-5xl p-4">
       {/* title area + staff privilege buttons */}
@@ -117,7 +120,7 @@ export default function CourseList() {
         >
           Search
         </button>
-
+        {/* Category filter */}
         <select
           className="rounded-lg border px-3 py-2 text-sm"
           value={category}
@@ -154,8 +157,9 @@ export default function CourseList() {
       <div className="mt-4 min-h-40">
         {loading && <div className="text-gray-500 text-sm">Loading…</div>}
         {err && !loading && <div className="text-red-600 text-sm">{err}</div>}
-        {!loading && !err && (
-          data.items.length ? (
+        {!loading &&
+          !err &&
+          (data.items.length ? (
             <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {data.items.map((c) => (
                 <CourseCard key={c.courseId || c._id} c={c} />
@@ -163,8 +167,7 @@ export default function CourseList() {
             </ul>
           ) : (
             <div className="text-gray-500 text-sm">No data available</div>
-          )
-        )}
+          ))}
       </div>
 
       {/* pagination */}
@@ -192,11 +195,3 @@ export default function CourseList() {
     </div>
   );
 }
-
-
-
-
-
-
-
-

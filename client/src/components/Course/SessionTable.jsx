@@ -23,29 +23,51 @@ export default function SessionTable({ sessions, onDelete }) {
           Go to All Sessions
         </button>
       </div>
-
+      {/* session table */}
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Session ID</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Course ID</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Instructor ID</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Start Time</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">End Time</th>
-            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">Seats</th>
-            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">Status</th>
-            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">Actions</th>
+            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              Session ID
+            </th>
+            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              Course ID
+            </th>
+            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              Instructor ID
+            </th>
+            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              Start Time
+            </th>
+            <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+              End Time
+            </th>
+            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+              Seats
+            </th>
+            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+              Status
+            </th>
+            <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">
+              Actions
+            </th>
           </tr>
         </thead>
-
+        {/* session rows */}
         <tbody className="divide-y divide-gray-200">
           {sessions.map((s) => (
             <tr key={s._id || s.sessionId} className="hover:bg-gray-50">
               <td className="px-4 py-2 text-sm text-gray-700">{s.sessionId}</td>
               <td className="px-4 py-2 text-sm text-gray-700">{s.courseId}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{s.instructorId}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{formatDate(s.startTime)}</td>
-              <td className="px-4 py-2 text-sm text-gray-700">{formatDate(s.endTime)}</td>
+              <td className="px-4 py-2 text-sm text-gray-700">
+                {s.instructorId}
+              </td>
+              <td className="px-4 py-2 text-sm text-gray-700">
+                {formatDate(s.startTime)}
+              </td>
+              <td className="px-4 py-2 text-sm text-gray-700">
+                {formatDate(s.endTime)}
+              </td>
               <td className="px-4 py-2 text-center text-sm text-gray-700">
                 {s.seatsBooked ?? 0}/{s.capacity ?? "-"}
               </td>
@@ -64,7 +86,9 @@ export default function SessionTable({ sessions, onDelete }) {
               </td>
               <td className="px-4 py-2 text-center space-x-2">
                 <button
-                  onClick={() => navigate(`/admin/sessions/${s._id || s.sessionId}/edit`)}
+                  onClick={() =>
+                    navigate(`/admin/sessions/${s._id || s.sessionId}/edit`)
+                  }
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
                   ✏️ Edit
@@ -92,4 +116,3 @@ SessionTable.propTypes = {
   sessions: PropTypes.array.isRequired,
   onDelete: PropTypes.func.isRequired,
 };
-

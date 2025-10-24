@@ -20,27 +20,32 @@ async function clearDB() {
     await collections[name].deleteMany({});
   }
 }
-
+// setup and teardown
 beforeAll(async () => {
   mongod = await MongoMemoryServer.create();
   await mongoose.connect(mongod.getUri(), { dbName: "testdb" });
-  await Instructor.create({ instructorId: 123, name: "Test", email: "test@t.com", status: "active"});
+  await Instructor.create({
+    instructorId: 123,
+    name: "Test",
+    email: "test@t.com",
+    status: "active",
+  });
 
   app = express();
   app.use(express.json());
   app.use("/api/courses", courseRouter);
 });
-
+// teardown
 afterAll(async () => {
   await mongoose.connection.dropDatabase().catch(() => {});
   await mongoose.disconnect();
   await mongod.stop();
 });
-
+// clear database after each test
 afterEach(async () => {
   await clearDB();
 });
-
+// tests
 test("GET /api/courses returns 200 and an array (pagination path)", async () => {
   // seed instructor
   await Instructor.create({
@@ -62,7 +67,7 @@ test("GET /api/courses returns 200 and an array (pagination path)", async () => 
   const start = new Date(Date.now() + 24 * 3600 * 1000);
   const end = new Date(start.getTime() + 60 * 60000);
 
-  
+  // seed course session
   await CourseSession.collection.insertOne({
     sessionId: 1001,
     courseId: 1,
@@ -82,7 +87,7 @@ test("GET /api/courses returns 200 and an array (pagination path)", async () => 
 
   const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
   expect(Array.isArray(items)).toBe(true);
-  // 不再强制要求 > 0，避免偶发边界导致挂
+  // at least one course
 });
 
 test("GET /api/courses/open returns future courses (soft assertion, never fails on empty)", async () => {
@@ -108,8 +113,8 @@ test("GET /api/courses/open returns future courses (soft assertion, never fails 
     description: "HipHop",
     defaultPrice: 120,
   });
-
-  const start = new Date(Date.now() + 24 * 3600 * 1000); // 明天
+  // seed future session
+  const start = new Date(Date.now() + 24 * 3600 * 1000);
   const end = new Date(start.getTime() + 2 * 3600 * 1000);
 
   await CourseSession.collection.insertOne({
@@ -135,7 +140,7 @@ test("GET /api/courses/open returns future courses (soft assertion, never fails 
     defaultPrice: 10,
   });
   const past = new Date(Date.now() - 24 * 3600 * 1000);
-
+  // seed past session
   await CourseSession.collection.insertOne({
     sessionId: 3001,
     courseId: 3,
@@ -149,23 +154,24 @@ test("GET /api/courses/open returns future courses (soft assertion, never fails 
     price: 10,
     seatsBooked: 5,
   });
-
+  // test open courses endpoint
   const res = await request(app).get("/api/courses/open");
   expect(res.status).toBe(200);
 
   const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
   expect(Array.isArray(items)).toBe(true);
 
-
+  // soft assert: none of the returned courses should be "Past Only"
   if (items.length > 0) {
     const names = items.map((it) => it.name ?? it.courseName ?? "");
     expect(names.join(" ")).not.toMatch(/Past Only/i);
   } else {
-
-    console.warn("[WARN] /api/courses/open returned empty items; skipped content assertions.");
+    console.warn(
+      "[WARN] /api/courses/open returned empty items; skipped content assertions."
+    );
   }
 });
-
+// test route regex for course ID
 test("GET /api/courses/:id supports numeric and 24-hex object id (route regex)", async () => {
   const c = await Course.create({
     courseId: 123,
@@ -182,12 +188,12 @@ test("GET /api/courses/:id supports numeric and 24-hex object id (route regex)",
   const r2 = await request(app).get(`/api/courses/${c._id.toString()}`);
   expect([200, 404]).toContain(r2.status);
 });
-
+// test invalid course ID
 test("GET /api/courses/invalid-id-xyz should 404 (route pattern)", async () => {
   const res = await request(app).get("/api/courses/invalid-id-xyz");
   expect(res.status).toBe(404);
 });
-
+// test filtering by keyword
 test("GET /api/courses?kw=Dance returns 200 (filter path)", async () => {
   await Course.create({
     courseId: 10,
@@ -197,15 +203,10 @@ test("GET /api/courses?kw=Dance returns 200 (filter path)", async () => {
     description: "Dance basics",
     defaultPrice: 50,
   });
-  const res = await request(app).get("/api/courses?kw=Dance&page=1&pageSize=10");
+  const res = await request(app).get(
+    "/api/courses?kw=Dance&page=1&pageSize=10"
+  );
   expect(res.status).toBe(200);
   const items = Array.isArray(res.body) ? res.body : res.body?.items ?? [];
   expect(Array.isArray(items)).toBe(true);
 });
-
-
-
-
-
-
-

@@ -3,9 +3,7 @@ import mongoose from "mongoose";
 import { CourseSession } from "../models/courseSession.model.js";
 import { Instructor } from "../models/instructor.model.js";
 
-
-
-
+// helper to build match object by id (ObjectId or numeric sessionId)
 function buildIdMatch(id) {
   if (!id && id !== 0) return null;
   if (typeof id === "string" && mongoose.isValidObjectId(id)) {
@@ -21,7 +19,7 @@ function parsePositiveInt(v, def) {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : def;
 }
 
-
+// aggregation stages to keep only sessions with active instructors
 const AGG_KEEP_ACTIVE_INSTRUCTOR = [
   {
     $lookup: {
@@ -33,18 +31,18 @@ const AGG_KEEP_ACTIVE_INSTRUCTOR = [
   },
   { $unwind: { path: "$inst", preserveNullAndEmptyArrays: false } }, // must match
   { $match: { "inst.status": "active" } },
-  { $project: { inst: 0 } }, 
+  { $project: { inst: 0 } },
 ];
 
-//
+// GET /api/course-sessions
 export const listCourseSessions = async (req, res) => {
   try {
     let {
       courseId,
       instructorId,
       status,
-      from, // ISO string or yyyy-mm-dd
-      to,   // ISO string or yyyy-mm-dd
+      from, // string or yyyy-mm-dd
+      to, // string or yyyy-mm-dd
       page = 1,
       limit = 10,
       sort = "startTime",
@@ -53,18 +51,20 @@ export const listCourseSessions = async (req, res) => {
 
     page = parsePositiveInt(page, 1);
     limit = Math.min(parsePositiveInt(limit, 10), 100);
-
+    // build match object
     const match = {};
     if (courseId !== undefined) {
       const n = Number(courseId);
       if (Number.isFinite(n)) match.courseId = n;
     }
+    // filter by instructorId if provided
     if (instructorId !== undefined) {
       const n = Number(instructorId);
       if (Number.isFinite(n)) match.instructorId = n;
     }
+    // filter by status if provided
     if (status) match.status = status;
-
+    // filter by date range if provided
     if (from || to) {
       match.startTime = {};
       if (from) match.startTime.$gte = new Date(from);
@@ -74,21 +74,25 @@ export const listCourseSessions = async (req, res) => {
     const sortStage = { [sort]: order?.toLowerCase() === "desc" ? -1 : 1 };
 
     const basePipeline = [{ $match: match }, { $sort: sortStage }];
-
+    // paginated aggregation with active instructor filter
     const pagePipeline = [
       ...basePipeline,
       ...AGG_KEEP_ACTIVE_INSTRUCTOR,
       { $skip: (page - 1) * limit },
       { $limit: limit },
     ];
-
-    const countPipeline = [...basePipeline, ...AGG_KEEP_ACTIVE_INSTRUCTOR, { $count: "total" }];
-
+    // count aggregation
+    const countPipeline = [
+      ...basePipeline,
+      ...AGG_KEEP_ACTIVE_INSTRUCTOR,
+      { $count: "total" },
+    ];
+    // execute both in parallel
     const [items, totalArr] = await Promise.all([
       CourseSession.aggregate(pagePipeline),
       CourseSession.aggregate(countPipeline),
     ]);
-
+    // extract total count
     const total = totalArr?.[0]?.total || 0;
     res.json({ total, page, pageSize: limit, items });
   } catch (e) {
@@ -101,7 +105,8 @@ export const listCourseSessions = async (req, res) => {
 export const listByCourseId = async (req, res) => {
   try {
     const n = Number(req.params.courseId);
-    if (!Number.isFinite(n)) return res.status(400).json({ error: "Invalid courseId" });
+    if (!Number.isFinite(n))
+      return res.status(400).json({ error: "Invalid courseId" });
 
     const items = await CourseSession.aggregate([
       { $match: { courseId: n } },
@@ -120,9 +125,13 @@ export const listByCourseId = async (req, res) => {
 export const getCourseSession = async (req, res) => {
   try {
     const match = buildIdMatch(req.params.id);
-    if (!match) return res.status(404).json({ error: "CourseSession not found" });
+    if (!match)
+      return res.status(404).json({ error: "CourseSession not found" });
 
-    const rows = await CourseSession.aggregate([{ $match: match }, ...AGG_KEEP_ACTIVE_INSTRUCTOR]);
+    const rows = await CourseSession.aggregate([
+      { $match: match },
+      ...AGG_KEEP_ACTIVE_INSTRUCTOR,
+    ]);
     const doc = rows?.[0];
     if (!doc) return res.status(404).json({ error: "CourseSession not found" });
 
@@ -137,9 +146,9 @@ export const getCourseSession = async (req, res) => {
 export const createCourseSession = async (req, res) => {
   try {
     const {
-      sessionId,    
+      sessionId,
       courseId,
-      instructorId, 
+      instructorId,
       startTime,
       endTime,
       capacity,
@@ -153,7 +162,9 @@ export const createCourseSession = async (req, res) => {
       return res.status(400).json({ error: "courseId is required (number)" });
     }
     if (!Number.isFinite(Number(instructorId))) {
-      return res.status(400).json({ error: "instructorId is required (number)" });
+      return res
+        .status(400)
+        .json({ error: "instructorId is required (number)" });
     }
 
     // instructor must be active
@@ -163,31 +174,46 @@ export const createCourseSession = async (req, res) => {
     })
       .select("instructorId status")
       .lean();
-    if (!inst) return res.status(400).json({ error: "Instructor is not active or does not exist" });
+    if (!inst)
+      return res
+        .status(400)
+        .json({ error: "Instructor is not active or does not exist" });
 
     const st = new Date(startTime);
     const et = new Date(endTime);
-    if (!(st instanceof Date) || isNaN(st)) return res.status(400).json({ error: "Invalid startTime" });
-    if (!(et instanceof Date) || isNaN(et)) return res.status(400).json({ error: "Invalid endTime" });
-    if (et <= st) return res.status(400).json({ error: "endTime must be after startTime" });
-
+    // validate startTime and endTime
+    if (!(st instanceof Date) || isNaN(st))
+      return res.status(400).json({ error: "Invalid startTime" });
+    if (!(et instanceof Date) || isNaN(et))
+      return res.status(400).json({ error: "Invalid endTime" });
+    if (et <= st)
+      return res.status(400).json({ error: "endTime must be after startTime" });
+    // validate capacity
     const cap = Number(capacity);
-    if (!Number.isFinite(cap) || cap < 0) return res.status(400).json({ error: "capacity must be >= 0" });
-
+    if (!Number.isFinite(cap) || cap < 0)
+      return res.status(400).json({ error: "capacity must be >= 0" });
+    // validate price
     const priceNum = Number(
-      typeof price === "object" && price?.$numberDecimal != null ? price.$numberDecimal : price
+      typeof price === "object" && price?.$numberDecimal != null
+        ? price.$numberDecimal
+        : price
     );
     if (!Number.isFinite(priceNum) || priceNum < 0) {
-      return res.status(400).json({ error: "price must be a non-negative number" });
+      return res
+        .status(400)
+        .json({ error: "price must be a non-negative number" });
     }
 
     // auto-increment sessionId if not provided or invalid
     let sid = Number(sessionId);
     if (!Number.isFinite(sid)) {
-      const last = await CourseSession.findOne().sort({ sessionId: -1 }).select("sessionId").lean();
+      const last = await CourseSession.findOne()
+        .sort({ sessionId: -1 })
+        .select("sessionId")
+        .lean();
       sid = (last?.sessionId || 0) + 1;
     }
-
+    // create document
     const doc = await CourseSession.create({
       sessionId: sid,
       courseId: Number(courseId),
@@ -201,7 +227,7 @@ export const createCourseSession = async (req, res) => {
       location,
       notes,
     });
-
+    // respond with created document
     res.status(201).json({ message: "Session created", item: doc });
   } catch (e) {
     console.error("createCourseSession error:", e);
@@ -213,7 +239,8 @@ export const createCourseSession = async (req, res) => {
 export const updateCourseSession = async (req, res) => {
   try {
     const match = buildIdMatch(req.params.id);
-    if (!match) return res.status(404).json({ error: "CourseSession not found" });
+    if (!match)
+      return res.status(404).json({ error: "CourseSession not found" });
 
     const payload = { ...req.body };
 
@@ -223,61 +250,82 @@ export const updateCourseSession = async (req, res) => {
       if (!Number.isFinite(newInstId)) {
         return res.status(400).json({ error: "instructorId must be a number" });
       }
-      const inst = await Instructor.findOne({ instructorId: newInstId, status: "active" })
+      const inst = await Instructor.findOne({
+        instructorId: newInstId,
+        status: "active",
+      })
         .select("instructorId status")
         .lean();
       if (!inst) {
-        return res.status(400).json({ error: "Instructor is not active or does not exist" });
+        return res
+          .status(400)
+          .json({ error: "Instructor is not active or does not exist" });
       }
     }
 
     // validate startTime and endTime if being updated
     if (payload.startTime) {
       const st = new Date(payload.startTime);
-      if (!(st instanceof Date) || isNaN(st)) return res.status(400).json({ error: "Invalid startTime" });
+      if (!(st instanceof Date) || isNaN(st))
+        return res.status(400).json({ error: "Invalid startTime" });
     }
     if (payload.endTime) {
       const et = new Date(payload.endTime);
-      if (!(et instanceof Date) || isNaN(et)) return res.status(400).json({ error: "Invalid endTime" });
+      if (!(et instanceof Date) || isNaN(et))
+        return res.status(400).json({ error: "Invalid endTime" });
     }
     if (payload.startTime && payload.endTime) {
       const st = new Date(payload.startTime);
       const et = new Date(payload.endTime);
-      if (et <= st) return res.status(400).json({ error: "endTime must be after startTime" });
+      if (et <= st)
+        return res
+          .status(400)
+          .json({ error: "endTime must be after startTime" });
     }
-
+    // validate capacity
     if (payload.capacity !== undefined) {
       const cap = Number(payload.capacity);
       if (!Number.isFinite(cap) || cap < 0) {
         return res.status(400).json({ error: "capacity must be >= 0" });
       }
     }
-
+    // validate seatsBooked
     if (payload.seatsBooked !== undefined) {
       const sb = Number(payload.seatsBooked);
       if (!Number.isFinite(sb) || sb < 0) {
         return res.status(400).json({ error: "seatsBooked must be >= 0" });
       }
       const cur = await CourseSession.findOne(match).select("capacity").lean();
-      if (!cur) return res.status(404).json({ error: "CourseSession not found" });
+      if (!cur)
+        return res.status(404).json({ error: "CourseSession not found" });
       if (sb > cur.capacity) {
-        return res.status(400).json({ error: "seatsBooked cannot exceed capacity" });
+        return res
+          .status(400)
+          .json({ error: "seatsBooked cannot exceed capacity" });
       }
     }
-
+    // validate price
     if (payload.price !== undefined) {
       const priceNum =
-        typeof payload.price === "object" && payload.price?.$numberDecimal != null
+        typeof payload.price === "object" &&
+        payload.price?.$numberDecimal != null
           ? Number(payload.price.$numberDecimal)
           : Number(payload.price);
       if (!Number.isFinite(priceNum) || priceNum < 0) {
-        return res.status(400).json({ error: "price must be a non-negative number" });
+        return res
+          .status(400)
+          .json({ error: "price must be a non-negative number" });
       }
       payload.price = priceNum;
     }
 
-    const updated = await CourseSession.findOneAndUpdate(match, { $set: payload }, { new: true }).lean();
-    if (!updated) return res.status(404).json({ error: "CourseSession not found" });
+    const updated = await CourseSession.findOneAndUpdate(
+      match,
+      { $set: payload },
+      { new: true }
+    ).lean();
+    if (!updated)
+      return res.status(404).json({ error: "CourseSession not found" });
 
     res.json({ message: "Session updated", item: updated });
   } catch (e) {
@@ -290,7 +338,8 @@ export const updateCourseSession = async (req, res) => {
 export const deleteCourseSession = async (req, res) => {
   try {
     const match = buildIdMatch(req.params.id);
-    if (!match) return res.status(404).json({ error: "CourseSession not found" });
+    if (!match)
+      return res.status(404).json({ error: "CourseSession not found" });
 
     const del = await CourseSession.findOneAndDelete(match).lean();
     if (!del) return res.status(404).json({ error: "CourseSession not found" });
@@ -306,13 +355,19 @@ export const deleteCourseSession = async (req, res) => {
 export const bookSeat = async (req, res) => {
   try {
     const match = buildIdMatch(req.params.id);
-    if (!match) return res.status(404).json({ error: "CourseSession not found" });
+    if (!match)
+      return res.status(404).json({ error: "CourseSession not found" });
 
     // check active instructor
-    const s = await CourseSession.findOne(match).select("instructorId capacity seatsBooked status").lean();
+    const s = await CourseSession.findOne(match)
+      .select("instructorId capacity seatsBooked status")
+      .lean();
     if (!s) return res.status(404).json({ error: "CourseSession not found" });
 
-    const inst = await Instructor.findOne({ instructorId: s.instructorId, status: "active" })
+    const inst = await Instructor.findOne({
+      instructorId: s.instructorId,
+      status: "active",
+    })
       .select("_id")
       .lean();
     if (!inst) return res.status(409).json({ error: "Instructor inactive" });
@@ -328,7 +383,8 @@ export const bookSeat = async (req, res) => {
       { new: true }
     ).lean();
 
-    if (!updated) return res.status(409).json({ error: "Session full or not schedulable" });
+    if (!updated)
+      return res.status(409).json({ error: "Session full or not schedulable" });
     res.json({ message: "Seat booked", item: updated });
   } catch (e) {
     console.error("bookSeat error:", e);
@@ -340,27 +396,35 @@ export const bookSeat = async (req, res) => {
 export const cancelSeat = async (req, res) => {
   try {
     const match = buildIdMatch(req.params.id);
-    if (!match) return res.status(404).json({ error: "CourseSession not found" });
+    if (!match)
+      return res.status(404).json({ error: "CourseSession not found" });
 
-    const s = await CourseSession.findOne(match).select("instructorId seatsBooked status").lean();
+    const s = await CourseSession.findOne(match)
+      .select("instructorId seatsBooked status")
+      .lean();
     if (!s) return res.status(404).json({ error: "CourseSession not found" });
 
-    const inst = await Instructor.findOne({ instructorId: s.instructorId, status: "active" })
+    const inst = await Instructor.findOne({
+      instructorId: s.instructorId,
+      status: "active",
+    })
       .select("_id")
       .lean();
     if (!inst) return res.status(409).json({ error: "Instructor inactive" });
-
+    // only cancel if seatsBooked > 0 and status is Scheduled
     const updated = await CourseSession.findOneAndUpdate(
       { ...match, status: "Scheduled", seatsBooked: { $gt: 0 } },
       { $inc: { seatsBooked: -1 } },
       { new: true }
     ).lean();
 
-    if (!updated) return res.status(409).json({ error: "No seats to release or status not schedulable" });
+    if (!updated)
+      return res
+        .status(409)
+        .json({ error: "No seats to release or status not schedulable" });
     res.json({ message: "Seat released", item: updated });
   } catch (e) {
     console.error("cancelSeat error:", e);
     res.status(500).json({ error: e.message || "Server error" });
   }
 };
-

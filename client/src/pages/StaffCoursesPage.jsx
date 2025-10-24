@@ -5,7 +5,10 @@ import { listCourses, deleteCourse } from "../services/courseService";
 import { getRoleFromToken, getToken } from "../utils/auth";
 
 const money = (n) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(n || 0));
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "AUD",
+  }).format(Number(n || 0));
 
 export default function StaffCoursesPage() {
   const nav = useNavigate();
@@ -23,14 +26,14 @@ export default function StaffCoursesPage() {
       const data = await listCourses({ limit: 200, sort: "-createdAt" });
       // handle both array and paginated response
       const list = Array.isArray(data) ? data : data.items || [];
-      setItems(list);
+      setItems(list); // set course items
     } catch (e) {
       setErr(e.message || "Failed to load courses");
     } finally {
       setLoading(false);
     }
   }, []);
-
+  // fetch data on mount and when refreshKey changes
   useEffect(() => {
     fetchData();
   }, [fetchData, refreshKey]);
@@ -45,7 +48,11 @@ export default function StaffCoursesPage() {
       }
       await deleteCourse(courseId, token);
       // locally remove the deleted course from the list
-      setItems((prev) => prev.filter((c) => (c._id || c.courseId) !== courseId && c.courseId !== courseId));
+      setItems((prev) =>
+        prev.filter(
+          (c) => (c._id || c.courseId) !== courseId && c.courseId !== courseId
+        )
+      );
       // force refresh
       // setRefreshKey(k => k + 1);
       alert("Deleted.");
@@ -54,8 +61,9 @@ export default function StaffCoursesPage() {
     }
   }
 
-  if (!isStaff) return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
-
+  if (!isStaff)
+    return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
+  // main render
   return (
     <div className="mx-auto max-w-6xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -80,13 +88,25 @@ export default function StaffCoursesPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Course ID</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Name</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Category</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Level</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold">Price</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">
+                  Course ID
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">
+                  Name
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">
+                  Category
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">
+                  Level
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold">
+                  Price
+                </th>
                 {/* <th className="px-4 py-2 text-left text-sm font-semibold">Capacity</th> */}
-                <th className="px-4 py-2 text-center text-sm font-semibold">Actions</th>
+                <th className="px-4 py-2 text-center text-sm font-semibold">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -104,7 +124,9 @@ export default function StaffCoursesPage() {
                   </td>
                   <td className="px-4 py-2 text-sm">{c.category || "-"}</td>
                   <td className="px-4 py-2 text-sm">{c.level || "-"}</td>
-                  <td className="px-4 py-2 text-sm">{("price" in c) ? money(c.price) : "-"}</td>
+                  <td className="px-4 py-2 text-sm">
+                    {"price" in c ? money(c.price) : "-"}
+                  </td>
                   {/* <td className="px-4 py-2 text-sm">{Number.isFinite(c.capacity) ? c.capacity : "-"}</td> */}
                   <td className="px-4 py-2 text-center space-x-2">
                     <button

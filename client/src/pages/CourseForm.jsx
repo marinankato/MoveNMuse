@@ -1,7 +1,11 @@
 // src/pages/CourseForm.jsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getCourse, createCourse, updateCourse } from "../services/courseService";
+import {
+  getCourse,
+  createCourse,
+  updateCourse,
+} from "../services/courseService";
 import { getRoleFromToken, getToken } from "../utils/auth";
 
 const CATEGORY_OPTIONS = ["Dance", "Yoga", "Workshop"];
@@ -28,7 +32,7 @@ export default function CourseForm() {
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-
+  // load course data if editing
   useEffect(() => {
     if (!isEdit) return;
     setLoading(true);
@@ -45,8 +49,9 @@ export default function CourseForm() {
       .catch((e) => setErr(e.message || "Failed to load course"))
       .finally(() => setLoading(false));
   }, [id, isEdit]);
-
-  if (!isStaff) return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
+  // restrict to staff only
+  if (!isStaff)
+    return <div className="p-6 text-red-600">Forbidden — Staff only.</div>;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,18 +60,18 @@ export default function CourseForm() {
 
   const goBack = () => {
     if (returnTo) nav(returnTo);
-    else nav("/admin/courses"); 
+    else nav("/admin/courses");
   };
 
-
-  const priceNeg = String(form.defaultPrice).trim() !== "" && Number(form.defaultPrice) < 0;
+  // validation
+  const priceNeg =
+    String(form.defaultPrice).trim() !== "" && Number(form.defaultPrice) < 0;
   const categoryEmpty = String(form.category).trim() === "";
   const levelEmpty = String(form.level).trim() === "";
-
+  // handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
-
 
     if (categoryEmpty) {
       setErr("Please select a category.");
@@ -86,15 +91,18 @@ export default function CourseForm() {
       const token = getToken?.();
       if (!token) {
         alert("Please login as staff.");
-        nav("/login", { replace: false, state: { redirectTo: location.pathname } });
+        nav("/login", {
+          replace: false,
+          state: { redirectTo: location.pathname },
+        }); // redirect to login
         return;
       }
-
+      // prepare payload
       const priceStr = String(form.defaultPrice).trim();
       const payload = {
         name: form.name?.trim(),
         description: form.description?.trim(),
-  
+
         defaultPrice: priceStr === "" ? 0 : Number(priceStr),
         category: form.category?.trim(),
         level: form.level?.trim(),
@@ -116,7 +124,7 @@ export default function CourseForm() {
       setLoading(false);
     }
   };
-
+  // render form
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6">
@@ -125,7 +133,10 @@ export default function CourseForm() {
 
       {err && <p className="text-red-600 mb-4">{err}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-xl shadow">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 bg-white p-6 rounded-xl shadow"
+      >
         <div>
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
@@ -163,11 +174,15 @@ export default function CourseForm() {
             >
               <option value="">-- Select Category --</option>
               {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
               ))}
             </select>
             {categoryEmpty && (
-              <p className="text-xs text-red-600 mt-1">Please select a category.</p>
+              <p className="text-xs text-red-600 mt-1">
+                Please select a category.
+              </p>
             )}
           </label>
 
@@ -182,11 +197,15 @@ export default function CourseForm() {
             >
               <option value="">-- Select Level --</option>
               {LEVEL_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
               ))}
             </select>
             {levelEmpty && (
-              <p className="text-xs text-red-600 mt-1">Please select a level.</p>
+              <p className="text-xs text-red-600 mt-1">
+                Please select a level.
+              </p>
             )}
           </label>
         </div>
@@ -194,11 +213,13 @@ export default function CourseForm() {
         {/* Price */}
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="block text-sm font-medium mb-1">Default Price (AUD)</span>
+            <span className="block text-sm font-medium mb-1">
+              Default Price (AUD)
+            </span>
             <input
               type="number"
               min="0"
-              step="1"              
+              step="1"
               className="w-full border rounded px-3 py-2"
               name="defaultPrice"
               value={form.defaultPrice}
@@ -234,5 +255,3 @@ export default function CourseForm() {
     </div>
   );
 }
-
-

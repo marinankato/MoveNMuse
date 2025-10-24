@@ -2,11 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import SessionTable from "./SessionTable.jsx";
-import {
-  listSessions,
-  deleteSession,
-} from "../../services/sessionService.js";
+import { listSessions, deleteSession } from "../../services/sessionService.js";
 
+// Component to list and manage course sessions
 export default function SessionList() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,20 +21,21 @@ export default function SessionList() {
       setSessions(data.items || []);
     } catch (e) {
       console.error(e);
-      setErr(e.message || "Failed to load sessions");
+      setErr(e.message || "Failed to load sessions"); // improved error handling
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(); // fetch data when component mounts or refreshKey changes
   }, [refreshKey, fetchData]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this session?")) return;
+    if (!window.confirm("Are you sure you want to delete this session?"))
+      return;
     try {
-      await deleteSession(id);
+      await deleteSession(id); // call delete service
       alert("Session deleted successfully");
       setRefreshKey((k) => k + 1);
     } catch (e) {
@@ -51,7 +50,7 @@ export default function SessionList() {
           Course Sessions
         </h1>
         <button
-          onClick={() => navigate("/admin/sessions/new")}
+          onClick={() => navigate("/admin/sessions/new")} // navigate to new session page
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md"
         >
           + New Session
@@ -60,10 +59,8 @@ export default function SessionList() {
 
       {loading && <p>Loading sessions...</p>}
       {err && <p className="text-red-600">{err}</p>}
-        
-      {!loading && (
-        <SessionTable sessions={sessions} onDelete={handleDelete} />
-      )}
+
+      {!loading && <SessionTable sessions={sessions} onDelete={handleDelete} />}
     </div>
   );
 }

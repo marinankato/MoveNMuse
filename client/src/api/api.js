@@ -16,8 +16,13 @@ async function request(path, { method = "GET", params, body, headers } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(text || `${method} ${url} failed: ${res.status}`);
-  try { return JSON.parse(text); } catch { return text; }
+  if (!res.ok)
+    throw new Error(text || `${method} ${url} failed: ${res.status}`);
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 export const api = {
@@ -27,4 +32,3 @@ export const api = {
   patch: (path, body) => request(path, { method: "PATCH", body }),
   put: (path, body) => request(path, { method: "PUT", body }),
 };
-

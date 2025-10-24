@@ -1,22 +1,22 @@
 import mongoose, { Schema } from "mongoose";
-import { Instructor } from "./instructor.model.js"; 
-import  Course  from "./course.model.js";
+import { Instructor } from "./instructor.model.js";
+import Course from "./course.model.js";
 const courseSessionSchema = new Schema(
   {
     sessionId: {
       type: Number,
       required: true,
-      unique: true,                 // unique session identifier
+      unique: true, // unique session identifier
     },
     courseId: {
       type: Number,
       required: true,
-      index: true,                  // search by course
+      index: true, // search by course
     },
     startTime: {
       type: Date,
       required: true,
-      index: true,                  // search by time range / upcoming sessions
+      index: true, // search by time range / upcoming sessions
     },
     endTime: {
       type: Date,
@@ -46,7 +46,7 @@ const courseSessionSchema = new Schema(
     instructorId: {
       type: Number,
       required: true,
-      index: true,                  // search by instructor
+      index: true, // search by instructor
     },
     seatsBooked: {
       type: Number,
@@ -65,10 +65,10 @@ const courseSessionSchema = new Schema(
       required: true,
       enum: ["Scheduled", "Cancelled", "Completed"],
       default: "Scheduled",
-      index: true,                  // search by status + time
+      index: true, // search by status + time
     },
     price: {
-      type: mongoose.Schema.Types.Decimal128,  // more stable approach
+      type: mongoose.Schema.Types.Decimal128, // more stable approach
       required: true,
       get: (v) => (v ? parseFloat(v.toString()) : v), // return number on get
     },
@@ -77,15 +77,15 @@ const courseSessionSchema = new Schema(
     timestamps: true,
     collection: "courseSessions",
     versionKey: false,
-    toJSON: { getters: true, virtuals: true },  // enable getters/virtuals in res.json
+    toJSON: { getters: true, virtuals: true }, // enable getters/virtuals in res.json
     toObject: { getters: true, virtuals: true },
   }
 );
 
-//compound index: improve performance of common queries (without changing fields) 
-courseSessionSchema.index({ status: 1, startTime: 1 });     // list upcoming sessions by status
-courseSessionSchema.index({ courseId: 1, startTime: 1 });   // recent sessions for a course
-courseSessionSchema.index({ instructorId: 1, startTime: 1 });// search by instructor
+//compound index: improve performance of common queries (without changing fields)
+courseSessionSchema.index({ status: 1, startTime: 1 }); // list upcoming sessions by status
+courseSessionSchema.index({ courseId: 1, startTime: 1 }); // recent sessions for a course
+courseSessionSchema.index({ instructorId: 1, startTime: 1 }); // search by instructor
 
 // courseSessionSchema.index({ courseId: 1, startTime: 1 }, { unique: true });
 
@@ -114,7 +114,8 @@ courseSessionSchema.set("toJSON", {
 // setter: convert price to Decimal128
 courseSessionSchema.path("price").set(function (v) {
   if (v == null) return v;
-  if (typeof v === "number") return mongoose.Types.Decimal128.fromString(String(v));
+  if (typeof v === "number")
+    return mongoose.Types.Decimal128.fromString(String(v));
   if (typeof v === "string") return mongoose.Types.Decimal128.fromString(v);
   return v; // assume already Decimal128
 });
@@ -122,36 +123,42 @@ courseSessionSchema.path("price").set(function (v) {
 // pre-save hook: auto-assign sessionId
 courseSessionSchema.pre("save", async function autoAssignSessionId(next) {
   if (!this.isNew || this.sessionId != null) return next();
-  const last = await mongoose.model("CourseSession").findOne({}, { sessionId: 1 })
-    .sort({ sessionId: -1 }).lean();
+  const last = await mongoose
+    .model("CourseSession")
+    .findOne({}, { sessionId: 1 })
+    .sort({ sessionId: -1 })
+    .lean();
   this.sessionId = (last?.sessionId ?? 0) + 1;
   next();
 });
 
 courseSessionSchema.pre("save", async function (next) {
   try {
-    
     if (typeof this.courseId === "number") {
       const exists = await Course.exists({ courseId: this.courseId });
       if (!exists) return next(new Error("courseId does not exist"));
     }
-   
+
     if (this.isNew || this.isModified("instructorId")) {
       const inst = await Instructor.findOne({ instructorId: this.instructorId })
-        .select("status").lean();
+        .select("status")
+        .lean();
       if (!inst) return next(new Error("instructor not found"));
-      if (inst.status !== "active") return next(new Error("instructor is inactive"));
+      if (inst.status !== "active")
+        return next(new Error("instructor is inactive"));
     }
     next();
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-
+// pre-update hook: validate courseId and instructorId on updates
 courseSessionSchema.pre("findOneAndUpdate", async function (next) {
   try {
     const u = this.getUpdate() || {};
-    const toSet = (u.$set ?? u);
-    
+    const toSet = u.$set ?? u;
+
     if (toSet.courseId !== undefined) {
       const exists = await Course.exists({ courseId: Number(toSet.courseId) });
       if (!exists) return next(new Error("courseId does not exist"));
@@ -159,13 +166,19 @@ courseSessionSchema.pre("findOneAndUpdate", async function (next) {
     if (toSet.instructorId !== undefined) {
       const newId = Number(toSet.instructorId);
       const inst = await Instructor.findOne({ instructorId: newId })
-        .select("status").lean();
+        .select("status")
+        .lean();
       if (!inst) return next(new Error("instructor not found"));
-      if (inst.status !== "active") return next(new Error("instructor is inactive"));
+      if (inst.status !== "active")
+        return next(new Error("instructor is inactive"));
     }
     next();
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-
-export const CourseSession = mongoose.model("CourseSession", courseSessionSchema);
+export const CourseSession = mongoose.model(
+  "CourseSession",
+  courseSessionSchema
+);

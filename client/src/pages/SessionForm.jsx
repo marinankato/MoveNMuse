@@ -32,11 +32,11 @@ export default function SessionForm() {
     status: "Scheduled",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // form submission loading state
   const [err, setErr] = useState("");
   const [originalCourseId, setOriginalCourseId] = useState(null);
 
-  // ===== New: instructors state =====
+  // instructors state
   const [instructors, setInstructors] = useState([]);
   const [insLoading, setInsLoading] = useState(false);
   const [insErr, setInsErr] = useState("");
@@ -113,7 +113,8 @@ export default function SessionForm() {
   const validateTimes = () => {
     const start = new Date(form.startTime).getTime();
     const end = new Date(form.endTime).getTime();
-    if (!isFinite(start) || !isFinite(end)) return "Please provide valid start/end times.";
+    if (!isFinite(start) || !isFinite(end))
+      return "Please provide valid start/end times.";
     if (end <= start) return "End time must be later than start time.";
     return "";
   };
@@ -136,7 +137,8 @@ export default function SessionForm() {
   };
 
   // pre-compute negative checks
-  const capNeg = String(form.capacity).trim() !== "" && Number(form.capacity) < 0;
+  const capNeg =
+    String(form.capacity).trim() !== "" && Number(form.capacity) < 0;
   const priceNeg = String(form.price).trim() !== "" && Number(form.price) < 0;
 
   const handleSubmit = async (e) => {
@@ -161,7 +163,7 @@ export default function SessionForm() {
     }
 
     setLoading(true);
-
+    // prepare payload and call create/update API
     try {
       const payload = {
         ...form,
@@ -181,7 +183,7 @@ export default function SessionForm() {
         await createSession(payload);
         alert("Session created successfully!");
       }
-
+      // redirect after save
       goAfterSaveOrBack();
     } catch (e) {
       console.error(e);
@@ -194,7 +196,7 @@ export default function SessionForm() {
   const handleBack = () => {
     goAfterSaveOrBack();
   };
-
+  // render form
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-semibold mb-6 text-gray-800">
@@ -277,7 +279,9 @@ export default function SessionForm() {
                 onChange={handleChange}
                 required
                 className="w-full border rounded-md px-3 py-2"
-                placeholder={insLoading ? "Loading instructors…" : "Enter Instructor ID"}
+                placeholder={
+                  insLoading ? "Loading instructors…" : "Enter Instructor ID"
+                }
               />
               {insErr && (
                 <p className="text-xs text-amber-700 mt-1">
@@ -328,7 +332,7 @@ export default function SessionForm() {
               value={form.capacity}
               onChange={handleChange}
               required
-              min="1" 
+              min="1"
               className="w-full border rounded-md px-3 py-2"
               placeholder="Total capacity (≥ 1)"
             />
@@ -349,7 +353,7 @@ export default function SessionForm() {
               name="price"
               value={form.price}
               onChange={handleChange}
-              min="0" 
+              min="0"
               inputMode="decimal"
               className="w-full border rounded-md px-3 py-2"
               placeholder="e.g. 39.99 (≥ 0)"
@@ -413,8 +417,3 @@ export default function SessionForm() {
     </div>
   );
 }
-
-
-
-
-

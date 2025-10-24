@@ -5,7 +5,8 @@ const AutoIncrement = AutoIncrementFactory(mongoose.connection);
 
 const instructorSchema = new Schema(
   {
-    instructorId: { type: Number, unique: true },  
+    // instructor details
+    instructorId: { type: Number, unique: true },
     name: { type: String, required: true, trim: true },
     email: {
       type: String,
@@ -24,14 +25,11 @@ const instructorSchema = new Schema(
   },
   { timestamps: true, versionKey: false, collection: "instructors" }
 );
-
+// auto-increment instructorId
 instructorSchema.plugin(AutoIncrement, {
-  inc_field: "instructorId", 
-  start_seq: 1,              
+  inc_field: "instructorId",
+  start_seq: 1,
 });
 
 export const Instructor = mongoose.model("Instructor", instructorSchema);
 export default Instructor;
-;
-
-

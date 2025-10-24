@@ -3,9 +3,12 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 const money = (n) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" })
-    .format(Number(n || 0));
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "AUD",
+  }).format(Number(n || 0));
 
+// CourseCard component to display course information
 export default function CourseCard({ c }) {
   return (
     <li className="rounded-2xl border p-4 shadow-sm hover:shadow-md transition-all">
@@ -40,7 +43,8 @@ export default function CourseCard({ c }) {
 
 CourseCard.propTypes = {
   c: PropTypes.shape({
-    courseId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    courseId: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+      .isRequired,
     name: PropTypes.string.isRequired,
     description: PropTypes.string,
     category: PropTypes.string,
@@ -51,11 +55,6 @@ CourseCard.propTypes = {
       PropTypes.number,
       PropTypes.instanceOf(Date),
     ]),
-    lowCapacity: PropTypes.bool, 
+    lowCapacity: PropTypes.bool,
   }).isRequired,
 };
-
-
-
-
-

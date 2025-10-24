@@ -2,11 +2,11 @@
 import { Router } from "express";
 import {
   listCourses,
-  listOpenCourses,   
+  listOpenCourses,
   getCourse,
   createCourse,
   deleteCourse,
-  updateCourse 
+  updateCourse,
 } from "../controllers/course.controller.js";
 import { authMiddleware, requireRole } from "../middlewares/auth.middleware.js";
 const router = Router();
@@ -24,11 +24,11 @@ router.get("/:id([0-9]+|[a-fA-F0-9]{24})", getCourse);
 router.post("/", createCourse);
 router.delete("/:id([0-9]+|[a-fA-F0-9]{24})", deleteCourse);
 
-router.put("/:id([0-9]+|[a-fA-F0-9]{24})", authMiddleware, requireRole("staff"), updateCourse);
-
+router.put(
+  "/:id([0-9]+|[a-fA-F0-9]{24})",
+  authMiddleware,
+  requireRole("staff"),
+  updateCourse
+);
 
 export default router;
-
-
-
-

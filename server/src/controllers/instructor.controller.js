@@ -20,7 +20,9 @@ export async function createInstructor(req, res) {
 export async function updateInstructor(req, res) {
   try {
     const query = buildIdQuery(req.params.id);
-    const doc = await Instructor.findOneAndUpdate(query, req.body, { new: true });
+    const doc = await Instructor.findOneAndUpdate(query, req.body, {
+      new: true,
+    });
     if (!doc) return res.status(404).json({ error: "Instructor not found" });
     res.json(doc);
   } catch (e) {
@@ -32,7 +34,11 @@ export async function updateInstructor(req, res) {
 export async function disableInstructor(req, res) {
   try {
     const query = buildIdQuery(req.params.id);
-    const doc = await Instructor.findOneAndUpdate(query, { status: "inactive" }, { new: true });
+    const doc = await Instructor.findOneAndUpdate(
+      query,
+      { status: "inactive" },
+      { new: true }
+    );
     if (!doc) return res.status(404).json({ error: "Instructor not found" });
     res.json({ message: "Instructor disabled", instructor: doc });
   } catch (e) {
@@ -61,14 +67,10 @@ export async function getInstructorById(req, res) {
     res.status(500).json({ error: e.message || "Server error" });
   }
 }
-
+// helper to build query for _id or instructorId
 function buildIdQuery(id) {
   if (mongoose.isValidObjectId(id)) return { _id: id };
   const n = Number(id);
   if (!isNaN(n)) return { instructorId: n };
   return { _id: "__never_match__" };
 }
-
-
-
-
