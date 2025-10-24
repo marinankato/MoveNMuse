@@ -4,6 +4,7 @@ import { updateUser } from "../store/authSlice";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useNavigate } from "react-router-dom";
+
 const Account = () => {
   const user = useSelector((state) => state.auth.userData);
   const dispatch = useDispatch();
@@ -29,24 +30,9 @@ const Account = () => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
+  const [sortOption, setSortOption] = useState("newest");
   const limit = 3; //set how many bookings you see at once
 
-  if (!user) {
-    return (
-      <div className="py-8">
-        <h1 className="text-3xl font-bold text-center mb-6">My Account</h1>
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <p className="text-center text-gray-600">
-              Please log in to view your account.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Sync formData with Redux user — only when not editing
   useEffect(() => {
     if (user && !editMode) {
       setFormData({
@@ -64,28 +50,25 @@ const Account = () => {
       try {
         const res = await api.getAccount();
         const user = res.user;
+        if (!user?.userId) return;
 
-        if (!user || !user.userId) {
-          console.error("User ID is missing in profileData:", res);
-          return;
-        }
         dispatch(updateUser(user));
         const userId = user.userId;
 
         const bookingsRes = await fetch(
-          `/api/bookings?userId=${userId}&page=${currentPage}&limit=${limit}`
+          `/api/bookings?userId=${userId}&page=${currentPage}&limit=${limit}&sortBy=${sortOption}`
         );
         const data = await bookingsRes.json();
 
-        setBookings(data.bookings || []); 
-        setTotalBookings(data.total || 0); 
+        setBookings(data.bookings || []);
+        setTotalBookings(data.total || 0);
       } catch (err) {
         console.error("Failed to fetch profile/bookings:", err.message);
       }
     };
 
     fetchUserProfileAndBookings();
-  }, [currentPage, dispatch]);
+  }, [currentPage, sortOption, dispatch]);
 
   // Handle form input change
   const handleChange = (e) => {
@@ -168,171 +151,175 @@ const Account = () => {
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">My Account</h1>
 
-      {/* Flex container for side-by-side layout for customer, or else centered */}
-      <div
-        className={`flex flex-col md:flex-row md:space-x-8 ${
-          user.role !== "customer" ? "items-center" : ""
-        }`}
-      >
-        {/* Account Details Section */}
-        <div
-          className={`bg-white rounded-lg shadow-md p-6 ${
-            user.role !== "customer"
-              ? "md:w-full mx-auto max-w-md"
-              : "md:w-1/2"
-          }`}
-        >
-          {message && (
-            <div className="mb-4 text-center text-sm font-medium text-red-600">
-              {message}
+      <div className={`flex flex-col md:flex-row md:space-x-8 ${user?.role !== "customer" ? "items-center" : ""}`}>
+        {!user ? (
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="bg-white shadow-md rounded-lg p-6">
+              <p className="text-center text-gray-600">Please log in to view your account.</p>
             </div>
-          )}
-
-          <div className="space-y-4">
-            {["firstName", "lastName", "email", "phoneNo"].map((field) => (
-              <div key={field} className="mb-4">
-                <label className="font-semibold capitalize block mb-1">
-                  {field === "phoneNo"
-                    ? "Phone Number"
-                    : field === "email"
-                    ? "Email"
-                    : field.replace(/([A-Z])/g, " $1")}
-                </label>
-
-                {editMode ? (
-                  <>
-                    <input
-                      type="text"
-                      name={field}
-                      value={formData[field]}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                    {errors[field] && (
-                      <p className="text-red-600 text-sm mt-1">{errors[field]}</p>
+          </div>
+        ) : (
+          <>
+            {/* Account Details Section */}
+            <div
+              className={`bg-white rounded-lg shadow-md p-6 ${
+                user.role !== "customer" ? "md:w-full mx-auto max-w-md" : "md:w-1/2"
+              }`}
+            >
+              {message && (
+                <div className="mb-4 text-center text-sm font-medium text-red-600">
+                  {message}
+                </div>
+              )}
+              <div className="space-y-4">
+                {["firstName", "lastName", "email", "phoneNo"].map((field) => (
+                  <div key={field} className="mb-4">
+                    <label className="font-semibold capitalize block mb-1">
+                      {field === "phoneNo"
+                        ? "Phone Number"
+                        : field === "email"
+                        ? "Email"
+                        : field.replace(/([A-Z])/g, " $1")}
+                    </label>
+                    {editMode ? (
+                      <>
+                        <input
+                          type="text"
+                          name={field}
+                          value={formData[field]}
+                          onChange={handleChange}
+                          className="w-full border border-gray-300 rounded px-3 py-2"
+                        />
+                        {errors[field] && (
+                          <p className="text-red-600 text-sm mt-1">{errors[field]}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p>{formData[field]}</p>
                     )}
-                  </>
-                ) : (
-                  <p>{formData[field]}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center mt-6">
+                <button
+                  onClick={handleToggle}
+                  disabled={loading}
+                  className={`w-full text-white py-2 px-4 rounded-lg text-md transition ${
+                    editMode
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {loading ? "Saving..." : editMode ? "Save Changes" : "Edit Details"}
+                </button>
+                {!editMode && (
+                  <div className="mt-4 space-y-2">
+                    <button
+                      onClick={() => navigate("/paymentHistory")}
+                      className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg text-md hover:bg-gray-700 transition"
+                    >
+                      View Payment History
+                    </button>
+
+                    <button
+                      onClick={() => navigate("/managePaymentMethods")}
+                      className="w-full bg-gray-800 text-white py-2 px-4 rounded-lg text-md hover:bg-gray-700 transition"
+                    >
+                      Manage Payment Methods
+                    </button>
+                  </div>
                 )}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="text-center mt-6">
-            <button
-              onClick={handleToggle}
-              disabled={loading}
-              className={`px-6 py-2 rounded text-white font-semibold transition ${
-                editMode
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-blue-600 hover:bg-blue-700"
-              } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {loading ? "Saving..." : editMode ? "Save" : "Edit"}
-            </button>
-          </div>
-        </div>
-
-        {/* Booking History Section - only show if customer */}
-        {user.role === "customer" && (
-          <div className="bg-white rounded-lg shadow-md p-6 mt-10 md:mt-0 md:w-1/2">
-            <h2 className="text-2xl font-bold mb-4">Booking History</h2>
-
-            {bookings.length === 0 ? (
-              <p className="text-gray-500">No bookings yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {[...bookings]
-                  .sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate))
-                  .map((booking) => (
-                    <li
-                      key={booking._id}
-                      className="border-b pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center"
-                    >
-                      <div>
-                        <p className="font-semibold text-blue-700">
-                          Booking ID: #{booking._id}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          Status: <span className="font-medium">{booking.status}</span>
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          Order Total: ${booking.orderTotal}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          Order Date:{" "}
-                          {new Date(booking.orderDate).toLocaleString("en-AU", {
-                            dateStyle: "medium",
-                          })}
-                        </p>
-                        <Link
-                          to={`/account/bookings/${booking._id}`}
-                          className="text-blue-600 hover:underline"
+            {/* Booking History */}
+            {user.role === "customer" && (
+              <div className="bg-white rounded-lg shadow-md p-6 mt-10 md:mt-0 md:w-1/2">
+                <h2 className="text-2xl font-bold mb-4">Booking History</h2>
+                <div className="mb-4">
+                  <label className="mr-2 font-medium">Sort by:</label>
+                  <select
+                    value={sortOption}
+                    onChange={(e) => {
+                      setSortOption(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="border rounded px-2 py-1"
+                  >
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="priceHigh">Price: High → Low</option>
+                    <option value="priceLow">Price: Low → High</option>
+                  </select>
+                </div>
+                {bookings.length === 0 ? (
+                  <p className="text-gray-500">No bookings yet.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {[...bookings]
+                      .sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate))
+                      .map((booking) => (
+                        <li
+                          key={booking._id}
+                          className="border-b pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center"
                         >
-                          View Booking Details
-                        </Link>
-                      </div>
-                    </li>
-                  ))}
-              </ul>
-            )}
-
-            {/* Pagination buttons */}
-            {bookings.length < totalBookings && (
-              <div className="flex justify-center mt-6 space-x-4">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className={`px-5 py-2 rounded ${
-                    currentPage === 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  Previous
-                </button>
-
-                <button
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  disabled={bookings.length < limit}
-                  className={`px-5 py-2 rounded ${
-                    bookings.length < limit
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  Next
-                </button>
+                          <div>
+                            <p className="font-semibold text-blue-700">
+                              Booking ID: #{booking._id}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              Status: <span className="font-medium">{booking.status}</span>
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              Order Total: ${booking.orderTotal}
+                            </p>
+                            <p className="text-sm text-gray-700">
+                              Order Date:{" "}
+                              {new Date(booking.orderDate).toLocaleString("en-AU", { dateStyle: "medium" })}
+                            </p>
+                            <Link
+                              to={`/account/bookings/${booking._id}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              View Booking Details
+                            </Link>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+                {bookings.length < totalBookings && (
+                  <div className="flex justify-center mt-6 space-x-4">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`px-5 py-2 rounded ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={bookings.length < limit}
+                      className={`px-5 py-2 rounded ${
+                        bookings.length < limit
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
-      <div className="mb-10">      <br></br>
-      {user && (
-        <div className="flex justify-center">
-          <button
-            onClick={() => navigate("/paymentHistory")}
-            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
-          >
-            View Payment History
-          </button>
-        </div>
-      )}
-      <br></br>
-
-      {user && (
-        <div className="flex justify-center">
-          <button
-            onClick={() => navigate("/managePaymentMethods")}
-            className="bg-gray-800 text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 transition"
-          >
-            Manage Payment Methods
-          </button>
-        </div>
-      )}
-    </div>
     </div>
   );
 };
