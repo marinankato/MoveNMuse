@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+// Marina
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "../store/authSlice";
 import { Link } from "react-router-dom";

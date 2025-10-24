@@ -1,4 +1,4 @@
-// src/components/CourseCard.jsx
+// Jiayu
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 

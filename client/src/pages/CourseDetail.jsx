@@ -1,4 +1,4 @@
-// src/pages/CourseDetail.jsx
+// Jiayu
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 

@@ -1,4 +1,4 @@
-// src/services/courseService.js
+// Jiayu
 import { api } from "../api/api";
 import { getToken } from "../utils/auth";
 

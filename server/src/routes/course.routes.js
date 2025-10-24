@@ -1,4 +1,4 @@
-// server/src/routes/course.routes.js
+// Jiayu
 import { Router } from "express";
 import {
   listCourses,

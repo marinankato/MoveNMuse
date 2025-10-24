@@ -1,3 +1,4 @@
+// Marina
 process.env.JWT_SECRET = 'testsecret';
 
 import request from 'supertest';

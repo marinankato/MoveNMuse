@@ -1,4 +1,4 @@
-// server/src/controllers/courseSession.controller.js
+// Jiayu
 import mongoose from "mongoose";
 import { CourseSession } from "../models/courseSession.model.js";
 import { Instructor } from "../models/instructor.model.js";

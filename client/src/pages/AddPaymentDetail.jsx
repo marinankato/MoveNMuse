@@ -1,7 +1,6 @@
+// Shirley
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
-// import { set } from "mongoose";
 
 function AddPaymentDetail() {
   const { state } = useLocation();

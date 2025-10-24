@@ -1,4 +1,4 @@
-// src/services/sessionService.js
+// Jiayu
 import { api } from "../api/api";   
 
 const BASE = "/course-sessions";

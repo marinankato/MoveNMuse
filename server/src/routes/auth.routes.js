@@ -1,4 +1,4 @@
-// auth.routes.js
+// Marina
 import express from "express";
 // import { verifyToken } from "../middlewares/auth.middleware.js";
 import { loginUser } from "../controllers/auth.controller.js"; // Import the loginUser controller

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// Xinyi
+import { useEffect, useState } from "react";
 import { listRooms, createRoom, deleteRoom, updateRoom } from "../api/roomAdmin.js";
 
 export default function RoomManagement() {

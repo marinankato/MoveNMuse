@@ -1,3 +1,4 @@
+// Shirley, Xinyi, Jiayu, Marina
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -7,11 +8,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import conf from "./conf/conf.js";
 import Routes from "./routes/index.js";
-import cartRoutes from "./routes/cart.routes.js";
-import roomRoutes from "./routes/room.routes.js";
 import roomSlotRoutes from "./routes/roomSlot.routes.js";
-import courseRoutes from "./routes/course.routes.js";
-import courseBookingRoutes from "./routes/courseBooking.routes.js";
 
 const app = express();
 

@@ -1,4 +1,4 @@
-// server/tests/courses.test.js
+// Jiayu
 import express from "express";
 import request from "supertest";
 import mongoose from "mongoose";

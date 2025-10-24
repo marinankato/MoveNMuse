@@ -1,4 +1,4 @@
-// src/pages/StaffCoursesPage.jsx
+// Jiayu
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listCourses, deleteCourse } from "../services/courseService";

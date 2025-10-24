@@ -1,3 +1,4 @@
+// Marina
 import Booking from "../models/booking.model.js";
 
 export const getUserBookings = async (req, res) => {

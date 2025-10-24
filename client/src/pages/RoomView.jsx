@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
+// Xinyi
+import { useEffect, useState, useMemo } from "react";
 import { fetchRooms } from "../api/room.js";
 import { Link } from "react-router-dom";
 

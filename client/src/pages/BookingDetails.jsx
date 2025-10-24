@@ -1,7 +1,7 @@
+// Marina
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api";
-import { RoomSlot } from "../../../server/src/models/roomSlot.model";
 
 const BookingDetails = () => {
   const { bookingId } = useParams();

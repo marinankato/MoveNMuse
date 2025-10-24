@@ -1,5 +1,5 @@
+// Marina
 import express from "express";
-import User from "../models/user.model.js"; 
 import authMiddleware from "../middlewares/auth.middleware.js";
 import { UserViewProfileController } from "../controllers/user.controller.js";
 import { UserUpdateProfileController } from "../controllers/user.controller.js";

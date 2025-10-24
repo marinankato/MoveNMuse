@@ -1,4 +1,4 @@
-// client/src/pages/StaffSessionsPage.jsx
+// Jiayu
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import SessionTable from "../components/Course/SessionTable.jsx";

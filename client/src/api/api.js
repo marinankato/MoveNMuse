@@ -1,5 +1,5 @@
-// src/api/api.js
-const BASE = "/api"; // adjust as needed
+// Shirley, Xinyi, Jiayu, Marina
+const BASE = "/api"; 
 
 async function request(path, { method = "GET", params, body, headers } = {}) {
   let url = path.startsWith("http") ? path : `${BASE}${path}`;

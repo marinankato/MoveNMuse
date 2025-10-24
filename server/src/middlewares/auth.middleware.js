@@ -1,4 +1,4 @@
-// server/src/middlewares/auth.middleware.js
+// Marina
 import conf from "../conf/conf.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";

@@ -1,4 +1,4 @@
-// server/src/routes/bookingCourse.routes.js
+// Jiayu
 import { Router } from "express";
 import {
   createBooking,

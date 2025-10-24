@@ -1,4 +1,4 @@
-// src/utils/auth.js
+// Marina
 export function getToken() {
   return localStorage.getItem("token") || null;
 }

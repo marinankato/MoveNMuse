@@ -1,4 +1,4 @@
-// src/components/SessionList.jsx
+// Jiayu
 import PropTypes from "prop-types";
 
 const money = (n) =>
