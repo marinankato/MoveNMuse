@@ -165,14 +165,19 @@ export default function SessionForm() {
     setLoading(true);
     // prepare payload and call create/update API
     try {
+      const start = new Date(form.startTime);
+      const end = new Date(form.endTime);
+      const duration = Math.max(0, Math.round((end - start) / (1000 * 60))); 
+
       const payload = {
         ...form,
         courseId: Number(form.courseId),
         instructorId: Number(form.instructorId),
         capacity: Number(form.capacity),
         price: form.price !== "" ? Number(form.price) : undefined,
-        startTime: new Date(form.startTime),
-        endTime: new Date(form.endTime),
+        startTime: start,
+        endTime: end,
+        duration,
         location: form.location?.trim(),
       };
 

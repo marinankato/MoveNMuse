@@ -156,6 +156,7 @@ export const createCourseSession = async (req, res) => {
       status = "Scheduled",
       location,
       notes,
+      duration: bodyDuration,
     } = req.body || {};
 
     if (!Number.isFinite(Number(courseId))) {
@@ -181,6 +182,16 @@ export const createCourseSession = async (req, res) => {
 
     const st = new Date(startTime);
     const et = new Date(endTime);
+
+    const computed = Math.round((et - st) / (1000 * 60));
+    const duration = Number.isFinite(Number(bodyDuration)) && Number(bodyDuration) > 0
+      ? Math.floor(Number(bodyDuration))
+      : computed;
+
+    if (!Number.isFinite(duration) || duration < 1) {
+      return res.status(400).json({ error: "duration must be >= 1 (minutes)" });
+    }
+
     // validate startTime and endTime
     if (!(st instanceof Date) || isNaN(st))
       return res.status(400).json({ error: "Invalid startTime" });
@@ -220,6 +231,7 @@ export const createCourseSession = async (req, res) => {
       instructorId: Number(instructorId),
       startTime: st,
       endTime: et,
+      duration, 
       capacity: cap,
       seatsBooked: 0,
       price: priceNum,

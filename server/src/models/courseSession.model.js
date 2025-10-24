@@ -182,3 +182,14 @@ export const CourseSession = mongoose.model(
   "CourseSession",
   courseSessionSchema
 );
+
+// auto-calculate duration before validation
+courseSessionSchema.pre("validate", function (next) {
+  if (this.startTime && this.endTime) {
+    const diff = this.endTime - this.startTime;
+    if (Number.isFinite(diff) && diff > 0) {
+      this.duration = Math.round(diff / (1000 * 60)); 
+    }
+  }
+  next();
+});
