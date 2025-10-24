@@ -15,7 +15,7 @@ const paymentDetailSchema = new Schema(
     cardBrand: {
       type: String,
       required: true,
-      enum: ["Visa", "Master"], // restrict values
+      enum: ["Visa", "Mastercard"], // restrict values
     },
     nickname: {
       type: String,

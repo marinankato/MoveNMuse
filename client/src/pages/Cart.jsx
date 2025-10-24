@@ -15,8 +15,9 @@ export default function CartPage() {
 
   const userId = user?.userId;
   
-  const allState = useSelector((state) => state);
-      console.log(allState);
+  // const allState = useSelector((state) => state);
+  //     console.log(allState);
+
   // Load Cart
   useEffect(() => {
 

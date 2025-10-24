@@ -67,7 +67,7 @@ const BookingDetails = () => {
 
               {item.session ? (
                 <>
-                  <p><strong>Course Name:</strong> {item.session.courseName}</p>
+                  {/* <p><strong>Course Name:</strong> {item.session.courseName}</p> */}
                   <p><strong>Start Time:</strong> {new Date(item.session.startTime).toLocaleString()}</p>
                   <p><strong>End Time:</strong> {new Date(item.session.endTime).toLocaleString()}</p>
                   <p><strong>Instructor ID:</strong> {item.session.instructorId}</p>
