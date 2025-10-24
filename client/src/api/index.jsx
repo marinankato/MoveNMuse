@@ -161,7 +161,13 @@ deletePaymentDetail: (paymentDetailId) =>
     getBookingDetails: (bookingId) =>
       request(`/bookings/${bookingId}`, {
         method: "GET",
-  })
+  }),
+
+  getRoomSlotById: (roomSlotId) => {
+    if (!roomSlotId) throw new Error("Invalid room slot ID");
+    return request(`/room-slots/slot/${encodeURIComponent(roomSlotId)}`);
+  }
+
 };
 
 export { request };

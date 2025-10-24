@@ -40,4 +40,7 @@ router.use("/instructors", instructorRoutes);
 import accountRoutes from "./account.routes.js";
 router.use("/account", accountRoutes);
 
+import roomSlotRoutes from "./roomSlot.routes.js";
+router.use("/room-slots", roomSlotRoutes);
+
 export default router;

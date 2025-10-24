@@ -38,21 +38,19 @@ steps:
     TargetFolder: 'server/public'
   displayName: 'Copy frontend into server/public'
 
-# Archive only required backend files (exclude node_modules/tests/logs)
-- script: |
-    cd server
-    echo "Cleaning up unnecessary files..."
-    rm -rf node_modules tests coverage *.log
+# Archive server folder for deploy
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: 'server'
+    includeRootFolder: false
+    archiveType: zip
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+  displayName: 'Archive app'
 
-    echo "Creating minimal deployment zip..."
-    mkdir -p $BUILD_ARTIFACTSTAGINGDIRECTORY
-    zip -r $BUILD_ARTIFACTSTAGINGDIRECTORY/app.zip . -x "node_modules/*" "tests/*" "*.log"
-  displayName: 'Archive app (exclude node_modules, tests, logs)'
-
-# Publish artifact for deploy
+# Publish artifact
 - publish: '$(Build.ArtifactStagingDirectory)/app.zip'
   artifact: drop
-  displayName: 'Publish deployment artifact'
 
 # Deploy to Azure App Service
 - task: AzureRmWebAppDeployment@4
@@ -63,5 +61,4 @@ steps:
     packageForLinux: '$(Build.ArtifactStagingDirectory)/app.zip'
     RuntimeStack: 'NODE|22'
     StartupCommand: 'npm start'
-    deploymentMethod: 'runFromPackage'
-  displayName: 'Deploy to App Service (Run From Package)'
+  displayName: 'Deploy to App Service'

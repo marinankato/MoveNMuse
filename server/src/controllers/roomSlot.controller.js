@@ -1,4 +1,5 @@
 import { RoomSlot } from "../models/roomSlot.model.js";
+import Room from "../models/room.model.js"; 
 
  const toPlainNumber = (val) => {
     if (val == null) return 0;
@@ -49,4 +50,23 @@ export const createRoomSlot = async (req, res, next) => {
     } catch (err) {
         next (err);
     }
+};
+
+export const getRoomSlotById = async (req, res) => {
+  try {
+    const { roomSlotId } = req.params;
+
+    // Find the slot first
+    const slot = await RoomSlot.findOne({ roomSlotId: Number(roomSlotId) });
+    if (!slot) return res.status(404).json({ error: "Room slot not found" });
+
+    // Fetch the corresponding room using numeric roomId
+    const room = await Room.findOne({ roomId: slot.roomId });
+    if (!room) return res.status(404).json({ error: "Room not found" });
+
+    res.json({ slot, room });
+  } catch (err) {
+    console.error("getRoomSlotById error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };

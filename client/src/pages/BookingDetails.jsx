@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../api";
+import { RoomSlot } from "../../../server/src/models/roomSlot.model";
 
 const BookingDetails = () => {
   const { bookingId } = useParams();
@@ -9,27 +10,68 @@ const BookingDetails = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchBookingWithSessions = async () => {
+    const fetchBookingWithDetails = async () => {
       try {
         const bookingData = await api.getBookingDetails(bookingId);
 
-        // Fetch session details for each booked item
-        const itemsWithSessions = await Promise.all(
+        const itemsWithDetails = await Promise.all(
           bookingData.items.map(async (item) => {
             if (!item.occurrenceId) return item;
 
-            // Fetch session details by occurrenceId (sessionId)
             try {
-              const session = await api.getCourseSession(item.occurrenceId);
-              return { ...item, session };
+              if (item.productType === "Course") {
+                const session = await api.getCourseSession(item.occurrenceId);
+                let courseName = "Unknown Course";
+
+                if (session?.courseId) {
+                  try {
+                    const course = await api.getCourse(session.courseId);
+                    courseName = course?.name || "Unknown Course";
+                  } catch (err) {
+                    console.warn("Failed to fetch course name:", err);
+                  }
+                }
+
+                return {
+                  ...item,
+                  details: {
+                    courseName,
+                    startTime: session?.startTime,
+                    endTime: session?.endTime,
+                    instructorId: session?.instructorId,
+                    location: session?.location,
+                    price: session?.price?.$numberDecimal || "N/A",
+                  }
+                };
+              } else if (item.productType === "Room") {
+                const res = await api.getRoomSlotById(item.occurrenceId);
+                const slotData = res.slot;
+                const roomData = res.room;
+
+                return {
+                  ...item,
+                  details: {
+                    roomName: roomData?.name || "Unknown Room",
+                    startTime: slotData?.startTime ? new Date(slotData.startTime) : null,
+                    endTime: slotData?.endTime ? new Date(slotData.endTime) : null,
+                    isAvailable: slotData?.isAvailable ?? false,
+                    price: slotData?.price?.$numberDecimal || roomData?.defaultPrice?.$numberDecimal || "N/A",
+                    location: roomData?.location || "N/A",
+                    capacity: roomData?.capacity || "N/A",
+                    type: roomData?.type || "N/A",
+                  },
+                };
+              } else {
+                return item;
+              }
             } catch (err) {
-              console.warn("Failed to fetch session:", err);
-              return { ...item, session: null };
+              console.warn("Failed to fetch details for item:", err);
+              return { ...item, details: null };
             }
           })
         );
 
-        setBooking({ ...bookingData, items: itemsWithSessions });
+        setBooking({ ...bookingData, items: itemsWithDetails });
       } catch (err) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -37,7 +79,7 @@ const BookingDetails = () => {
       }
     };
 
-    fetchBookingWithSessions();
+    fetchBookingWithDetails();
   }, [bookingId]);
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -65,17 +107,29 @@ const BookingDetails = () => {
               <p><strong>Item ID:</strong> {item.itemId}</p>
               <p><strong>Type:</strong> {item.productType}</p>
 
-              {item.session ? (
+              {item.details ? (
                 <>
-                  {/* <p><strong>Course Name:</strong> {item.session.courseName}</p> */}
-                  <p><strong>Start Time:</strong> {new Date(item.session.startTime).toLocaleString()}</p>
-                  <p><strong>End Time:</strong> {new Date(item.session.endTime).toLocaleString()}</p>
-                  <p><strong>Instructor ID:</strong> {item.session.instructorId}</p>
-                  <p><strong>Location:</strong> {item.session.location}</p>
-                  {/* <p><strong>Price:</strong> ${item.session.price}</p> */}
+                  {item.productType === "Course" ? (
+                    <>
+                      <p><strong>Course Name:</strong> {item.details.courseName}</p>
+                      <p><strong>Start Time:</strong> {new Date(item.details.startTime).toLocaleString()}</p>
+                      <p><strong>End Time:</strong> {new Date(item.details.endTime).toLocaleString()}</p>
+                      <p><strong>Instructor ID:</strong> {item.details.instructorId}</p>
+                      <p><strong>Location:</strong> {item.details.location}</p>
+                      <p><strong>Price:</strong> ${item.details.price}</p>
+                    </>
+                  ) : item.productType === "Room" ? (
+                    <>
+                      <p><strong>Room Name:</strong> {item.details.roomName}</p>
+                      <p><strong>Start Time:</strong> {new Date(item.details.startTime).toLocaleString()}</p>
+                      <p><strong>End Time:</strong> {new Date(item.details.endTime).toLocaleString()}</p>
+                      <p><strong>Available:</strong> {item.details.isAvailable ? "Yes" : "No"}</p>
+                      <p><strong>Price:</strong> ${item.details.price}</p>
+                    </>
+                  ) : null}
                 </>
               ) : (
-                <p className="text-red-600">Session details not available</p>
+                <p className="text-red-600">Details not available</p>
               )}
             </div>
           ))
